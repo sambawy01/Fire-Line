@@ -26,7 +26,7 @@ func TenantTx(ctx context.Context, pool *pgxpool.Pool, fn func(tx pgx.Tx) error)
 	}
 	defer tx.Rollback(ctx)
 
-	if _, err := tx.Exec(ctx, "SET LOCAL app.current_org_id = $1", orgID); err != nil {
+	if _, err := tx.Exec(ctx, "SELECT set_config('app.current_org_id', $1, true)", orgID); err != nil {
 		return fmt.Errorf("set tenant context: %w", err)
 	}
 
