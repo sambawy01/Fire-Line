@@ -1,2 +1,3 @@
-h1:eq6mW9FwgEkvEP8Tfwj81DITgVOcVfBPKgMz57qBV90=
+h1:hKWS+RhykAoJ1LKQnuyRvhcl+S/guekwrXaAvUzBXi0=
 001_core_schema.sql h1:0L5Dn77TMjG31gEMMlatEZdW3UDpGW9ZcU6Tp1LfbqM=
+002_auth_tokens.sql h1:W+lLGgn8rVCikp1K4ZnJ6rz9fgeYpuc0Q6v7MsGoQ0E=
