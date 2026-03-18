@@ -1,0 +1,26 @@
+rules:
+  - id: no-raw-sql-outside-database-pkg
+    patterns:
+      - pattern-either:
+          - pattern: $CONN.Exec($CTX, $QUERY, ...)
+          - pattern: $CONN.Query($CTX, $QUERY, ...)
+          - pattern: $CONN.QueryRow($CTX, $QUERY, ...)
+    paths:
+      exclude:
+        - pkg/database/*
+        - migrations/*
+        - "*_test.go"
+    message: "Direct SQL execution outside pkg/database is forbidden. Use database.TenantTx() to ensure RLS enforcement."
+    languages: [go]
+    severity: ERROR
+
+  - id: no-pool-raw-outside-tests
+    patterns:
+      - pattern: $P.Raw()
+    paths:
+      exclude:
+        - "*_test.go"
+        - pkg/database/*
+    message: "Do not access the raw pool outside of tests or pkg/database. Use database.TenantTx() instead."
+    languages: [go]
+    severity: ERROR

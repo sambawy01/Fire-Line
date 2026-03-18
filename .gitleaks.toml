@@ -1,0 +1,9 @@
+title = "FireLine gitleaks config"
+
+[allowlist]
+description = "Allow test fixtures and examples"
+paths = [
+  '''_test\.go$''',
+  '''docker-compose\.yml$''',
+  '''migrations/.*\.sql$''',
+]
