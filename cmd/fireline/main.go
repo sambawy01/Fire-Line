@@ -20,6 +20,7 @@ import (
 	"github.com/opsnerve/fireline/internal/event"
 	"github.com/opsnerve/fireline/internal/financial"
 	"github.com/opsnerve/fireline/internal/inventory"
+	"github.com/opsnerve/fireline/internal/labor"
 	"github.com/opsnerve/fireline/internal/menu"
 	"github.com/opsnerve/fireline/internal/pipeline"
 	"github.com/opsnerve/fireline/pkg/config"
@@ -94,10 +95,23 @@ func main() {
 	finSvc.RegisterHandlers()
 
 	menuSvc := menu.New(pool.Raw(), bus)
+	laborSvc := labor.New(pool.Raw(), bus)
 
 	// ─── Alerting ───
 	alertSvc := alerting.New(bus)
 	alertSvc.RegisterDefaultRules()
+
+	// Seed demo alerts if the demo org exists
+	if cfg.Env == "development" {
+		var demoOrgID string
+		err := adminPool.Raw().QueryRow(ctx, "SELECT org_id FROM organizations WHERE slug = 'bistro-cloud'").Scan(&demoOrgID)
+		if err == nil && demoOrgID != "" {
+			alertSvc.SeedAlerts(demoOrgID, []string{
+				"a1111111-1111-1111-1111-111111111111",
+				"b2222222-2222-2222-2222-222222222222",
+			})
+		}
+	}
 
 	slog.Info("all modules initialized",
 		"event_bus", "ready",
@@ -105,6 +119,7 @@ func main() {
 		"inventory", "ready",
 		"financial", "ready",
 		"menu", "ready",
+		"labor", "ready",
 		"alerting", "ready",
 	)
 
@@ -152,6 +167,9 @@ func main() {
 
 	menuHandler := api.NewMenuHandler(menuSvc)
 	menuHandler.RegisterRoutes(mux, authMW)
+
+	laborHandler := api.NewLaborHandler(laborSvc)
+	laborHandler.RegisterRoutes(mux, authMW)
 
 	// CORS for frontend dev
 	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
