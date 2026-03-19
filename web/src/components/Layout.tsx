@@ -14,6 +14,7 @@ import {
   Users,
   Truck,
   UserCheck,
+  Activity,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
 import { useLocationStore } from '../stores/location';
@@ -27,6 +28,7 @@ const navItems = [
   { to: '/labor', label: 'Labor', icon: Users },
   { to: '/vendors', label: 'Vendors', icon: Truck },
   { to: '/customers', label: 'Customers', icon: UserCheck },
+  { to: '/operations', label: 'Operations', icon: Activity },
   { to: '/alerts', label: 'Alerts', icon: Bell, showBadge: true },
   { to: '/adapters', label: 'Adapters', icon: Plug },
 ];

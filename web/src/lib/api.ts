@@ -362,4 +362,45 @@ export const customerApi = {
   },
 };
 
+// Operations Intelligence
+export interface OperationsSummary {
+  orders_today: number;
+  avg_ticket_time: number;
+  orders_per_hour: number;
+  active_tickets: number;
+  longest_open_min: number;
+  revenue_per_hour: number;
+  void_rate: number;
+  channel_performance: ChannelPerf[];
+}
+
+export interface ChannelPerf {
+  channel: string;
+  orders: number;
+  pct_of_total: number;
+  avg_ticket_time: number;
+  revenue: number;
+}
+
+export interface HourlyData {
+  hour: number;
+  orders: number;
+  revenue: number;
+}
+
+export const operationsApi = {
+  getSummary(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<OperationsSummary>(`/operations/summary?${params}`);
+  },
+  getHourly(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<{ hourly: HourlyData[] }>(`/operations/hourly?${params}`);
+  },
+};
+
 export { ApiError };

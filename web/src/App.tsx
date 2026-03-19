@@ -13,6 +13,7 @@ import MenuPage from './pages/MenuPage';
 import LaborPage from './pages/LaborPage';
 import VendorPage from './pages/VendorPage';
 import CustomerPage from './pages/CustomerPage';
+import OperationsPage from './pages/OperationsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="labor" element={<LaborPage />} />
             <Route path="vendors" element={<VendorPage />} />
             <Route path="customers" element={<CustomerPage />} />
+            <Route path="operations" element={<OperationsPage />} />
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="adapters" element={<AdaptersPage />} />
           </Route>
