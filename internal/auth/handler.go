@@ -3,6 +3,8 @@ package auth
 import (
 	"encoding/json"
 	"net/http"
+	"sync"
+	"time"
 )
 
 type Handler struct {
@@ -19,6 +21,84 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/auth/login", h.Login)
 	mux.HandleFunc("POST /api/v1/auth/refresh", h.Refresh)
 	mux.HandleFunc("POST /api/v1/auth/logout", h.Logout)
+	mux.HandleFunc("POST /api/v1/auth/pin-verify", h.PINVerify)
+}
+
+var pinAttempts sync.Map
+
+type attemptTracker struct {
+	mu       sync.Mutex
+	failures int
+	lockedAt time.Time
+}
+
+func checkPINLockout(locationID string) bool {
+	val, ok := pinAttempts.Load(locationID)
+	if !ok {
+		return false
+	}
+	t := val.(*attemptTracker)
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.failures >= 5 && time.Since(t.lockedAt) < 5*time.Minute {
+		return true
+	}
+	if time.Since(t.lockedAt) >= 5*time.Minute {
+		t.failures = 0
+	}
+	return false
+}
+
+func recordPINFailure(locationID string) {
+	val, _ := pinAttempts.LoadOrStore(locationID, &attemptTracker{})
+	t := val.(*attemptTracker)
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.failures++
+	if t.failures >= 5 {
+		t.lockedAt = time.Now()
+	}
+}
+
+func resetPINAttempts(locationID string) {
+	pinAttempts.Delete(locationID)
+}
+
+func (h *Handler) PINVerify(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		PIN        string `json:"pin"`
+		LocationID string `json:"location_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeHandlerError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid JSON body")
+		return
+	}
+	if req.PIN == "" || req.LocationID == "" {
+		writeHandlerError(w, http.StatusBadRequest, "MISSING_FIELDS", "pin and location_id required")
+		return
+	}
+
+	if checkPINLockout(req.LocationID) {
+		writeHandlerError(w, http.StatusTooManyRequests, "PIN_LOCKED", "too many attempts, try again in 5 minutes")
+		return
+	}
+
+	result, err := h.service.PINLogin(r.Context(), PINLoginRequest{
+		LocationID: req.LocationID,
+		PIN:        req.PIN,
+	})
+	if err != nil {
+		recordPINFailure(req.LocationID)
+		writeHandlerError(w, http.StatusUnauthorized, "PIN_FAILED", "invalid PIN")
+		return
+	}
+
+	resetPINAttempts(req.LocationID)
+	writeHandlerJSON(w, http.StatusOK, map[string]interface{}{
+		"employee_id":  result.UserID,
+		"display_name": result.DisplayName,
+		"role":         result.Role,
+	})
 }
 
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {

@@ -10,6 +10,8 @@ var rolePermissions = map[string][]string{
 		"tasks:write",
 		"menu:read",
 		"reporting:read",
+		"inventory:count",
+		"inventory:waste",
 	},
 	"shift_manager": {
 		"schedule:read_own",
@@ -21,6 +23,9 @@ var rolePermissions = map[string][]string{
 		"schedule:read",
 		"schedule:write",
 		"inventory:read",
+		"inventory:count",
+		"inventory:waste",
+		"inventory:approve",
 	},
 	"gm": {
 		"schedule:read_own",
@@ -39,6 +44,9 @@ var rolePermissions = map[string][]string{
 		"vendor:read",
 		"vendor:write",
 		"customer:read",
+		"inventory:count",
+		"inventory:waste",
+		"inventory:approve",
 	},
 	"owner": {
 		"schedule:read_own",
@@ -62,6 +70,9 @@ var rolePermissions = map[string][]string{
 		"audit:read",
 		"integrations:manage",
 		"billing:manage",
+		"inventory:count",
+		"inventory:waste",
+		"inventory:approve",
 	},
 }
 

@@ -124,6 +124,7 @@ type LoginResult struct {
 	UserID       string
 	OrgID        string
 	Role         string
+	DisplayName  string
 	AccessToken  string
 	RefreshToken string
 	MFARequired  bool
@@ -227,47 +228,53 @@ type PINLoginRequest struct {
 }
 
 func (s *Service) PINLogin(ctx context.Context, req PINLoginRequest) (*LoginResult, error) {
-	// PIN login is pre-tenant — look up by location using admin pool (bypasses RLS)
-	var employeeID, orgID, role, pinHash string
-	var userID *string
-	err := s.adminPool.QueryRow(ctx,
-		`SELECT e.employee_id, e.org_id, e.role, e.pin_hash, e.user_id
+	rows, err := s.adminPool.Query(ctx,
+		`SELECT e.employee_id, e.org_id, e.role, e.pin_hash, e.user_id, e.display_name
 		 FROM employees e
 		 WHERE e.location_id = $1 AND e.status = 'active' AND e.pin_hash IS NOT NULL`,
 		req.LocationID,
-	).Scan(&employeeID, &orgID, &role, &pinHash, &userID)
-
-	// This is simplified — in reality we'd need to check ALL employees at the location
-	// and verify the PIN against each hash. For now, this is a placeholder.
+	)
 	if err != nil {
-		return nil, fmt.Errorf("invalid PIN")
+		return nil, fmt.Errorf("query employees: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var employeeID, orgID, role, pinHash, displayName string
+		var userID *string
+		if err := rows.Scan(&employeeID, &orgID, &role, &pinHash, &userID, &displayName); err != nil {
+			return nil, fmt.Errorf("scan employee: %w", err)
+		}
+
+		ok, err := VerifyPIN(pinHash, req.PIN)
+		if err != nil || !ok {
+			continue
+		}
+
+		uid := employeeID
+		if userID != nil {
+			uid = *userID
+		}
+
+		accessToken, err := s.issuer.GenerateAccessToken(UserClaims{
+			UserID: uid,
+			OrgID:  orgID,
+			Role:   role,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("generate access token: %w", err)
+		}
+
+		return &LoginResult{
+			UserID:      uid,
+			OrgID:       orgID,
+			Role:        role,
+			DisplayName: displayName,
+			AccessToken: accessToken,
+		}, nil
 	}
 
-	ok, err := VerifyPIN(pinHash, req.PIN)
-	if err != nil || !ok {
-		return nil, fmt.Errorf("invalid PIN")
-	}
-
-	uid := employeeID
-	if userID != nil {
-		uid = *userID
-	}
-
-	accessToken, err := s.issuer.GenerateAccessToken(UserClaims{
-		UserID: uid,
-		OrgID:  orgID,
-		Role:   role,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("generate access token: %w", err)
-	}
-
-	return &LoginResult{
-		UserID:      uid,
-		OrgID:       orgID,
-		Role:        role,
-		AccessToken: accessToken,
-	}, nil
+	return nil, fmt.Errorf("invalid PIN")
 }
 
 func (s *Service) Logout(ctx context.Context, refreshTokenPlain string) error {
