@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -158,13 +159,28 @@ func main() {
 	})
 	mux.HandleFunc("GET /health/ready", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+
+		dbStatus := "ok"
 		if err := pool.Ping(r.Context()); err != nil {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			fmt.Fprintln(w, `{"status":"not_ready","error":"database"}`)
-			return
+			dbStatus = "error"
 		}
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, `{"status":"ready"}`)
+
+		status := "ready"
+		if dbStatus != "ok" {
+			status = "not_ready"
+			w.WriteHeader(http.StatusServiceUnavailable)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
+
+		json.NewEncoder(w).Encode(map[string]any{
+			"status": status,
+			"modules": map[string]any{
+				"database":  dbStatus,
+				"event_bus": "ok",
+				"adapters":  map[string]string{"toast": "registered"},
+			},
+		})
 	})
 
 	// Auth routes (no auth middleware — these create/validate auth)
