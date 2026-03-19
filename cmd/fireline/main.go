@@ -24,6 +24,7 @@ import (
 	"github.com/opsnerve/fireline/internal/labor"
 	"github.com/opsnerve/fireline/internal/menu"
 	"github.com/opsnerve/fireline/internal/operations"
+	"github.com/opsnerve/fireline/internal/reporting"
 	"github.com/opsnerve/fireline/internal/vendor"
 	"github.com/opsnerve/fireline/internal/pipeline"
 	"github.com/opsnerve/fireline/pkg/config"
@@ -123,6 +124,9 @@ func main() {
 		}
 	}
 
+	// ─── Reporting ───
+	reportSvc := reporting.New(pool.Raw(), bus, alertSvc)
+
 	slog.Info("all modules initialized",
 		"event_bus", "ready",
 		"pipeline", "ready",
@@ -134,6 +138,7 @@ func main() {
 		"customer", "ready",
 		"operations", "ready",
 		"alerting", "ready",
+		"reporting", "ready",
 	)
 
 	// ─── Auth ───
@@ -192,6 +197,9 @@ func main() {
 
 	opsHandler := api.NewOperationsHandler(opsSvc)
 	opsHandler.RegisterRoutes(mux, authMW)
+
+	reportHandler := api.NewReportingHandler(reportSvc)
+	reportHandler.RegisterRoutes(mux, authMW)
 
 	// CORS for frontend dev
 	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
