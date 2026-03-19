@@ -31,6 +31,20 @@ func (h *InventoryHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.H
 	mux.Handle("GET /api/v1/inventory/usage", authMW(http.HandlerFunc(h.GetTheoreticalUsage)))
 	mux.Handle("GET /api/v1/inventory/par", authMW(http.HandlerFunc(h.GetPARStatus)))
 	mux.Handle("POST /api/v1/inventory/explode", authMW(http.HandlerFunc(h.MaterializeRecipeExplosion)))
+
+	// Counting
+	mux.Handle("POST /api/v1/inventory/counts", authMW(http.HandlerFunc(h.CreateCount)))
+	mux.Handle("GET /api/v1/inventory/counts/{id}", authMW(http.HandlerFunc(h.GetCount)))
+	mux.Handle("PUT /api/v1/inventory/counts/{id}", authMW(http.HandlerFunc(h.UpdateCountStatus)))
+	mux.Handle("POST /api/v1/inventory/counts/{id}/lines", authMW(http.HandlerFunc(h.UpsertCountLines)))
+
+	// Waste
+	mux.Handle("POST /api/v1/inventory/waste", authMW(http.HandlerFunc(h.LogWaste)))
+	mux.Handle("GET /api/v1/inventory/waste", authMW(http.HandlerFunc(h.ListWasteLogs)))
+	mux.Handle("DELETE /api/v1/inventory/waste/{id}", authMW(http.HandlerFunc(h.DeleteWaste)))
+
+	// Variances
+	mux.Handle("GET /api/v1/inventory/variances", authMW(http.HandlerFunc(h.ListVariances)))
 }
 
 func (h *InventoryHandler) GetTheoreticalUsage(w http.ResponseWriter, r *http.Request) {
