@@ -23,6 +23,7 @@ import (
 	"github.com/opsnerve/fireline/internal/inventory"
 	"github.com/opsnerve/fireline/internal/labor"
 	"github.com/opsnerve/fireline/internal/menu"
+	"github.com/opsnerve/fireline/internal/operations"
 	"github.com/opsnerve/fireline/internal/vendor"
 	"github.com/opsnerve/fireline/internal/pipeline"
 	"github.com/opsnerve/fireline/pkg/config"
@@ -104,6 +105,7 @@ func main() {
 	ollamaModel := os.Getenv("OLLAMA_MODEL")
 	ollamaClient := customer.NewOllamaClient(ollamaURL, ollamaModel)
 	customerSvc := customer.New(pool.Raw(), bus, ollamaClient)
+	opsSvc := operations.New(pool.Raw(), bus)
 
 	// ─── Alerting ───
 	alertSvc := alerting.New(bus)
@@ -130,6 +132,7 @@ func main() {
 		"labor", "ready",
 		"vendor", "ready",
 		"customer", "ready",
+		"operations", "ready",
 		"alerting", "ready",
 	)
 
@@ -186,6 +189,9 @@ func main() {
 
 	customerHandler := api.NewCustomerHandler(customerSvc)
 	customerHandler.RegisterRoutes(mux, authMW)
+
+	opsHandler := api.NewOperationsHandler(opsSvc)
+	opsHandler.RegisterRoutes(mux, authMW)
 
 	// CORS for frontend dev
 	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
