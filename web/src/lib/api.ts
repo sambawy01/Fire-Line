@@ -1,0 +1,160 @@
+const API_BASE = '/api/v1';
+
+class ApiError extends Error {
+  status: number;
+  code: string;
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = localStorage.getItem('access_token');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, body.error?.code || 'UNKNOWN', body.error?.message || res.statusText);
+  }
+
+  return res.json();
+}
+
+// Auth
+export interface AuthTokens {
+  access_token: string;
+  refresh_token: string;
+  org_id?: string;
+  user_id?: string;
+  role?: string;
+}
+
+export const authApi = {
+  signup(data: { org_name: string; org_slug: string; email: string; password: string; display_name: string }) {
+    return request<AuthTokens>('/auth/signup', { method: 'POST', body: JSON.stringify(data) });
+  },
+  login(data: { email: string; password: string }) {
+    return request<AuthTokens & { mfa_required?: boolean }>('/auth/login', { method: 'POST', body: JSON.stringify(data) });
+  },
+  refresh(refresh_token: string) {
+    return request<AuthTokens>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refresh_token }) });
+  },
+  logout(refresh_token: string) {
+    return request<{ status: string }>('/auth/logout', { method: 'POST', body: JSON.stringify({ refresh_token }) });
+  },
+};
+
+// Financial
+export interface PnL {
+  location_id: string;
+  period_start: string;
+  period_end: string;
+  gross_revenue: number;
+  discounts: number;
+  net_revenue: number;
+  cogs: number;
+  gross_profit: number;
+  gross_margin: number;
+  tax_collected: number;
+  tips: number;
+  check_count: number;
+  avg_check_size: number;
+  by_channel: ChannelBreakdown[];
+}
+
+export interface ChannelBreakdown {
+  channel: string;
+  revenue: number;
+  cogs: number;
+  gross_profit: number;
+  gross_margin: number;
+  check_count: number;
+  avg_check_size: number;
+}
+
+export const financialApi = {
+  getPnL(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<PnL>(`/financial/pnl?${params}`);
+  },
+  getAnomalies(locationId: string) {
+    return request<{ anomalies: any[] }>(`/financial/anomalies?location_id=${locationId}`);
+  },
+};
+
+// Inventory
+export interface TheoreticalUsage {
+  ingredient_id: string;
+  ingredient_name: string;
+  total_used: number;
+  unit: string;
+  cost_per_unit: number;
+  total_cost: number;
+}
+
+export interface PARStatus {
+  ingredient_id: string;
+  ingredient_name: string;
+  current_level: number;
+  par_level: number;
+  reorder_point: number;
+  unit: string;
+  needs_reorder: boolean;
+  suggested_qty: number;
+}
+
+export const inventoryApi = {
+  getUsage(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<{ usage: TheoreticalUsage[]; period_start: string; period_end: string }>(`/inventory/usage?${params}`);
+  },
+  getPARStatus(locationId: string) {
+    return request<{ par_status: PARStatus[] }>(`/inventory/par?location_id=${locationId}`);
+  },
+};
+
+// Alerting
+export interface Alert {
+  alert_id: string;
+  org_id: string;
+  location_id: string;
+  rule_id: string;
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  description: string;
+  module: string;
+  status: string;
+  created_at: string;
+  acked_at: string | null;
+  resolved_at: string | null;
+}
+
+export const alertsApi = {
+  getQueue(locationId?: string) {
+    const params = locationId ? `?location_id=${locationId}` : '';
+    return request<{ alerts: Alert[] }>(`/alerts${params}`);
+  },
+  getCount() {
+    return request<{ count: number }>('/alerts/count');
+  },
+  acknowledge(alertId: string) {
+    return request<{ status: string }>(`/alerts/${alertId}/acknowledge`, { method: 'POST' });
+  },
+  resolve(alertId: string) {
+    return request<{ status: string }>(`/alerts/${alertId}/resolve`, { method: 'POST' });
+  },
+};
+
+export { ApiError };
