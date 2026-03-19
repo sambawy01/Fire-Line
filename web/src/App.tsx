@@ -9,6 +9,7 @@ import InventoryPage from './pages/InventoryPage';
 import FinancialPage from './pages/FinancialPage';
 import AlertsPage from './pages/AlertsPage';
 import AdaptersPage from './pages/AdaptersPage';
+import MenuPage from './pages/MenuPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +35,7 @@ export default function App() {
             <Route index element={<DashboardPage />} />
             <Route path="inventory" element={<InventoryPage />} />
             <Route path="financial" element={<FinancialPage />} />
+            <Route path="menu" element={<MenuPage />} />
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="adapters" element={<AdaptersPage />} />
           </Route>

@@ -194,4 +194,60 @@ export const alertsApi = {
   },
 };
 
+// Menu Intelligence
+export interface MenuItemAnalysis {
+  menu_item_id: string;
+  name: string;
+  category: string;
+  price: number;
+  food_cost: number;
+  units_sold: number;
+  contrib_margin: number;
+  contrib_margin_pct: number;
+  popularity_pct: number;
+  health_score: number;
+  classification: 'powerhouse' | 'hidden_gem' | 'crowd_pleaser' | 'underperformer';
+  by_channel: ChannelMarginData[];
+}
+
+export interface ChannelMarginData {
+  channel: string;
+  revenue: number;
+  commission: number;
+  food_cost: number;
+  margin: number;
+  margin_pct: number;
+  units_sold: number;
+}
+
+export interface MenuSummary {
+  total_items: number;
+  avg_margin_pct: number;
+  powerhouse_count: number;
+  underperform_count: number;
+  categories: CategorySummaryData[];
+}
+
+export interface CategorySummaryData {
+  category: string;
+  item_count: number;
+  avg_margin_pct: number;
+  top_item: string;
+}
+
+export const menuApi = {
+  getItems(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<{ items: MenuItemAnalysis[] }>(`/menu/items?${params}`);
+  },
+  getSummary(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<MenuSummary>(`/menu/summary?${params}`);
+  },
+};
+
 export { ApiError };

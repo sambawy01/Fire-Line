@@ -10,6 +10,7 @@ import {
   Flame,
   User,
   MapPin,
+  UtensilsCrossed,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
 import { useLocationStore } from '../stores/location';
@@ -19,6 +20,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/inventory', label: 'Inventory', icon: Package },
   { to: '/financial', label: 'Financial', icon: DollarSign },
+  { to: '/menu', label: 'Menu', icon: UtensilsCrossed },
   { to: '/alerts', label: 'Alerts', icon: Bell, showBadge: true },
   { to: '/adapters', label: 'Adapters', icon: Plug },
 ];
