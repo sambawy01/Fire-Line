@@ -150,6 +150,34 @@ export interface PARStatus {
   suggested_qty: number;
 }
 
+export interface CountVariance {
+  variance_id: string;
+  ingredient_id: string;
+  ingredient_name: string;
+  category: string;
+  theoretical_usage: number;
+  actual_usage: number;
+  variance_qty: number;
+  variance_pct: number;
+  variance_cents: number;
+  cause_probabilities: Record<string, number>;
+  severity: 'info' | 'warning' | 'critical';
+  created_at: string;
+}
+
+export interface WasteLogEntry {
+  waste_id: string;
+  ingredient_id: string;
+  ingredient_name: string;
+  quantity: number;
+  unit: string;
+  reason: string;
+  logged_by: string;
+  logged_by_name: string;
+  logged_at: string;
+  note: string;
+}
+
 export const inventoryApi = {
   getUsage(locationId: string, from?: string, to?: string) {
     const params = new URLSearchParams({ location_id: locationId });
@@ -160,6 +188,12 @@ export const inventoryApi = {
   getPARStatus(locationId: string) {
     return request<{ par_status: PARStatus[] }>(`/inventory/par?location_id=${locationId}`);
   },
+  getVariances: (locationId: string) =>
+    request<{ variances: CountVariance[] }>(`/inventory/variances?location_id=${locationId}`),
+  getWasteLogs: (locationId: string) =>
+    request<{ waste_logs: WasteLogEntry[] }>(
+      `/inventory/waste?location_id=${locationId}&from=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}&to=${new Date().toISOString()}`
+    ),
 };
 
 // Alerting
