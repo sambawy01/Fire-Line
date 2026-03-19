@@ -12,6 +12,7 @@ var rolePermissions = map[string][]string{
 		"reporting:read",
 		"inventory:count",
 		"inventory:waste",
+		"inventory:receive",
 	},
 	"shift_manager": {
 		"schedule:read_own",
@@ -26,6 +27,8 @@ var rolePermissions = map[string][]string{
 		"inventory:count",
 		"inventory:waste",
 		"inventory:approve",
+		"inventory:purchase",
+		"inventory:receive",
 	},
 	"gm": {
 		"schedule:read_own",
@@ -47,6 +50,8 @@ var rolePermissions = map[string][]string{
 		"inventory:count",
 		"inventory:waste",
 		"inventory:approve",
+		"inventory:purchase",
+		"inventory:receive",
 	},
 	"owner": {
 		"schedule:read_own",
@@ -73,6 +78,8 @@ var rolePermissions = map[string][]string{
 		"inventory:count",
 		"inventory:waste",
 		"inventory:approve",
+		"inventory:purchase",
+		"inventory:receive",
 	},
 }
 
