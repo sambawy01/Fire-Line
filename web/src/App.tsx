@@ -14,6 +14,7 @@ import LaborPage from './pages/LaborPage';
 import VendorPage from './pages/VendorPage';
 import CustomerPage from './pages/CustomerPage';
 import OperationsPage from './pages/OperationsPage';
+import ReportsPage from './pages/ReportsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="vendors" element={<VendorPage />} />
             <Route path="customers" element={<CustomerPage />} />
             <Route path="operations" element={<OperationsPage />} />
+            <Route path="reports" element={<ReportsPage />} />
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="adapters" element={<AdaptersPage />} />
           </Route>

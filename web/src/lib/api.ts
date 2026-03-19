@@ -403,4 +403,60 @@ export const operationsApi = {
   },
 };
 
+// Reporting
+export interface DailyReport {
+  location_id: string;
+  location_name: string;
+  report_date: string;
+  health_score: number;
+  net_revenue: number;
+  gross_margin_pct: number;
+  labor_cost_pct: number;
+  orders_today: number;
+  avg_ticket_time: number;
+  active_alerts: number;
+  critical_count: number;
+  critical_issues: CriticalIssue[];
+  channels: ReportChannel[];
+  top_items: ReportMenuItem[];
+  worst_item: ReportMenuItem | null;
+  zero_sales_items: string[];
+  category_revenue: CategoryRevData[];
+  staff_summary: StaffEntry[];
+  total_labor_cost: number;
+  total_hours_worked: number;
+  overtime_flags: string[];
+  reorder_needed: ReorderItem[];
+}
+
+export interface CriticalIssue { title: string; module: string; created_at: string; }
+export interface ReportChannel { channel: string; orders: number; revenue: number; pct_of_total: number; avg_ticket_time: number; }
+export interface ReportMenuItem { name: string; category: string; units_sold: number; revenue: number; margin_pct: number; }
+export interface CategoryRevData { category: string; revenue: number; pct_of_total: number; item_count: number; }
+export interface StaffEntry { name: string; role: string; hours_worked: number; labor_cost: number; is_overtime: boolean; }
+export interface ReorderItem { name: string; current_level: number; par_level: number; unit: string; }
+
+export const reportsApi = {
+  getDaily(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<DailyReport>(`/reports/daily?${params}`);
+  },
+  async downloadPdf(locationId: string) {
+    const token = localStorage.getItem('access_token');
+    const res = await fetch(`/api/v1/reports/daily/pdf?location_id=${locationId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('PDF download failed');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fireline-daily-report.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+};
+
 export { ApiError };
