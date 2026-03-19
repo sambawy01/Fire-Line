@@ -6,122 +6,99 @@ import {
   AlertCircle,
   Info,
 } from 'lucide-react';
+import { useLocationStore } from '../stores/location';
+import { usePnL } from '../hooks/useFinancial';
+import { useAlertQueue, useAlertCount } from '../hooks/useAlerts';
+import KPICard from '../components/ui/KPICard';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import ErrorBanner from '../components/ui/ErrorBanner';
+import StatusBadge from '../components/ui/StatusBadge';
 
-const kpiCards = [
-  {
-    label: 'Revenue (Today)',
-    value: '$4,250',
-    icon: DollarSign,
-    iconColor: 'text-emerald-600',
-    bgTint: 'bg-emerald-50',
-  },
-  {
-    label: 'COGS',
-    value: '$1,275',
-    icon: TrendingDown,
-    iconColor: 'text-red-600',
-    bgTint: 'bg-red-50',
-  },
-  {
-    label: 'Gross Margin %',
-    value: '70%',
-    icon: Percent,
-    iconColor: 'text-blue-600',
-    bgTint: 'bg-blue-50',
-  },
-  {
-    label: 'Active Alerts',
-    value: '3',
-    icon: AlertTriangle,
-    iconColor: 'text-orange-600',
-    bgTint: 'bg-orange-50',
-  },
-];
+function cents(v: number): string {
+  return `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
-type Severity = 'critical' | 'warning' | 'info';
-
-const priorityAlerts: { title: string; message: string; severity: Severity }[] = [
-  {
-    title: 'Ground Beef Below PAR',
-    message: 'Current stock is 12 lbs — PAR level is 30 lbs. Reorder immediately.',
-    severity: 'critical',
-  },
-  {
-    title: 'Delivery COGS Spike',
-    message: 'Delivery channel COGS rose 8% over the last 7 days. Review vendor pricing.',
-    severity: 'warning',
-  },
-  {
-    title: 'New POS Sync Available',
-    message: 'Toast adapter v2.4 is available with improved ticket parsing.',
-    severity: 'info',
-  },
-];
-
-const severityConfig: Record<Severity, { badge: string; border: string; icon: typeof AlertCircle }> = {
-  critical: { badge: 'bg-red-100 text-red-700', border: 'border-l-red-500', icon: AlertCircle },
-  warning: { badge: 'bg-yellow-100 text-yellow-700', border: 'border-l-yellow-500', icon: AlertTriangle },
-  info: { badge: 'bg-blue-100 text-blue-700', border: 'border-l-blue-500', icon: Info },
+const severityIcon: Record<string, typeof AlertCircle> = {
+  critical: AlertCircle,
+  warning: AlertTriangle,
+  info: Info,
 };
 
 export default function DashboardPage() {
+  const locationId = useLocationStore((s) => s.selectedLocationId);
+  const { data: pnl, isLoading: pnlLoading, error: pnlError, refetch: refetchPnl } = usePnL(locationId);
+  const { data: alertCount } = useAlertCount(locationId);
+  const { data: topAlerts, isLoading: alertsLoading } = useAlertQueue(locationId, { limit: 5 });
+
+  if (!locationId) {
+    return <LoadingSpinner fullPage />;
+  }
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Today's operational snapshot
-        </p>
+        <p className="text-sm text-gray-500 mt-1">Today's operational snapshot</p>
       </div>
+
+      {pnlError && (
+        <ErrorBanner
+          message={pnlError instanceof Error ? pnlError.message : 'Failed to load financial data'}
+          retry={() => refetchPnl()}
+        />
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {kpiCards.map(({ label, value, icon: Icon, iconColor, bgTint }) => (
-          <div
-            key={label}
-            className="bg-white rounded-xl border border-gray-200 p-5 flex items-start gap-4 shadow-sm"
-          >
-            <div className={`${bgTint} p-3 rounded-lg`}>
-              <Icon className={`h-6 w-6 ${iconColor}`} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">{label}</p>
-              <p className="text-2xl font-bold text-gray-800 mt-0.5">{value}</p>
-            </div>
+        {pnlLoading ? (
+          <div className="col-span-full flex justify-center py-8">
+            <LoadingSpinner />
           </div>
-        ))}
+        ) : pnl ? (
+          <>
+            <KPICard label="Revenue (Today)" value={cents(pnl.net_revenue)} icon={DollarSign} iconColor="text-emerald-600" bgTint="bg-emerald-50" />
+            <KPICard label="COGS" value={cents(pnl.cogs)} icon={TrendingDown} iconColor="text-red-600" bgTint="bg-red-50" />
+            <KPICard label="Gross Margin %" value={`${pnl.gross_margin.toFixed(1)}%`} icon={Percent} iconColor="text-blue-600" bgTint="bg-blue-50" />
+            <KPICard label="Active Alerts" value={String(alertCount?.count ?? 0)} icon={AlertTriangle} iconColor="text-orange-600" bgTint="bg-orange-50" />
+          </>
+        ) : null}
       </div>
 
       {/* Priority Action Queue */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Priority Action Queue
-        </h2>
-        <div className="space-y-3">
-          {priorityAlerts.map(({ title, message, severity }) => {
-            const config = severityConfig[severity];
-            const SevIcon = config.icon;
-            return (
-              <div
-                key={title}
-                className={`bg-white rounded-lg border border-gray-200 border-l-4 ${config.border} p-4 flex items-start gap-3 shadow-sm`}
-              >
-                <SevIcon className={`h-5 w-5 mt-0.5 shrink-0 ${config.badge.split(' ')[1]}`} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium text-gray-800">{title}</p>
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${config.badge}`}
-                    >
-                      {severity}
-                    </span>
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Priority Action Queue</h2>
+        {alertsLoading ? (
+          <div className="flex justify-center py-8"><LoadingSpinner /></div>
+        ) : topAlerts && topAlerts.length > 0 ? (
+          <div className="space-y-3">
+            {topAlerts.map((alert) => {
+              const SevIcon = severityIcon[alert.severity] ?? Info;
+              return (
+                <div
+                  key={alert.alert_id}
+                  className={`bg-white rounded-lg border border-gray-200 border-l-4 p-4 flex items-start gap-3 shadow-sm ${
+                    alert.severity === 'critical' ? 'border-l-red-500' :
+                    alert.severity === 'warning' ? 'border-l-yellow-500' : 'border-l-blue-500'
+                  }`}
+                >
+                  <SevIcon className={`h-5 w-5 mt-0.5 shrink-0 ${
+                    alert.severity === 'critical' ? 'text-red-700' :
+                    alert.severity === 'warning' ? 'text-yellow-700' : 'text-blue-700'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium text-gray-800">{alert.title}</p>
+                      <StatusBadge variant={alert.severity}>{alert.severity}</StatusBadge>
+                    </div>
+                    <p className="text-sm text-gray-500">{alert.description}</p>
                   </div>
-                  <p className="text-sm text-gray-500">{message}</p>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-400">No alerts — all clear.</div>
+        )}
       </div>
     </div>
   );
