@@ -238,6 +238,106 @@ func (s *Service) ActiveCount(orgID string) int {
 	return count
 }
 
+// SeedAlerts injects demo alerts for development/testing purposes.
+func (s *Service) SeedAlerts(orgID string, locations []string) {
+	now := time.Now()
+	demos := []Alert{
+		{
+			OrgID:       orgID,
+			LocationID:  locations[0],
+			Severity:    SeverityCritical,
+			Title:       "Ground Beef stock critically low",
+			Description: "Current inventory is 8 lbs — PAR level is 50 lbs. Projected to run out before tomorrow lunch service. Reorder immediately from US Foods.",
+			Module:      "inventory",
+			Status:      "active",
+			CreatedAt:   now.Add(-25 * time.Minute),
+			Metadata:    map[string]any{"ingredient": "Ground Beef (80/20)", "current_level": 8, "par_level": 50},
+		},
+		{
+			OrgID:       orgID,
+			LocationID:  locations[0],
+			Severity:    SeverityCritical,
+			Title:       "Delivery COGS margin below 30%",
+			Description: "Delivery channel gross margin dropped to 27.3% over the last 7 days — below the 30% minimum threshold. Review delivery pricing or renegotiate platform commission.",
+			Module:      "financial",
+			Status:      "active",
+			CreatedAt:   now.Add(-2 * time.Hour),
+			Metadata:    map[string]any{"channel": "delivery", "margin_pct": 27.3, "threshold": 30.0},
+		},
+		{
+			OrgID:       orgID,
+			LocationID:  locations[0],
+			Severity:    SeverityWarning,
+			Title:       "Romaine Lettuce approaching reorder point",
+			Description: "Current stock is 12 heads — reorder point is 10 heads. Place order within 24 hours to avoid stockout.",
+			Module:      "inventory",
+			Status:      "active",
+			CreatedAt:   now.Add(-1 * time.Hour),
+			Metadata:    map[string]any{"ingredient": "Romaine Lettuce", "current_level": 12, "reorder_point": 10},
+		},
+		{
+			OrgID:       orgID,
+			LocationID:  locations[0],
+			Severity:    SeverityWarning,
+			Title:       "Classic Burger food cost up 12% this week",
+			Description: "Ground beef cost per unit increased from $4.40 to $4.80/lb. Contribution margin on Classic Burger dropped from 78% to 72%. Consider supplier alternatives or price adjustment.",
+			Module:      "financial",
+			Status:      "active",
+			CreatedAt:   now.Add(-3 * time.Hour),
+			Metadata:    map[string]any{"item": "Classic Burger", "old_cost": 440, "new_cost": 480},
+		},
+		{
+			OrgID:       orgID,
+			LocationID:  locations[0],
+			Severity:    SeverityInfo,
+			Title:       "Weekly COGS report ready",
+			Description: "The automated cost-of-goods-sold report for the week ending March 16 has been generated and is ready for review.",
+			Module:      "financial",
+			Status:      "active",
+			CreatedAt:   now.Add(-5 * time.Hour),
+			Metadata:    map[string]any{"report_type": "weekly_cogs", "week_ending": "2026-03-16"},
+		},
+		{
+			OrgID:       orgID,
+			LocationID:  locations[1],
+			Severity:    SeverityCritical,
+			Title:       "Toast POS sync failed",
+			Description: "The Toast adapter for Airport Terminal 4 has not synced in 45 minutes. Orders placed after 2:15 PM may not be reflected in reports. Check network connectivity.",
+			Module:      "adapter",
+			Status:      "active",
+			CreatedAt:   now.Add(-45 * time.Minute),
+			Metadata:    map[string]any{"adapter": "toast", "last_sync": now.Add(-45 * time.Minute).Format(time.RFC3339)},
+		},
+		{
+			OrgID:       orgID,
+			LocationID:  locations[1],
+			Severity:    SeverityWarning,
+			Title:       "Bacon Avocado Burger underperforming at Airport",
+			Description: "Sales volume dropped 35% over the last 14 days at Airport Terminal 4. Only 3 units sold today vs 7-day average of 8 units. Consider repositioning on menu or running a promotion.",
+			Module:      "financial",
+			Status:      "active",
+			CreatedAt:   now.Add(-4 * time.Hour),
+			Metadata:    map[string]any{"item": "Bacon Avocado Burger", "current_daily": 3, "avg_daily": 8},
+		},
+		{
+			OrgID:       orgID,
+			LocationID:  locations[1],
+			Severity:    SeverityInfo,
+			Title:       "New menu item performance check",
+			Description: "Loaded Fries was added to Airport Terminal 4 menu 14 days ago. Trending at 6 units/day — 15% above projected volume. Consider permanent menu placement.",
+			Module:      "financial",
+			Status:      "active",
+			CreatedAt:   now.Add(-6 * time.Hour),
+			Metadata:    map[string]any{"item": "Loaded Fries", "days_since_added": 14, "daily_units": 6},
+		},
+	}
+
+	for _, a := range demos {
+		s.enqueue(a)
+	}
+	slog.Info("demo alerts seeded", "count", len(demos), "org_id", orgID)
+}
+
 func formatAlertID(seq int64) string {
 	return "alert-" + time.Now().Format("20060102") + "-" + itoa(seq)
 }
