@@ -20,6 +20,7 @@ import (
 	"github.com/opsnerve/fireline/internal/event"
 	"github.com/opsnerve/fireline/internal/financial"
 	"github.com/opsnerve/fireline/internal/inventory"
+	"github.com/opsnerve/fireline/internal/menu"
 	"github.com/opsnerve/fireline/internal/pipeline"
 	"github.com/opsnerve/fireline/pkg/config"
 	"github.com/opsnerve/fireline/pkg/database"
@@ -92,6 +93,8 @@ func main() {
 	finSvc := financial.New(pool.Raw(), bus)
 	finSvc.RegisterHandlers()
 
+	menuSvc := menu.New(pool.Raw(), bus)
+
 	// ─── Alerting ───
 	alertSvc := alerting.New(bus)
 	alertSvc.RegisterDefaultRules()
@@ -101,6 +104,7 @@ func main() {
 		"pipeline", "ready",
 		"inventory", "ready",
 		"financial", "ready",
+		"menu", "ready",
 		"alerting", "ready",
 	)
 
@@ -143,8 +147,11 @@ func main() {
 	alertHandler := api.NewAlertingHandler(alertSvc)
 	alertHandler.RegisterRoutes(mux, authMW)
 
-	locHandler := api.NewLocationHandler(pool.Raw())
+	locHandler := api.NewLocationHandler(adminPool.Raw())
 	locHandler.RegisterRoutes(mux, authMW)
+
+	menuHandler := api.NewMenuHandler(menuSvc)
+	menuHandler.RegisterRoutes(mux, authMW)
 
 	// CORS for frontend dev
 	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
