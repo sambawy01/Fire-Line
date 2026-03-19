@@ -25,3 +25,8 @@ Thumbs.db
 # Frontend
 web/node_modules/
 web/dist/
+
+# Tablet (Expo)
+tablet/node_modules/
+tablet/.expo/
+tablet/dist/
