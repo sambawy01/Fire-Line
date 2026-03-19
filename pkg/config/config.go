@@ -9,6 +9,7 @@ type Config struct {
 	Env               string // "development" or "production"
 	Port              string
 	DatabaseURL       string
+	AdminDatabaseURL  string // superuser — for signup/login (pre-tenant, bypasses RLS)
 	RedisURL          string
 	LogLevel          string
 	JWTPrivateKeyPath string
@@ -20,6 +21,7 @@ func Load() (*Config, error) {
 		Env:               getEnv("ENV", "development"),
 		Port:              getEnv("PORT", "8080"),
 		DatabaseURL:       getEnv("DATABASE_URL", "postgres://fireline_app:fireline_app@localhost:5432/fireline?sslmode=disable"),
+		AdminDatabaseURL:  getEnv("ADMIN_DATABASE_URL", "postgres://fireline:fireline@localhost:5432/fireline?sslmode=disable"),
 		RedisURL:          getEnv("REDIS_URL", "redis://localhost:6379/0"),
 		LogLevel:          getEnv("LOG_LEVEL", "info"),
 		JWTPrivateKeyPath: getEnv("JWT_PRIVATE_KEY_PATH", ""),

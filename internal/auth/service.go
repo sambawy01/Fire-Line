@@ -11,12 +11,16 @@ import (
 )
 
 type Service struct {
-	pool   *pgxpool.Pool
-	issuer *TokenIssuer
+	pool      *pgxpool.Pool // fireline_app (RLS enforced) — for tenant-scoped operations
+	adminPool *pgxpool.Pool // fireline superuser — for signup/login (pre-tenant, bypasses RLS)
+	issuer    *TokenIssuer
 }
 
-func NewService(pool *pgxpool.Pool, issuer *TokenIssuer) *Service {
-	return &Service{pool: pool, issuer: issuer}
+// NewService creates an auth service.
+// pool: fireline_app connection (RLS enforced) for tenant-scoped operations.
+// adminPool: superuser connection for pre-tenant operations (signup, login).
+func NewService(pool *pgxpool.Pool, adminPool *pgxpool.Pool, issuer *TokenIssuer) *Service {
+	return &Service{pool: pool, adminPool: adminPool, issuer: issuer}
 }
 
 func (s *Service) Issuer() *TokenIssuer {
@@ -50,9 +54,9 @@ func (s *Service) Signup(ctx context.Context, req SignupRequest) (*SignupResult,
 
 	var orgID, userID string
 
-	// Signup uses the superuser pool (bypasses RLS) because no tenant exists yet.
+	// Signup uses the admin pool (superuser, bypasses RLS) because no tenant exists yet.
 	// We create the org first, then set tenant context for the user insert.
-	tx, err := s.pool.Begin(ctx)
+	tx, err := s.adminPool.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin tx: %w", err)
 	}
@@ -126,10 +130,10 @@ type LoginResult struct {
 }
 
 func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResult, error) {
-	// Login is pre-tenant — we look up the user by email across all orgs
+	// Login is pre-tenant — we look up the user by email using admin pool (bypasses RLS)
 	var userID, orgID, role, passwordHash string
 	var mfaEnabled bool
-	err := s.pool.QueryRow(ctx,
+	err := s.adminPool.QueryRow(ctx,
 		`SELECT user_id, org_id, role, password_hash, mfa_enabled
 		 FROM users WHERE email = $1 AND status = 'active'`,
 		req.Email,
@@ -223,10 +227,10 @@ type PINLoginRequest struct {
 }
 
 func (s *Service) PINLogin(ctx context.Context, req PINLoginRequest) (*LoginResult, error) {
-	// PIN login is pre-tenant — look up by location
+	// PIN login is pre-tenant — look up by location using admin pool (bypasses RLS)
 	var employeeID, orgID, role, pinHash string
 	var userID *string
-	err := s.pool.QueryRow(ctx,
+	err := s.adminPool.QueryRow(ctx,
 		`SELECT e.employee_id, e.org_id, e.role, e.pin_hash, e.user_id
 		 FROM employees e
 		 WHERE e.location_id = $1 AND e.status = 'active' AND e.pin_hash IS NOT NULL`,

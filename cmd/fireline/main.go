@@ -31,12 +31,21 @@ func main() {
 
 	ctx := context.Background()
 
+	// App pool: fireline_app (RLS enforced) — for all tenant-scoped operations
 	pool, err := database.NewPool(ctx, cfg.DatabaseURL)
 	if err != nil {
 		slog.Error("failed to create database pool", "error", err)
 		os.Exit(1)
 	}
 	defer pool.Close()
+
+	// Admin pool: superuser — for pre-tenant operations (signup, login)
+	adminPool, err := database.NewPool(ctx, cfg.AdminDatabaseURL)
+	if err != nil {
+		slog.Error("failed to create admin database pool", "error", err)
+		os.Exit(1)
+	}
+	defer adminPool.Close()
 
 	if err := pool.Ping(ctx); err != nil {
 		slog.Error("failed to ping database", "error", err)
@@ -60,7 +69,7 @@ func main() {
 	}
 
 	issuer := auth.NewTokenIssuer(privKey, &privKey.PublicKey, 15*time.Minute)
-	authService := auth.NewService(pool.Raw(), issuer)
+	authService := auth.NewService(pool.Raw(), adminPool.Raw(), issuer)
 	authHandler := auth.NewHandler(authService, issuer)
 
 	mux := http.NewServeMux()

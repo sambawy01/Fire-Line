@@ -15,13 +15,12 @@ import (
 
 func testService(t *testing.T) *auth.Service {
 	t.Helper()
-	// Service uses the superuser pool because signup and login are pre-tenant
-	// operations that need to bypass RLS (no org context exists yet).
-	pool := getTestPool(t)
+	appPool := getAppPool(t)   // fireline_app (RLS enforced) for tenant-scoped ops
+	adminPool := getTestPool(t) // superuser for signup/login (pre-tenant, bypasses RLS)
 	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 	issuer := auth.NewTokenIssuer(privKey, &privKey.PublicKey, 15*time.Minute)
-	return auth.NewService(pool, issuer)
+	return auth.NewService(appPool, adminPool, issuer)
 }
 
 func TestService_Signup(t *testing.T) {
