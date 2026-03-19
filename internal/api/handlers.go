@@ -131,6 +131,25 @@ func NewFinancialHandler(svc *financial.Service) *FinancialHandler {
 func (h *FinancialHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.Handler) http.Handler) {
 	mux.Handle("GET /api/v1/financial/pnl", authMW(http.HandlerFunc(h.GetPnL)))
 	mux.Handle("GET /api/v1/financial/anomalies", authMW(http.HandlerFunc(h.GetAnomalies)))
+
+	// Budgets
+	mux.Handle("POST /api/v1/financial/budgets", authMW(http.HandlerFunc(h.CreateBudget)))
+	mux.Handle("GET /api/v1/financial/budgets", authMW(http.HandlerFunc(h.ListBudgets)))
+
+	// Variance & period comparison
+	mux.Handle("GET /api/v1/financial/budget-variance", authMW(http.HandlerFunc(h.GetBudgetVariance)))
+	mux.Handle("GET /api/v1/financial/period-comparison", authMW(http.HandlerFunc(h.GetPeriodComparison)))
+
+	// Cost centers
+	mux.Handle("GET /api/v1/financial/cost-centers", authMW(http.HandlerFunc(h.GetCostCenters)))
+
+	// Transaction anomalies
+	mux.Handle("GET /api/v1/financial/transaction-anomalies", authMW(http.HandlerFunc(h.GetTransactionAnomalies)))
+
+	// Drilldown — specific paths before parameterized ones
+	mux.Handle("GET /api/v1/financial/drilldown/items", authMW(http.HandlerFunc(h.GetDrilldownItems)))
+	mux.Handle("GET /api/v1/financial/drilldown/ingredients", authMW(http.HandlerFunc(h.GetDrilldownIngredients)))
+	mux.Handle("GET /api/v1/financial/drilldown/vendor", authMW(http.HandlerFunc(h.GetDrilldownVendor)))
 }
 
 func (h *FinancialHandler) GetPnL(w http.ResponseWriter, r *http.Request) {
