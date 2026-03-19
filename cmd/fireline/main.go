@@ -143,6 +143,9 @@ func main() {
 	alertHandler := api.NewAlertingHandler(alertSvc)
 	alertHandler.RegisterRoutes(mux, authMW)
 
+	locHandler := api.NewLocationHandler(pool.Raw())
+	locHandler.RegisterRoutes(mux, authMW)
+
 	// CORS for frontend dev
 	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
 
