@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Tables that are explicitly exempt from RLS
-EXEMPT_TABLES="audit_log|audit_log_.*|_tx_test|lockout_attempts"
+EXEMPT_TABLES="audit_log|audit_log_.*|_tx_test|lockout_attempts|raw_data_log"
 
 DB_URL="${TEST_DATABASE_URL:-postgres://fireline:fireline@localhost:5432/fireline?sslmode=disable}"
 

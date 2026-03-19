@@ -12,8 +12,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/opsnerve/fireline/internal/adapter"
+	"github.com/opsnerve/fireline/internal/adapter/toast"
+	"github.com/opsnerve/fireline/internal/alerting"
 	"github.com/opsnerve/fireline/internal/api"
 	"github.com/opsnerve/fireline/internal/auth"
+	"github.com/opsnerve/fireline/internal/event"
+	"github.com/opsnerve/fireline/internal/financial"
+	"github.com/opsnerve/fireline/internal/inventory"
+	"github.com/opsnerve/fireline/internal/pipeline"
 	"github.com/opsnerve/fireline/pkg/config"
 	"github.com/opsnerve/fireline/pkg/database"
 	"github.com/opsnerve/fireline/pkg/observability"
@@ -63,15 +70,47 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		// Load from file — implement later
 		slog.Error("JWT key file loading not yet implemented")
 		os.Exit(1)
 	}
 
+	// ─── Event Bus ───
+	bus := event.New()
+
+	// ─── Adapter Registry ───
+	registry := adapter.NewRegistry()
+	registry.RegisterFactory("toast", func() adapter.Adapter { return toast.New() })
+
+	// ─── Data Pipeline ───
+	pipe := pipeline.New(pool.Raw(), bus)
+	pipe.RegisterHandlers()
+
+	// ─── Intelligence Services ───
+	invSvc := inventory.New(pool.Raw(), bus)
+	invSvc.RegisterHandlers()
+
+	finSvc := financial.New(pool.Raw(), bus)
+	finSvc.RegisterHandlers()
+
+	// ─── Alerting ───
+	alertSvc := alerting.New(bus)
+	alertSvc.RegisterDefaultRules()
+
+	slog.Info("all modules initialized",
+		"event_bus", "ready",
+		"pipeline", "ready",
+		"inventory", "ready",
+		"financial", "ready",
+		"alerting", "ready",
+	)
+
+	// ─── Auth ───
 	issuer := auth.NewTokenIssuer(privKey, &privKey.PublicKey, 15*time.Minute)
 	authService := auth.NewService(pool.Raw(), adminPool.Raw(), issuer)
 	authHandler := auth.NewHandler(authService, issuer)
+	authMW := auth.AuthMiddleware(issuer)
 
+	// ─── HTTP Router ───
 	mux := http.NewServeMux()
 
 	// Health (no auth)
@@ -91,11 +130,25 @@ func main() {
 		fmt.Fprintln(w, `{"status":"ready"}`)
 	})
 
-	// Auth routes
+	// Auth routes (no auth middleware — these create/validate auth)
 	authHandler.RegisterRoutes(mux)
 
-	// Middleware chain
-	handler := api.CorrelationID(api.RequestLogger(api.Recovery(mux)))
+	// Module API routes (auth required)
+	invHandler := api.NewInventoryHandler(invSvc)
+	invHandler.RegisterRoutes(mux, authMW)
+
+	finHandler := api.NewFinancialHandler(finSvc)
+	finHandler.RegisterRoutes(mux, authMW)
+
+	alertHandler := api.NewAlertingHandler(alertSvc)
+	alertHandler.RegisterRoutes(mux, authMW)
+
+	// CORS for frontend dev
+	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
+
+	// Suppress unused variable warnings
+	_ = registry
+	_ = pipe
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
@@ -118,10 +171,26 @@ func main() {
 	<-quit
 
 	slog.Info("shutting down server")
+	registry.ShutdownAll(ctx)
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		slog.Error("shutdown error", "error", err)
 	}
 	slog.Info("server stopped")
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Max-Age", "86400")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

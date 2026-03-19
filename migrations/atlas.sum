@@ -1,3 +1,4 @@
-h1:hKWS+RhykAoJ1LKQnuyRvhcl+S/guekwrXaAvUzBXi0=
+h1:CuTTbcsRU5G6ljgTuTQKuLIsX7GwZAgMFLCS7AvD0f4=
 001_core_schema.sql h1:0L5Dn77TMjG31gEMMlatEZdW3UDpGW9ZcU6Tp1LfbqM=
 002_auth_tokens.sql h1:W+lLGgn8rVCikp1K4ZnJ6rz9fgeYpuc0Q6v7MsGoQ0E=
+003_menu_recipe_schema.sql h1:v5KjHNW8mg3W5zYecP+NEGcOxGNmRu8WLS9kxu86IiM=
