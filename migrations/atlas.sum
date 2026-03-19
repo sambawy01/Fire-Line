@@ -1,4 +1,7 @@
-h1:CuTTbcsRU5G6ljgTuTQKuLIsX7GwZAgMFLCS7AvD0f4=
+h1:dQT028wmdYwAW9Ji/Sqbj6dERmafkjXX7arn8L1E9zw=
 001_core_schema.sql h1:0L5Dn77TMjG31gEMMlatEZdW3UDpGW9ZcU6Tp1LfbqM=
 002_auth_tokens.sql h1:W+lLGgn8rVCikp1K4ZnJ6rz9fgeYpuc0Q6v7MsGoQ0E=
 003_menu_recipe_schema.sql h1:v5KjHNW8mg3W5zYecP+NEGcOxGNmRu8WLS9kxu86IiM=
+004_shifts.sql h1:gELNp3QG+kGSDnnzImRWdGh4XHMRCQY6mwp6rQJssqg=
+005_customers.sql h1:CA7vDvWdxCwCLVMOICjZcRrzRsDY23gHydI+JueWk+8=
+006_inventory_counting.sql h1:rOHGmxjs4pZZuhB2/zFtCqpztADNUkMy4Y/TbRrSUvo=
