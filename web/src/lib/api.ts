@@ -117,6 +117,82 @@ export interface Anomaly {
   detected_at: string;
 }
 
+export interface Budget {
+  budget_id: string;
+  period_type: 'daily' | 'weekly' | 'monthly';
+  period_start: string;
+  period_end: string;
+  revenue_target: number;
+  food_cost_pct_target: number;
+  labor_cost_pct_target: number;
+  cogs_target: number;
+}
+
+export interface BudgetVariance {
+  budget: Budget;
+  actual_revenue: number;
+  actual_cogs: number;
+  actual_food_cost_pct: number;
+  revenue_variance: number;
+  revenue_variance_pct: number;
+  cogs_variance: number;
+  cogs_variance_pct: number;
+  food_cost_pct_delta: number;
+  status: 'on_track' | 'over' | 'under';
+}
+
+export interface IngredientCostEntry {
+  ingredient_id: string;
+  ingredient_name: string;
+  total_cost: number;
+  unit_cost: number;
+  quantity_used: number;
+  unit: string;
+  cost_pct: number;
+}
+
+export interface CostCenter {
+  category: string;
+  cogs: number;
+  cogs_pct: number;
+  revenue_pct: number;
+  ingredient_count: number;
+  top_ingredients: IngredientCostEntry[];
+}
+
+export interface TransactionAnomaly {
+  type: string;
+  description: string;
+  current_value: number;
+  baseline: number;
+  z_score: number;
+  severity: string;
+  detected_at: string;
+}
+
+export type ProfitAndLoss = PnL;
+
+export interface PeriodComparison {
+  current: ProfitAndLoss;
+  last_week: ProfitAndLoss | null;
+  last_month: ProfitAndLoss | null;
+  revenue_vs_last_week_pct: number;
+  revenue_vs_last_month_pct: number;
+  cogs_vs_last_week_pct: number;
+  cogs_vs_last_month_pct: number;
+}
+
+export interface ItemCost {
+  menu_item_id: string;
+  name: string;
+  category: string;
+  revenue: number;
+  cogs: number;
+  gross_profit: number;
+  gross_margin: number;
+  units_sold: number;
+}
+
 export const financialApi = {
   getPnL(locationId: string, from?: string, to?: string) {
     const params = new URLSearchParams({ location_id: locationId });
@@ -127,6 +203,22 @@ export const financialApi = {
   getAnomalies(locationId: string) {
     return request<{ anomalies: Anomaly[] }>(`/financial/anomalies?location_id=${locationId}`);
   },
+  budgetVariance: (locationId: string) =>
+    request<BudgetVariance>(`/financial/budget-variance?location_id=${locationId}`),
+  costCenters: (locationId: string) =>
+    request<{ cost_centers: CostCenter[] }>(`/financial/cost-centers?location_id=${locationId}`),
+  txAnomalies: (locationId: string) =>
+    request<{ anomalies: TransactionAnomaly[] }>(`/financial/transaction-anomalies?location_id=${locationId}`),
+  periodComparison: (locationId: string) =>
+    request<PeriodComparison>(`/financial/period-comparison?location_id=${locationId}`),
+  drilldownItems: (locationId: string, category: string) =>
+    request<{ items: ItemCost[] }>(`/financial/drilldown/items?location_id=${locationId}&category=${category}`),
+  drilldownIngredients: (locationId: string, menuItemId: string) =>
+    request<{ ingredients: IngredientCostEntry[] }>(`/financial/drilldown/ingredients?location_id=${locationId}&menu_item_id=${menuItemId}`),
+  createBudget: (data: any) =>
+    request<Budget>('/financial/budgets', { method: 'POST', body: JSON.stringify(data) }),
+  listBudgets: (locationId: string, periodType?: string) =>
+    request<{ budgets: Budget[] }>(`/financial/budgets?location_id=${locationId}${periodType ? `&period_type=${periodType}` : ''}`),
 };
 
 // Inventory
