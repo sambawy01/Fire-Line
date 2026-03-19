@@ -320,4 +320,46 @@ export const vendorApi = {
   },
 };
 
+// Customer Intelligence
+export interface CustomerDetail {
+  customer_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  first_visit: string | null;
+  last_visit: string | null;
+  total_visits: number;
+  total_spend: number;
+  avg_check: number;
+  segment: 'new' | 'regular' | 'vip' | 'lapsed' | 'at_risk';
+  ai_summary: string;
+  ai_summary_updated_at: string | null;
+}
+
+export interface CustomerSummary {
+  total_customers: number;
+  avg_lifetime_value: number;
+  vip_count: number;
+  at_risk_count: number;
+  segment_counts: Record<string, number>;
+}
+
+export interface AnalyzeResult {
+  analyzed: number;
+  errors: number;
+  message: string;
+}
+
+export const customerApi = {
+  getCustomers(locationId: string) {
+    return request<{ customers: CustomerDetail[] }>(`/customers?location_id=${locationId}`);
+  },
+  getSummary(locationId: string) {
+    return request<CustomerSummary>(`/customers/summary?location_id=${locationId}`);
+  },
+  analyze(locationId: string) {
+    return request<AnalyzeResult>(`/customers/analyze?location_id=${locationId}`, { method: 'POST' });
+  },
+};
+
 export { ApiError };

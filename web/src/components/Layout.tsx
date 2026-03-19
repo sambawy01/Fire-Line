@@ -13,6 +13,7 @@ import {
   UtensilsCrossed,
   Users,
   Truck,
+  UserCheck,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
 import { useLocationStore } from '../stores/location';
@@ -25,6 +26,7 @@ const navItems = [
   { to: '/menu', label: 'Menu', icon: UtensilsCrossed },
   { to: '/labor', label: 'Labor', icon: Users },
   { to: '/vendors', label: 'Vendors', icon: Truck },
+  { to: '/customers', label: 'Customers', icon: UserCheck },
   { to: '/alerts', label: 'Alerts', icon: Bell, showBadge: true },
   { to: '/adapters', label: 'Adapters', icon: Plug },
 ];
