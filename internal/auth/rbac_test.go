@@ -42,6 +42,12 @@ func TestRole_HasPermission(t *testing.T) {
 		{"owner", "inventory:receive", true},
 		{"read_only", "inventory:purchase", false},
 		{"read_only", "inventory:receive", false},
+		// financial:budget permission
+		{"owner", "financial:budget", true},
+		{"gm", "financial:budget", true},
+		{"shift_manager", "financial:budget", false},
+		{"staff", "financial:budget", false},
+		{"read_only", "financial:budget", false},
 	}
 
 	for _, tt := range tests {
