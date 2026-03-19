@@ -22,11 +22,38 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
+
+    // 401: clear auth state and redirect to login (unless in demo mode)
+    if (res.status === 401) {
+      const isDemo = sessionStorage.getItem('fireline_demo') === 'true';
+      if (!isDemo) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('org_id');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('role');
+        window.location.href = '/login';
+      }
+    }
+
     throw new ApiError(res.status, body.error?.code || 'UNKNOWN', body.error?.message || res.statusText);
   }
 
   return res.json();
 }
+
+// Location
+export interface Location {
+  id: string;
+  name: string;
+  org_id: string;
+}
+
+export const locationApi = {
+  getLocations() {
+    return request<{ locations: Location[] }>('/locations');
+  },
+};
 
 // Auth
 export interface AuthTokens {
@@ -80,6 +107,16 @@ export interface ChannelBreakdown {
   avg_check_size: number;
 }
 
+export interface Anomaly {
+  metric_name: string;
+  current_value: number;
+  mean: number;
+  std_dev: number;
+  z_score: number;
+  severity: 'warning' | 'critical';
+  detected_at: string;
+}
+
 export const financialApi = {
   getPnL(locationId: string, from?: string, to?: string) {
     const params = new URLSearchParams({ location_id: locationId });
@@ -88,7 +125,7 @@ export const financialApi = {
     return request<PnL>(`/financial/pnl?${params}`);
   },
   getAnomalies(locationId: string) {
-    return request<{ anomalies: any[] }>(`/financial/anomalies?location_id=${locationId}`);
+    return request<{ anomalies: Anomaly[] }>(`/financial/anomalies?location_id=${locationId}`);
   },
 };
 
