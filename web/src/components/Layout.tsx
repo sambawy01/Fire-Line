@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -8,14 +9,17 @@ import {
   LogOut,
   Flame,
   User,
+  MapPin,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
+import { useLocationStore } from '../stores/location';
+import { useAlertCount } from '../hooks/useAlerts';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/inventory', label: 'Inventory', icon: Package },
   { to: '/financial', label: 'Financial', icon: DollarSign },
-  { to: '/alerts', label: 'Alerts', icon: Bell },
+  { to: '/alerts', label: 'Alerts', icon: Bell, showBadge: true },
   { to: '/adapters', label: 'Adapters', icon: Plug },
 ];
 
@@ -23,8 +27,19 @@ export default function Layout() {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
   const role = useAuthStore((s) => s.role);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  const { locations, selectedLocationId, setLocation, loadLocations } = useLocationStore();
+  const { data: alertCount } = useAlertCount(selectedLocationId);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadLocations();
+    }
+  }, [isAuthenticated, loadLocations]);
 
   const handleLogout = () => {
+    useLocationStore.getState().clear();
     logout();
     navigate('/login');
   };
@@ -42,9 +57,30 @@ export default function Layout() {
           </div>
         </div>
 
+        {/* Location Switcher */}
+        {locations.length > 1 && (
+          <div className="px-3 py-3 border-b border-white/10">
+            <div className="flex items-center gap-2 px-3 mb-1.5">
+              <MapPin className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-xs text-gray-400 uppercase tracking-wider">Location</span>
+            </div>
+            <select
+              value={selectedLocationId ?? ''}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full bg-white/10 text-white text-sm rounded-md px-3 py-1.5 border border-white/10 focus:outline-none focus:ring-1 focus:ring-[#F97316]"
+            >
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id} className="bg-[#1E293B]">
+                  {loc.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map(({ to, label, icon: Icon }) => (
+          {navItems.map(({ to, label, icon: Icon, showBadge }) => (
             <NavLink
               key={to}
               to={to}
@@ -58,6 +94,11 @@ export default function Layout() {
             >
               <Icon className="h-5 w-5 shrink-0" />
               {label}
+              {showBadge && alertCount?.count != null && alertCount.count > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center rounded-full bg-[#F97316] px-2 py-0.5 text-xs font-bold text-white min-w-[20px]">
+                  {alertCount.count}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -78,7 +119,9 @@ export default function Layout() {
       <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
         {/* Top header */}
         <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800">FireLine</h2>
+          <h2 className="text-xl font-semibold text-gray-800">
+            {locations.length === 1 ? locations[0].name : 'FireLine'}
+          </h2>
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-gray-700">
