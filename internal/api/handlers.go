@@ -45,6 +45,16 @@ func (h *InventoryHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.H
 
 	// Variances
 	mux.Handle("GET /api/v1/inventory/variances", authMW(http.HandlerFunc(h.ListVariances)))
+
+	// Purchase Orders — specific paths before parameterized ones
+	mux.Handle("GET /api/v1/inventory/po/pending", authMW(http.HandlerFunc(h.ListPendingPOs)))
+	mux.Handle("GET /api/v1/inventory/par-breaches", authMW(http.HandlerFunc(h.GetPARBreaches)))
+	mux.Handle("POST /api/v1/inventory/po", authMW(http.HandlerFunc(h.CreatePO)))
+	mux.Handle("GET /api/v1/inventory/po", authMW(http.HandlerFunc(h.ListPOs)))
+	mux.Handle("GET /api/v1/inventory/po/{id}", authMW(http.HandlerFunc(h.GetPO)))
+	mux.Handle("PUT /api/v1/inventory/po/{id}", authMW(http.HandlerFunc(h.UpdatePO)))
+	mux.Handle("DELETE /api/v1/inventory/po/{id}", authMW(http.HandlerFunc(h.DeletePO)))
+	mux.Handle("POST /api/v1/inventory/po/{id}/receive", authMW(http.HandlerFunc(h.ReceivePO)))
 }
 
 func (h *InventoryHandler) GetTheoreticalUsage(w http.ResponseWriter, r *http.Request) {

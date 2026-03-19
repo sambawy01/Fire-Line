@@ -1,7 +1,9 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -112,6 +114,14 @@ func (h *InventoryHandler) UpdateCountStatus(w http.ResponseWriter, r *http.Requ
 		periodStart := cw.StartedAt
 		periodEnd := time.Now()
 		_, _ = h.svc.CalculateCountVariances(r.Context(), orgID, cw.LocationID, countID, periodStart, periodEnd)
+
+		// Auto-generate PO suggestions (best-effort, async)
+		locID := cw.LocationID
+		go func() {
+			if err := h.svc.GenerateSuggestedPOs(context.Background(), orgID, locID, countID); err != nil {
+				slog.Error("auto-generate POs failed", "error", err, "count_id", countID)
+			}
+		}()
 
 		WriteJSON(w, http.StatusOK, map[string]string{"status": "submitted"})
 
