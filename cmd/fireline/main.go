@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -10,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/opsnerve/fireline/internal/api"
+	"github.com/opsnerve/fireline/internal/auth"
 	"github.com/opsnerve/fireline/pkg/config"
 	"github.com/opsnerve/fireline/pkg/database"
 	"github.com/opsnerve/fireline/pkg/observability"
@@ -40,7 +44,28 @@ func main() {
 	}
 	slog.Info("database connected")
 
+	// JWT keys (ephemeral for dev)
+	var privKey *rsa.PrivateKey
+	if cfg.JWTPrivateKeyPath == "" {
+		slog.Warn("no JWT key configured, generating ephemeral key (development only)")
+		privKey, err = rsa.GenerateKey(rand.Reader, 2048)
+		if err != nil {
+			slog.Error("failed to generate ephemeral RSA key", "error", err)
+			os.Exit(1)
+		}
+	} else {
+		// Load from file — implement later
+		slog.Error("JWT key file loading not yet implemented")
+		os.Exit(1)
+	}
+
+	issuer := auth.NewTokenIssuer(privKey, &privKey.PublicKey, 15*time.Minute)
+	authService := auth.NewService(pool.Raw(), issuer)
+	authHandler := auth.NewHandler(authService, issuer)
+
 	mux := http.NewServeMux()
+
+	// Health (no auth)
 	mux.HandleFunc("GET /health/live", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -57,9 +82,15 @@ func main() {
 		fmt.Fprintln(w, `{"status":"ready"}`)
 	})
 
+	// Auth routes
+	authHandler.RegisterRoutes(mux)
+
+	// Middleware chain
+	handler := api.CorrelationID(api.RequestLogger(api.Recovery(mux)))
+
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      mux,
+		Handler:      handler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,
