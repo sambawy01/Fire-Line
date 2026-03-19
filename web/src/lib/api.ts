@@ -287,4 +287,37 @@ export const laborApi = {
   },
 };
 
+// Vendor Intelligence
+export interface VendorAnalysis {
+  vendor_name: string;
+  items_supplied: number;
+  total_spend: number;
+  spend_pct: number;
+  avg_cost_per_item: number;
+  score: number;
+}
+
+export interface VendorSummary {
+  total_vendors: number;
+  total_spend: number;
+  top_vendor_name: string;
+  top_vendor_pct: number;
+  avg_items_per_vendor: number;
+}
+
+export const vendorApi = {
+  getVendors(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<{ vendors: VendorAnalysis[] }>(`/vendors?${params}`);
+  },
+  getSummary(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<VendorSummary>(`/vendors/summary?${params}`);
+  },
+};
+
 export { ApiError };

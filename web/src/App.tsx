@@ -11,6 +11,7 @@ import AlertsPage from './pages/AlertsPage';
 import AdaptersPage from './pages/AdaptersPage';
 import MenuPage from './pages/MenuPage';
 import LaborPage from './pages/LaborPage';
+import VendorPage from './pages/VendorPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="financial" element={<FinancialPage />} />
             <Route path="menu" element={<MenuPage />} />
             <Route path="labor" element={<LaborPage />} />
+            <Route path="vendors" element={<VendorPage />} />
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="adapters" element={<AdaptersPage />} />
           </Route>
