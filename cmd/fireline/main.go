@@ -22,6 +22,7 @@ import (
 	"github.com/opsnerve/fireline/internal/inventory"
 	"github.com/opsnerve/fireline/internal/labor"
 	"github.com/opsnerve/fireline/internal/menu"
+	"github.com/opsnerve/fireline/internal/vendor"
 	"github.com/opsnerve/fireline/internal/pipeline"
 	"github.com/opsnerve/fireline/pkg/config"
 	"github.com/opsnerve/fireline/pkg/database"
@@ -96,6 +97,7 @@ func main() {
 
 	menuSvc := menu.New(pool.Raw(), bus)
 	laborSvc := labor.New(pool.Raw(), bus)
+	vendorSvc := vendor.New(pool.Raw(), bus)
 
 	// ─── Alerting ───
 	alertSvc := alerting.New(bus)
@@ -120,6 +122,7 @@ func main() {
 		"financial", "ready",
 		"menu", "ready",
 		"labor", "ready",
+		"vendor", "ready",
 		"alerting", "ready",
 	)
 
@@ -170,6 +173,9 @@ func main() {
 
 	laborHandler := api.NewLaborHandler(laborSvc)
 	laborHandler.RegisterRoutes(mux, authMW)
+
+	vendorHandler := api.NewVendorHandler(vendorSvc)
+	vendorHandler.RegisterRoutes(mux, authMW)
 
 	// CORS for frontend dev
 	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
