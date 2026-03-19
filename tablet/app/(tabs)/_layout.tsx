@@ -68,10 +68,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="tasks"
+        name="receive"
         options={{
-          title: 'Tasks',
-          tabBarIcon: () => <TabIcon label="📝" />,
+          title: 'Receive',
+          tabBarIcon: () => <TabIcon label="📦" />,
         }}
       />
       <Tabs.Screen
