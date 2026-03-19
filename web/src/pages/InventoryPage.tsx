@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocationStore } from '../stores/location';
 import { useUsage, usePARStatus, useVariances } from '../hooks/useInventory';
+import { usePARBreaches } from '../hooks/usePurchaseOrders';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -156,6 +157,7 @@ export default function InventoryPage() {
 
   const { data: usageData, isLoading: usageLoading, error: usageError, refetch: refetchUsage } = useUsage(locationId);
   const { data: parData, isLoading: parLoading, error: parError, refetch: refetchPar } = usePARStatus(locationId);
+  const { data: breachData } = usePARBreaches(locationId);
   const {
     data: varianceData,
     isLoading: varianceLoading,
@@ -230,6 +232,14 @@ export default function InventoryPage() {
               message={parError instanceof Error ? parError.message : 'Failed to load PAR data'}
               retry={() => refetchPar()}
             />
+          )}
+          {breachData?.breaches && breachData.breaches.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+              <span className="text-red-800 text-sm font-medium">
+                {breachData.breaches.length} ingredient{breachData.breaches.length > 1 ? 's' : ''} below reorder point
+              </span>
+              <a href="/purchase-orders" className="text-red-600 text-sm underline">View Purchase Orders →</a>
+            </div>
           )}
           <div className="mb-3">
             <h2 className="text-lg font-semibold text-gray-800">PAR Status</h2>

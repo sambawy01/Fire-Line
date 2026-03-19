@@ -16,6 +16,7 @@ import {
   UserCheck,
   Activity,
   FileText,
+  ShoppingCart,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
 import { useLocationStore } from '../stores/location';
@@ -24,6 +25,7 @@ import { useAlertCount } from '../hooks/useAlerts';
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/inventory', label: 'Inventory', icon: Package },
+  { to: '/purchase-orders', label: 'Purchase Orders', icon: ShoppingCart },
   { to: '/financial', label: 'Financial', icon: DollarSign },
   { to: '/menu', label: 'Menu', icon: UtensilsCrossed },
   { to: '/labor', label: 'Labor', icon: Users },

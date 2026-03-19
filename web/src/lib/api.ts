@@ -493,4 +493,63 @@ export const reportsApi = {
   },
 };
 
+// Purchase Orders
+export interface PurchaseOrder {
+  purchase_order_id: string;
+  vendor_name: string;
+  status: 'draft' | 'approved' | 'received' | 'cancelled';
+  source: 'manual' | 'system_recommended';
+  line_count: number;
+  total_estimated: number; // cents
+  total_actual: number;
+  suggested_at: string | null;
+  approved_at: string | null;
+  received_at: string | null;
+  notes: string;
+}
+
+export interface POLine {
+  po_line_id: string;
+  ingredient_id: string;
+  ingredient_name: string;
+  ordered_qty: number;
+  ordered_unit: string;
+  estimated_unit_cost: number;
+  received_qty: number | null;
+  received_unit_cost: number | null;
+  variance_qty: number | null;
+  variance_flag: string | null;
+  note: string;
+}
+
+export interface POWithLines extends PurchaseOrder {
+  lines: POLine[];
+}
+
+export interface PARBreach {
+  ingredient_id: string;
+  ingredient_name: string;
+  current_level: number;
+  reorder_point: number;
+  par_level: number;
+  avg_daily_usage: number;
+  projected_stockout_days: number;
+  vendor_name: string;
+  has_pending_po: boolean;
+}
+
+export const poApi = {
+  list: (locationId: string, status?: string) =>
+    request<{ purchase_orders: PurchaseOrder[] }>(
+      `/inventory/po?location_id=${locationId}${status ? `&status=${status}` : ''}`
+    ),
+  get: (id: string) => request<POWithLines>(`/inventory/po/${id}`),
+  approve: (id: string) =>
+    request<any>(`/inventory/po/${id}`, { method: 'PUT', body: JSON.stringify({ status: 'approved' }) }),
+  cancel: (id: string) =>
+    request<any>(`/inventory/po/${id}`, { method: 'PUT', body: JSON.stringify({ status: 'cancelled' }) }),
+  parBreaches: (locationId: string) =>
+    request<{ breaches: PARBreach[] }>(`/inventory/par-breaches?location_id=${locationId}`),
+};
+
 export { ApiError };
