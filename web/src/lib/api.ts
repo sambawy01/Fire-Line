@@ -250,4 +250,41 @@ export const menuApi = {
   },
 };
 
+// Labor Intelligence
+export interface LaborSummary {
+  total_labor_cost: number;
+  labor_cost_pct: number;
+  net_revenue: number;
+  employee_count: number;
+  total_hours: number;
+  total_shifts: number;
+}
+
+export interface EmployeeDetail {
+  employee_id: string;
+  display_name: string;
+  role: string;
+  status: string;
+  shift_count: number;
+  hours_worked: number;
+  labor_cost: number;
+  avg_hours_per_shift: number;
+  hourly_rate: number;
+}
+
+export const laborApi = {
+  getSummary(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<LaborSummary>(`/labor/summary?${params}`);
+  },
+  getEmployees(locationId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ location_id: locationId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<{ employees: EmployeeDetail[] }>(`/labor/employees?${params}`);
+  },
+};
+
 export { ApiError };
