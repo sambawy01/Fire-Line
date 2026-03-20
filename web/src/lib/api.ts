@@ -580,6 +580,81 @@ export const vendorApi = {
   },
 };
 
+// Vendor Scoring (SP17)
+export interface VendorScore {
+  vendor_name: string;
+  overall_score: number;
+  price_score: number;
+  delivery_score: number;
+  quality_score: number;
+  accuracy_score: number;
+  total_orders: number;
+  otif_rate: number;
+  on_time_rate: number;
+  in_full_rate: number;
+  avg_lead_days: number;
+}
+
+export interface PriceAnomaly {
+  ingredient_name: string;
+  vendor_name: string;
+  current_price: number;
+  avg_price: number;
+  z_score: number;
+  severity: 'warning' | 'critical';
+}
+
+export interface VendorRecommendation {
+  vendor_name: string;
+  score: number;
+  unit_cost: number;
+  reasoning: string;
+}
+
+export interface PricePoint {
+  unit_cost: number;
+  recorded_at: string;
+}
+
+export interface VendorCompareEntry {
+  vendor_name: string;
+  overall_score: number;
+  unit_cost: number;
+  otif_rate: number;
+  avg_lead_days: number;
+}
+
+export const vendorScoringApi = {
+  calculateScores(locationId: string) {
+    return request<{ status: string }>('/vendors/scores/calculate', {
+      method: 'POST',
+      body: JSON.stringify({ location_id: locationId }),
+    });
+  },
+  getScores(locationId: string) {
+    return request<{ vendor_scores: VendorScore[] }>(`/vendors/scores?location_id=${locationId}`);
+  },
+  getScorecard(locationId: string, vendorName: string) {
+    return request<VendorScore>(`/vendors/scorecard?location_id=${locationId}&vendor_name=${encodeURIComponent(vendorName)}`);
+  },
+  compare(locationId: string, ingredientId: string) {
+    return request<{ ingredient_name: string; vendors: VendorCompareEntry[]; recommended: string }>(
+      `/vendors/compare?location_id=${locationId}&ingredient_id=${ingredientId}`
+    );
+  },
+  priceTrend(ingredientId: string, vendorName: string, months = 6) {
+    return request<{ prices: PricePoint[] }>(
+      `/vendors/price-trend?ingredient_id=${ingredientId}&vendor_name=${encodeURIComponent(vendorName)}&months=${months}`
+    );
+  },
+  priceAnomalies(locationId: string) {
+    return request<{ anomalies: PriceAnomaly[] }>(`/vendors/price-anomalies?location_id=${locationId}`);
+  },
+  recommend(locationId: string, ingredientId: string) {
+    return request<VendorRecommendation>(`/vendors/recommend?location_id=${locationId}&ingredient_id=${ingredientId}`);
+  },
+};
+
 // Guest Profiles (SP15)
 export interface GuestProfile {
   guest_id: string;

@@ -1,73 +1,437 @@
+import { useState } from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { useLocationStore } from '../stores/location';
 import { useVendors, useVendorSummary } from '../hooks/useVendor';
+import {
+  useVendorScores,
+  usePriceAnomalies,
+  usePriceTrend,
+  useVendorRecommendation,
+  useVendorCompare,
+  useCalculateScores,
+} from '../hooks/useVendorScoring';
+import { usePARStatus } from '../hooks/useInventory';
 import KPICard from '../components/ui/KPICard';
-import DataTable from '../components/ui/DataTable';
-import type { Column } from '../components/ui/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ErrorBanner from '../components/ui/ErrorBanner';
-import type { VendorAnalysis } from '../lib/api';
-import { Truck, DollarSign, Star, Package } from 'lucide-react';
+import { Truck, DollarSign, Star, Package, RefreshCw, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+
+// ─── helpers ────────────────────────────────────────────────────────────────
 
 function cents(v: number): string {
   return `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function scoreVariant(score: number): 'success' | 'warning' | 'critical' {
-  if (score >= 70) return 'success';
-  if (score >= 40) return 'warning';
-  return 'critical';
+function scoreColor(score: number): string {
+  if (score >= 80) return 'text-green-600';
+  if (score >= 60) return 'text-yellow-600';
+  return 'text-red-600';
 }
 
-const vendorColumns: Column<VendorAnalysis>[] = [
-  {
-    key: 'vendor_name',
-    header: 'Vendor',
-    sortable: true,
-    render: (r) => <span className="font-semibold text-gray-800">{r.vendor_name}</span>,
-  },
-  {
-    key: 'items_supplied',
-    header: 'Items',
-    align: 'right',
-    sortable: true,
-  },
-  {
-    key: 'total_spend',
-    header: 'Spend ($)',
-    align: 'right',
-    sortable: true,
-    render: (r) => cents(r.total_spend),
-  },
-  {
-    key: 'spend_pct',
-    header: '% of Spend',
-    align: 'right',
-    sortable: true,
-    render: (r) => `${r.spend_pct.toFixed(1)}%`,
-  },
-  {
-    key: 'avg_cost_per_item',
-    header: 'Avg Cost/Item',
-    align: 'right',
-    sortable: true,
-    render: (r) => cents(r.avg_cost_per_item),
-  },
-  {
-    key: 'score',
-    header: 'Score',
-    align: 'center',
-    sortable: true,
-    render: (r) => (
-      <StatusBadge variant={scoreVariant(r.score)}>
-        {r.score}
-      </StatusBadge>
-    ),
-  },
+function scoreBg(score: number): string {
+  if (score >= 80) return 'bg-green-50 border-green-200';
+  if (score >= 60) return 'bg-yellow-50 border-yellow-200';
+  return 'bg-red-50 border-red-200';
+}
+
+function scoreBarColor(score: number): string {
+  if (score >= 80) return 'bg-green-500';
+  if (score >= 60) return 'bg-yellow-400';
+  return 'bg-red-500';
+}
+
+function pct(v: number): string {
+  return `${(v * 100).toFixed(1)}%`;
+}
+
+// ─── Sub-score bar ───────────────────────────────────────────────────────────
+
+function SubScoreBar({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs text-gray-500">
+        <span>{label}</span>
+        <span className={scoreColor(value)}>{value.toFixed(0)}</span>
+      </div>
+      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${scoreBarColor(value)}`}
+          style={{ width: `${Math.min(value, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+
+type Tab = 'scorecards' | 'price' | 'comparison';
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'scorecards', label: 'Scorecards' },
+  { id: 'price', label: 'Price Intelligence' },
+  { id: 'comparison', label: 'Comparison' },
 ];
+
+// ─── Tab 1: Scorecards ────────────────────────────────────────────────────────
+
+function ScorecardsTab({ locationId }: { locationId: string }) {
+  const { data, isLoading, error, refetch } = useVendorScores(locationId);
+  const calcMutation = useCalculateScores();
+
+  const scores = data?.vendor_scores ?? [];
+
+  async function handleRecalculate() {
+    await calcMutation.mutateAsync(locationId);
+    void refetch();
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">Reliability scores across all vendors for this location.</p>
+        <button
+          onClick={() => void handleRecalculate()}
+          disabled={calcMutation.isPending}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-60 transition"
+        >
+          <RefreshCw className={`h-4 w-4 ${calcMutation.isPending ? 'animate-spin' : ''}`} />
+          {calcMutation.isPending ? 'Calculating…' : 'Recalculate'}
+        </button>
+      </div>
+
+      {error && (
+        <ErrorBanner
+          message={error instanceof Error ? error.message : 'Failed to load scores'}
+          retry={() => void refetch()}
+        />
+      )}
+
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <LoadingSpinner />
+        </div>
+      ) : scores.length === 0 ? (
+        <div className="text-center py-12 text-gray-400 text-sm">
+          No scores available. Click Recalculate to generate scores.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {scores.map((vs) => (
+            <div
+              key={vs.vendor_name}
+              className={`bg-white rounded-xl border p-5 shadow-sm space-y-4 ${scoreBg(vs.overall_score)}`}
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-semibold text-gray-800 text-base leading-tight">{vs.vendor_name}</h3>
+                <span className={`text-3xl font-bold tabular-nums ${scoreColor(vs.overall_score)}`}>
+                  {vs.overall_score.toFixed(0)}
+                </span>
+              </div>
+
+              {/* Sub-score bars */}
+              <div className="space-y-2">
+                <SubScoreBar label="Price" value={vs.price_score} />
+                <SubScoreBar label="Delivery" value={vs.delivery_score} />
+                <SubScoreBar label="Quality" value={vs.quality_score} />
+                <SubScoreBar label="Accuracy" value={vs.accuracy_score} />
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-2 pt-1 border-t border-gray-200 text-center">
+                <div>
+                  <p className="text-xs text-gray-400">OTIF</p>
+                  <p className="text-sm font-semibold text-gray-700">{pct(vs.otif_rate)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Orders</p>
+                  <p className="text-sm font-semibold text-gray-700">{vs.total_orders}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Avg Lead</p>
+                  <p className="text-sm font-semibold text-gray-700">{vs.avg_lead_days.toFixed(1)}d</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Tab 2: Price Intelligence ────────────────────────────────────────────────
+
+function PriceIntelligenceTab({ locationId }: { locationId: string }) {
+  const [selectedIngredientId, setSelectedIngredientId] = useState<string>('');
+  const [selectedVendor, setSelectedVendor] = useState<string>('');
+
+  const { data: inventoryData } = usePARStatus(locationId);
+  const ingredients = inventoryData?.par_status ?? [];
+
+  const { data: anomalyData, isLoading: anomalyLoading } = usePriceAnomalies(locationId);
+  const anomalies = anomalyData?.anomalies ?? [];
+
+  const { data: trendData, isLoading: trendLoading } = usePriceTrend(
+    selectedIngredientId || null,
+    selectedVendor || null
+  );
+
+  const { data: recommendData } = useVendorRecommendation(
+    locationId,
+    selectedIngredientId || null
+  );
+
+  const { data: scoresData } = useVendorScores(locationId);
+  const vendorNames = Array.from(
+    new Set((scoresData?.vendor_scores ?? []).map((v) => v.vendor_name))
+  );
+
+  const chartData = (trendData?.prices ?? []).map((p) => ({
+    date: new Date(p.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    cost: +(p.unit_cost / 100).toFixed(2),
+  }));
+
+  return (
+    <div className="space-y-8">
+      {/* Controls */}
+      <div className="flex flex-wrap gap-4 items-end">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Ingredient</label>
+          <select
+            value={selectedIngredientId}
+            onChange={(e) => setSelectedIngredientId(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select ingredient…</option>
+            {ingredients.map((ing) => (
+              <option key={ing.ingredient_id} value={ing.ingredient_id}>
+                {ing.ingredient_name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Vendor</label>
+          <select
+            value={selectedVendor}
+            onChange={(e) => setSelectedVendor(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select vendor…</option>
+            {vendorNames.map((v) => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Price trend chart */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <h3 className="text-sm font-semibold text-gray-700 mb-4">Unit Cost Trend (6 months)</h3>
+        {trendLoading ? (
+          <div className="flex justify-center py-10"><LoadingSpinner /></div>
+        ) : !selectedIngredientId || !selectedVendor ? (
+          <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
+            Select an ingredient and vendor to view the price trend.
+          </div>
+        ) : chartData.length === 0 ? (
+          <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
+            No price history available for this selection.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis
+                tick={{ fontSize: 11 }}
+                tickFormatter={(v) => `$${v}`}
+                width={52}
+              />
+              <Tooltip formatter={(v: number) => [`$${v.toFixed(2)}`, 'Unit Cost']} />
+              <Line
+                type="monotone"
+                dataKey="cost"
+                stroke="#2563eb"
+                strokeWidth={2}
+                dot={{ r: 3 }}
+                activeDot={{ r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      {/* Vendor recommendation */}
+      {recommendData && selectedIngredientId && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 flex items-start gap-4">
+          <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-blue-800">
+              Recommended Vendor: {recommendData.vendor_name}
+            </p>
+            <p className="text-xs text-blue-700 mt-0.5">
+              Score {recommendData.score.toFixed(0)} &middot; Unit cost {cents(recommendData.unit_cost)}
+            </p>
+            <p className="text-xs text-blue-600 mt-1">{recommendData.reasoning}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Price anomaly alerts */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          Price Anomaly Alerts
+        </h3>
+        {anomalyLoading ? (
+          <div className="flex justify-center py-6"><LoadingSpinner /></div>
+        ) : anomalies.length === 0 ? (
+          <div className="text-sm text-gray-400 py-4">No price anomalies detected.</div>
+        ) : (
+          <div className="space-y-3">
+            {anomalies.map((a, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-start justify-between gap-4"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">{a.ingredient_name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {a.vendor_name} &middot; Current: {cents(a.current_price)} &middot; Avg: {cents(a.avg_price)} &middot; Z-score: {a.z_score.toFixed(2)}
+                  </p>
+                </div>
+                <StatusBadge variant={a.severity === 'critical' ? 'critical' : 'warning'}>
+                  {a.severity}
+                </StatusBadge>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Tab 3: Comparison ────────────────────────────────────────────────────────
+
+function ComparisonTab({ locationId }: { locationId: string }) {
+  const [selectedIngredientId, setSelectedIngredientId] = useState<string>('');
+
+  const { data: inventoryData } = usePARStatus(locationId);
+  const ingredients = inventoryData?.par_status ?? [];
+
+  const { data: compareData, isLoading } = useVendorCompare(
+    locationId,
+    selectedIngredientId || null
+  );
+
+  const vendors = compareData?.vendors ?? [];
+  const recommended = compareData?.recommended ?? '';
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Ingredient</label>
+        <select
+          value={selectedIngredientId}
+          onChange={(e) => setSelectedIngredientId(e.target.value)}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Select ingredient…</option>
+          {ingredients.map((ing) => (
+            <option key={ing.ingredient_id} value={ing.ingredient_id}>
+              {ing.ingredient_name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {!selectedIngredientId ? (
+        <div className="text-center py-16 text-gray-400 text-sm">
+          Select an ingredient to compare vendors side by side.
+        </div>
+      ) : isLoading ? (
+        <div className="flex justify-center py-12"><LoadingSpinner /></div>
+      ) : vendors.length === 0 ? (
+        <div className="text-center py-12 text-gray-400 text-sm">
+          No vendor comparison data available for this ingredient.
+        </div>
+      ) : (
+        <>
+          {compareData?.ingredient_name && (
+            <p className="text-sm text-gray-500">
+              Comparing vendors for <span className="font-semibold text-gray-700">{compareData.ingredient_name}</span>
+            </p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            {vendors.map((v) => {
+              const isRecommended = v.vendor_name === recommended;
+              return (
+                <div
+                  key={v.vendor_name}
+                  className={`bg-white rounded-xl border-2 shadow-sm p-5 space-y-4 transition ${
+                    isRecommended
+                      ? 'border-blue-500 ring-2 ring-blue-200'
+                      : 'border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-gray-800 text-base leading-tight">{v.vendor_name}</h3>
+                    {isRecommended && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium shrink-0">
+                        <TrendingUp className="h-3 w-3" />
+                        Recommended
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-400">Score</p>
+                      <p className={`text-xl font-bold tabular-nums ${scoreColor(v.overall_score)}`}>
+                        {v.overall_score.toFixed(0)}
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-400">Unit Cost</p>
+                      <p className="text-xl font-bold text-gray-800">{cents(v.unit_cost)}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-400">OTIF</p>
+                      <p className="text-lg font-semibold text-gray-700">{pct(v.otif_rate)}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-400">Lead Time</p>
+                      <p className="text-lg font-semibold text-gray-700">{v.avg_lead_days.toFixed(1)}d</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function VendorPage() {
   const locationId = useLocationStore((s) => s.selectedLocationId);
+  const [activeTab, setActiveTab] = useState<Tab>('scorecards');
 
   const {
     data: summary,
@@ -77,15 +441,11 @@ export default function VendorPage() {
   } = useVendorSummary(locationId);
 
   const {
-    data: vendorsData,
-    isLoading: vendorsLoading,
     error: vendorsError,
     refetch: refetchVendors,
   } = useVendors(locationId);
 
   if (!locationId) return <LoadingSpinner fullPage />;
-
-  const vendors = vendorsData?.vendors ?? [];
 
   const error = summaryError ?? vendorsError;
   const errorMessage = error instanceof Error ? error.message : 'Failed to load vendor data';
@@ -96,7 +456,7 @@ export default function VendorPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Vendor Intelligence</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Supplier spend analysis, concentration, and performance scoring
+          Reliability scorecards, price intelligence, and vendor comparison
         </p>
       </div>
 
@@ -148,17 +508,27 @@ export default function VendorPage() {
         </div>
       )}
 
-      {/* Vendor table */}
+      {/* Tabs */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Vendor Detail</h2>
-        <DataTable
-          columns={vendorColumns}
-          data={vendors}
-          keyExtractor={(r) => r.vendor_name}
-          isLoading={vendorsLoading}
-          emptyTitle="No vendors found"
-          emptyDescription="No vendor data is available for this location and period."
-        />
+        <div className="flex gap-1 border-b border-gray-200 mb-6">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition ${
+                activeTab === tab.id
+                  ? 'bg-white border border-b-white border-gray-200 text-blue-600 -mb-px'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'scorecards' && <ScorecardsTab locationId={locationId} />}
+        {activeTab === 'price' && <PriceIntelligenceTab locationId={locationId} />}
+        {activeTab === 'comparison' && <ComparisonTab locationId={locationId} />}
       </div>
     </div>
   );
