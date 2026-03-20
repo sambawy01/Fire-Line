@@ -14,6 +14,7 @@ var rolePermissions = map[string][]string{
 		"inventory:waste",
 		"inventory:receive",
 		"labor:swap",
+		"operations:kds",
 	},
 	"shift_manager": {
 		"schedule:read_own",
@@ -34,6 +35,8 @@ var rolePermissions = map[string][]string{
 		"labor:points",
 		"labor:schedule",
 		"labor:swap",
+		"operations:kitchen",
+		"operations:kds",
 	},
 	"gm": {
 		"schedule:read_own",
@@ -62,6 +65,8 @@ var rolePermissions = map[string][]string{
 		"labor:points",
 		"labor:schedule",
 		"labor:swap",
+		"operations:kitchen",
+		"operations:kds",
 	},
 	"owner": {
 		"schedule:read_own",
@@ -95,6 +100,8 @@ var rolePermissions = map[string][]string{
 		"labor:points",
 		"labor:schedule",
 		"labor:swap",
+		"operations:kitchen",
+		"operations:kds",
 	},
 }
 
