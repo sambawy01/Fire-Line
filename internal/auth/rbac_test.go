@@ -84,6 +84,18 @@ func TestRole_HasPermission(t *testing.T) {
 		{"shift_manager", "operations:kitchen", true},
 		{"staff", "operations:kitchen", false},
 		{"read_only", "operations:kitchen", false},
+		// marketing:read permission
+		{"owner", "marketing:read", true},
+		{"gm", "marketing:read", true},
+		{"shift_manager", "marketing:read", true},
+		{"staff", "marketing:read", false},
+		{"read_only", "marketing:read", false},
+		// marketing:write permission
+		{"owner", "marketing:write", true},
+		{"gm", "marketing:write", true},
+		{"shift_manager", "marketing:write", false},
+		{"staff", "marketing:write", false},
+		{"read_only", "marketing:write", false},
 	}
 
 	for _, tt := range tests {

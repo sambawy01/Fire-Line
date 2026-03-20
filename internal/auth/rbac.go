@@ -37,6 +37,7 @@ var rolePermissions = map[string][]string{
 		"labor:swap",
 		"operations:kitchen",
 		"operations:kds",
+		"marketing:read",
 	},
 	"gm": {
 		"schedule:read_own",
@@ -67,6 +68,8 @@ var rolePermissions = map[string][]string{
 		"labor:swap",
 		"operations:kitchen",
 		"operations:kds",
+		"marketing:read",
+		"marketing:write",
 	},
 	"owner": {
 		"schedule:read_own",
@@ -102,6 +105,8 @@ var rolePermissions = map[string][]string{
 		"labor:swap",
 		"operations:kitchen",
 		"operations:kds",
+		"marketing:read",
+		"marketing:write",
 	},
 }
 
