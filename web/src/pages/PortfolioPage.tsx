@@ -301,7 +301,7 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
         <div className="mt-1">
           <div className="flex justify-between text-[10px] text-slate-500 mb-1">
             <span>Daily Target</span>
-            <span>{Math.round(revenue / 10000)}K / 100K EGP</span>
+            <span>{Math.round(revenue / 100000)}K / 100K EGP</span>
           </div>
           <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
             <div
@@ -513,7 +513,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
   // Data for bar chart
   const branchChartData = branches.map((b) => ({
     name: b.shortName,
-    revenue: Math.round(b.revenue / 10000),
+    revenue: Math.round(b.revenue / 100000),
     health: Math.round(b.health),
   }));
 
@@ -563,7 +563,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
                   className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
                 >
                   <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : 'text-emerald-400'}`}>
-                    {b.revenue > 0 ? Math.round(b.revenue / 10000).toLocaleString() + 'K' : '—'}
+                    {b.revenue > 0 ? Math.round(b.revenue / 100000).toLocaleString() + 'K' : '—'}
                   </span>
                 </div>
               ))}
@@ -706,7 +706,7 @@ function RevenueRace({ branchRows }: { branchRows: BranchKPIRow[] }) {
                 />
               </div>
               <span className="text-xs font-bold text-white w-16 text-right">
-                {Math.round(b.revenue / 10000)}K
+                {Math.round(b.revenue / 100000)}K
               </span>
               {idx === 0 && <span className="text-xs">🏆</span>}
             </div>
@@ -1043,13 +1043,13 @@ export default function PortfolioPage() {
     }));
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
+    <div className="min-h-full relative overflow-x-hidden -m-6 -mt-6">
       {/* Inject ticker animation CSS */}
       <style>{tickerStyle}</style>
 
       {/* Animated background */}
       <div
-        className="fixed inset-0 -z-10"
+        className="absolute inset-0 -z-10"
         style={{
           background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 35%, #0f172a 65%, #1a1f35 100%)',
         }}
