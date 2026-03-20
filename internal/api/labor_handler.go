@@ -18,9 +18,25 @@ func NewLaborHandler(svc *labor.Service) *LaborHandler {
 }
 
 // RegisterRoutes registers the labor API routes on mux, protected by authMW.
+// Specific paths are registered before parameterized ones to avoid ambiguity.
 func (h *LaborHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.Handler) http.Handler) {
+	// Existing routes
 	mux.Handle("GET /api/v1/labor/summary", authMW(http.HandlerFunc(h.GetSummary)))
 	mux.Handle("GET /api/v1/labor/employees", authMW(http.HandlerFunc(h.GetEmployees)))
+
+	// ELU profiles — specific paths before parameterized
+	mux.Handle("GET /api/v1/labor/profiles", authMW(http.HandlerFunc(h.ListProfiles)))
+	mux.Handle("GET /api/v1/labor/profiles/{id}", authMW(http.HandlerFunc(h.GetProfile)))
+	mux.Handle("PUT /api/v1/labor/profiles/{id}/elu", authMW(http.HandlerFunc(h.UpdateELU)))
+	mux.Handle("PUT /api/v1/labor/profiles/{id}/availability", authMW(http.HandlerFunc(h.UpdateAvailability)))
+	mux.Handle("PUT /api/v1/labor/profiles/{id}/certifications", authMW(http.HandlerFunc(h.UpdateCertifications)))
+
+	// Points — specific paths before parameterized
+	mux.Handle("POST /api/v1/labor/points", authMW(http.HandlerFunc(h.AwardPoints)))
+	mux.Handle("GET /api/v1/labor/points/{employee_id}", authMW(http.HandlerFunc(h.GetPointHistory)))
+
+	// Leaderboard
+	mux.Handle("GET /api/v1/labor/leaderboard", authMW(http.HandlerFunc(h.GetLeaderboard)))
 }
 
 // GetSummary returns location-wide labor cost KPIs for the requested date range.
