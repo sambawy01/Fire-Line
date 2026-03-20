@@ -260,7 +260,7 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
             </div>
             <h3 className="text-lg font-bold text-white truncate leading-tight">{name}</h3>
             <div className="flex items-center gap-1 mt-0.5">
-              <MapPin className="h-3 w-3 text-slate-500" />
+              <MapPin className="h-3 w-3 text-slate-400" />
               <span className="text-xs text-slate-400">{city}</span>
             </div>
           </div>
@@ -269,26 +269,28 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
 
         {/* KPI Row */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white/5 rounded-xl p-2.5 text-center">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Revenue</p>
+          <div className="relative rounded-xl p-2.5 text-center overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.08) 100%)' }}>
+            <div className="absolute inset-0 border border-emerald-500/30 rounded-xl" />
+            <div className="absolute -top-6 -right-6 w-16 h-16 bg-emerald-400/10 rounded-full blur-xl" />
+            <p className="text-[10px] text-emerald-400/80 uppercase tracking-wider mb-1 relative">Revenue</p>
             {isLoading ? (
-              <div className="h-4 bg-white/10 rounded animate-pulse mx-1" />
+              <div className="h-5 bg-white/10 rounded animate-pulse mx-1" />
             ) : (
-              <p className="text-sm font-bold text-white leading-none">
+              <p className="text-base font-extrabold text-emerald-400 leading-none relative drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]">
                 EGP {animatedRevenue.toLocaleString()}
               </p>
             )}
           </div>
-          <div className="bg-white/5 rounded-xl p-2.5 text-center">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Orders</p>
+          <div className="bg-white/8 rounded-xl p-2.5 text-center border border-white/5">
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Orders</p>
             {isLoading ? (
               <div className="h-4 bg-white/10 rounded animate-pulse mx-1" />
             ) : (
               <p className="text-sm font-bold text-white leading-none">{animatedOrders.toLocaleString()}</p>
             )}
           </div>
-          <div className="bg-white/5 rounded-xl p-2.5 text-center">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Margin</p>
+          <div className="bg-white/8 rounded-xl p-2.5 text-center border border-white/5">
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Margin</p>
             {isLoading ? (
               <div className="h-4 bg-white/10 rounded animate-pulse mx-1" />
             ) : (
@@ -299,7 +301,7 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
 
         {/* Feature 1: Revenue vs Target Progress Bar */}
         <div className="mt-1">
-          <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+          <div className="flex justify-between text-[10px] text-slate-400 mb-1">
             <span>Daily Target</span>
             <span>{Math.round(revenue / 100000)}K / 100K EGP</span>
           </div>
@@ -362,7 +364,7 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
         </div>
 
         {/* Feature 5: Staff On Floor Summary */}
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 -mt-2">
+        <div className="flex items-center gap-1.5 text-xs text-slate-400 -mt-2">
           <Users className="h-3 w-3" />
           <span>{staffOnShift > 0 ? `${staffOnShift} staff on floor` : 'Staff data loading...'}</span>
         </div>
