@@ -1333,4 +1333,79 @@ export const portfolioApi = {
   },
 };
 
+// ─── Onboarding ──────────────────────────────────────────────────────────────
+
+export interface OnboardingSession {
+  session_id: string;
+  current_step:
+    | 'profile'
+    | 'pos_connect'
+    | 'importing'
+    | 'first_insights'
+    | 'concept_type'
+    | 'priorities'
+    | 'modules'
+    | 'checklist'
+    | 'complete';
+  profile_data: Record<string, unknown>;
+  concept_type: string | null;
+  priorities: string[];
+  active_modules: string[];
+  insights_data: Record<string, unknown>;
+  completed_at: string | null;
+}
+
+export interface ChecklistItem {
+  item_id: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: number;
+  completed: boolean;
+  completed_at: string | null;
+}
+
+export interface FirstInsights {
+  daily_revenue_avg: number;
+  top_sellers: string[];
+  peak_hour: number;
+  avg_check: number;
+  void_rate: number;
+  staff_count: number;
+  check_count: number;
+}
+
+export const onboardingApi = {
+  startOnboarding(userId: string) {
+    return request<{ session: OnboardingSession }>('/onboarding/start', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId }),
+    });
+  },
+  getSession() {
+    return request<{ session: OnboardingSession }>('/onboarding/session');
+  },
+  updateStep(sessionId: string, step: string, data: Record<string, unknown>) {
+    return request<{ session: OnboardingSession }>('/onboarding/step', {
+      method: 'PUT',
+      body: JSON.stringify({ session_id: sessionId, step, data }),
+    });
+  },
+  getInsights(locationId: string) {
+    return request<{ insights: FirstInsights }>(`/onboarding/insights?location_id=${locationId}`);
+  },
+  inferConcept(locationId: string) {
+    return request<{ concept_type: string }>(`/onboarding/concept?location_id=${locationId}`);
+  },
+  recommendModules(priorities: string[]) {
+    return request<{ modules: string[] }>(`/onboarding/modules?priorities=${priorities.join(',')}`);
+  },
+  getChecklist() {
+    return request<{ items: ChecklistItem[] }>('/onboarding/checklist');
+  },
+  completeChecklistItem(itemId: string) {
+    return request<{ status: string }>(`/onboarding/checklist/${itemId}/complete`, { method: 'POST' });
+  },
+};
+
 export { ApiError };

@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import OnboardingPage from './pages/OnboardingPage';
 import DashboardPage from './pages/DashboardPage';
 import InventoryPage from './pages/InventoryPage';
 import FinancialPage from './pages/FinancialPage';
@@ -34,6 +35,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route
             path="/"
             element={
