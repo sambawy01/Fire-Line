@@ -19,6 +19,7 @@ import {
   ShoppingCart,
   Calendar,
   ChefHat,
+  Megaphone,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
 import { useLocationStore } from '../stores/location';
@@ -37,6 +38,7 @@ const navItems = [
   { to: '/operations', label: 'Operations', icon: Activity },
   { to: '/kitchen', label: 'Kitchen', icon: ChefHat },
   { to: '/reports', label: 'Reports', icon: FileText },
+  { to: '/marketing', label: 'Marketing', icon: Megaphone },
   { to: '/alerts', label: 'Alerts', icon: Bell, showBadge: true },
   { to: '/adapters', label: 'Adapters', icon: Plug },
 ];

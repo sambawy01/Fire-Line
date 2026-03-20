@@ -1125,4 +1125,68 @@ export const opsCommandApi = {
   },
 };
 
+// Marketing (SP19)
+export interface Campaign {
+  campaign_id: string;
+  name: string;
+  type: 'discount' | 'bogo' | 'happy_hour' | 'bundle' | 'loyalty_reward' | 'custom';
+  status: 'draft' | 'scheduled' | 'active' | 'paused' | 'completed' | 'cancelled';
+  target_segment: string;
+  channel: string;
+  discount_type: string;
+  discount_value: number;
+  start_date: string;
+  end_date: string;
+  redemptions: number;
+  revenue_attributed: number;
+  created_at: string;
+}
+
+export interface LoyaltyMember {
+  member_id: string;
+  guest_id: string;
+  guest_name: string;
+  points_balance: number;
+  lifetime_points: number;
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+  joined_at: string;
+}
+
+export interface CampaignMetrics {
+  active_campaigns: number;
+  total_redemptions: number;
+  revenue_attributed: number;
+  avg_redemption_rate: number;
+}
+
+export interface LoyaltyMetrics {
+  total_members: number;
+  bronze_count: number;
+  silver_count: number;
+  gold_count: number;
+  platinum_count: number;
+  avg_balance: number;
+  total_issued: number;
+  total_redeemed: number;
+}
+
+export const marketingApi = {
+  listCampaigns: (locationId: string, status?: string) =>
+    request<{ campaigns: Campaign[] }>(`/marketing/campaigns?location_id=${locationId}${status ? `&status=${status}` : ''}`),
+  getCampaign: (id: string) =>
+    request<Campaign>(`/marketing/campaigns/${id}`),
+  createCampaign: (data: any) =>
+    request<Campaign>('/marketing/campaigns', { method: 'POST', body: JSON.stringify(data) }),
+  activate: (id: string) =>
+    request<any>(`/marketing/campaigns/${id}/activate`, { method: 'POST' }),
+  pause: (id: string) =>
+    request<any>(`/marketing/campaigns/${id}/pause`, { method: 'POST' }),
+  loyaltyMembers: (tier?: string) =>
+    request<{ members: LoyaltyMember[] }>(`/marketing/loyalty/members${tier ? `?tier=${tier}` : ''}`),
+  campaignMetrics: () =>
+    request<CampaignMetrics>('/marketing/analytics/campaigns'),
+  loyaltyMetrics: () =>
+    request<LoyaltyMetrics>('/marketing/analytics/loyalty'),
+};
+
 export { ApiError };
