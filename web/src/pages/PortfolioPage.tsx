@@ -102,7 +102,7 @@ function HealthCircle({ score, size = 64 }: { score: number; size?: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-sm font-bold" style={{ color }}>{score}</span>
+        <span className="text-sm font-bold" style={{ color }}>{Math.round(score)}</span>
       </div>
     </div>
   );
@@ -149,7 +149,7 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
   const { data: alerts } = useAlertQueue(locationId);
   const { data: labor } = useLaborSummary(locationId);
 
-  const healthScore = health?.overall_score ?? 0;
+  const healthScore = Math.round(health?.overall_score ?? 0);
   const revenue = pnl?.net_revenue ?? 0;
   const orders = pnl?.check_count ?? 0;
   const margin = pnl?.gross_margin ?? 0;
