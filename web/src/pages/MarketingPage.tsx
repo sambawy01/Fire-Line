@@ -471,23 +471,23 @@ function LoyaltyTab() {
       header: 'Points Balance',
       align: 'right',
       sortable: true,
-      render: (r) => <span className="font-medium text-gray-800">{r.points_balance.toLocaleString()}</span>,
+      render: (r) => <span className="font-medium text-gray-800">{(r.points_balance ?? 0).toLocaleString()}</span>,
     },
     {
       key: 'lifetime_points',
       header: 'Lifetime Points',
       align: 'right',
       sortable: true,
-      render: (r) => r.lifetime_points.toLocaleString(),
+      render: (r) => (r.lifetime_points ?? 0).toLocaleString(),
     },
     {
       key: 'tier',
       header: 'Tier',
       sortable: true,
       render: (r) => (
-        <StatusBadge variant={tierVariant(r.tier)}>
-          <span style={{ color: TIER_COLORS[r.tier] ?? undefined }}>
-            {r.tier.charAt(0).toUpperCase() + r.tier.slice(1)}
+        <StatusBadge variant={tierVariant(r.tier ?? '')}>
+          <span style={{ color: TIER_COLORS[r.tier ?? ''] ?? undefined }}>
+            {(r.tier ?? '').charAt(0).toUpperCase() + (r.tier ?? '').slice(1)}
           </span>
         </StatusBadge>
       ),
@@ -634,10 +634,10 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
   const lm = loyaltyMetrics;
   const tierPieData = lm
     ? [
-        { name: 'Bronze', value: lm.bronze_count, color: TIER_PIE_COLORS.bronze },
-        { name: 'Silver', value: lm.silver_count, color: TIER_PIE_COLORS.silver },
-        { name: 'Gold', value: lm.gold_count, color: TIER_PIE_COLORS.gold },
-        { name: 'Platinum', value: lm.platinum_count, color: TIER_PIE_COLORS.platinum },
+        { name: 'Bronze', value: lm.bronze_count ?? 0, color: TIER_PIE_COLORS.bronze },
+        { name: 'Silver', value: lm.silver_count ?? 0, color: TIER_PIE_COLORS.silver },
+        { name: 'Gold', value: lm.gold_count ?? 0, color: TIER_PIE_COLORS.gold },
+        { name: 'Platinum', value: lm.platinum_count ?? 0, color: TIER_PIE_COLORS.platinum },
       ].filter((d) => d.value > 0)
     : [];
 

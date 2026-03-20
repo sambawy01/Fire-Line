@@ -97,14 +97,14 @@ const channelColumns: Column<ReportChannel>[] = [
     header: '% of Total',
     align: 'right',
     sortable: true,
-    render: (r) => `${r.pct_of_total.toFixed(1)}%`,
+    render: (r) => `${(r.pct_of_total ?? 0).toFixed(1)}%`,
   },
   {
     key: 'avg_ticket_time',
     header: 'Avg Ticket',
     align: 'right',
     sortable: true,
-    render: (r) => `${r.avg_ticket_time.toFixed(1)} min`,
+    render: (r) => `${(r.avg_ticket_time ?? 0).toFixed(1)} min`,
   },
 ];
 
@@ -129,7 +129,7 @@ const topItemColumns: Column<ReportMenuItem>[] = [
     header: 'Margin',
     align: 'right',
     sortable: true,
-    render: (r) => `${r.margin_pct.toFixed(1)}%`,
+    render: (r) => `${(r.margin_pct ?? 0).toFixed(1)}%`,
   },
 ];
 
@@ -147,7 +147,7 @@ const categoryColumns: Column<CategoryRevData>[] = [
     header: '% of Total',
     align: 'right',
     sortable: true,
-    render: (r) => `${r.pct_of_total.toFixed(1)}%`,
+    render: (r) => `${(r.pct_of_total ?? 0).toFixed(1)}%`,
   },
   {
     key: 'item_count',
@@ -175,7 +175,7 @@ const staffColumns: Column<StaffEntry>[] = [
     header: 'Hours',
     align: 'right',
     sortable: true,
-    render: (r) => r.hours_worked.toFixed(1),
+    render: (r) => (r.hours_worked ?? 0).toFixed(1),
   },
   {
     key: 'labor_cost',
@@ -309,16 +309,16 @@ export default function ReportsPage() {
           </div>
 
           {/* Critical Issues */}
-          {report.critical_count > 0 && (
+          {(report.critical_count ?? 0) > 0 && (
             <div className="rounded-xl border border-red-200 bg-red-50 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <AlertCircle className="h-5 w-5 text-red-600" />
                 <h2 className="text-base font-semibold text-red-800">
-                  Critical Issues ({report.critical_count})
+                  Critical Issues ({report.critical_count ?? 0})
                 </h2>
               </div>
               <ul className="space-y-3">
-                {report.critical_issues.map((issue: CriticalIssue, i: number) => (
+                {(report.critical_issues ?? []).map((issue: CriticalIssue, i: number) => (
                   <li key={i} className="flex items-start justify-between gap-4 text-sm">
                     <span className="text-red-700 font-medium">{issue.title}</span>
                     <div className="flex items-center gap-2 shrink-0">
@@ -342,14 +342,14 @@ export default function ReportsPage() {
             />
             <KPICard
               label="Gross Margin"
-              value={`${report.gross_margin_pct.toFixed(1)}%`}
+              value={`${(report.gross_margin_pct ?? 0).toFixed(1)}%`}
               icon={Percent}
               iconColor="text-blue-600"
               bgTint="bg-blue-50"
             />
             <KPICard
               label="Labor Cost"
-              value={`${report.labor_cost_pct.toFixed(1)}%`}
+              value={`${(report.labor_cost_pct ?? 0).toFixed(1)}%`}
               icon={Percent}
               iconColor="text-red-600"
               bgTint="bg-red-50"
@@ -363,7 +363,7 @@ export default function ReportsPage() {
             />
             <KPICard
               label="Avg Ticket Time"
-              value={`${report.avg_ticket_time.toFixed(1)} min`}
+              value={`${(report.avg_ticket_time ?? 0).toFixed(1)} min`}
               icon={Clock}
               iconColor="text-purple-600"
               bgTint="bg-purple-50"
@@ -389,7 +389,7 @@ export default function ReportsPage() {
             <h2 className="text-lg font-semibold text-gray-800 mb-3">Channel Breakdown</h2>
             <DataTable
               columns={channelColumns}
-              data={report.channels}
+              data={report.channels ?? []}
               keyExtractor={(r) => r.channel}
               emptyTitle="No channel data"
               emptyDescription="No channel data is available for this report."
@@ -401,14 +401,14 @@ export default function ReportsPage() {
             <h2 className="text-lg font-semibold text-gray-800">Menu Performance</h2>
 
             {/* Top Performers */}
-            {report.top_items.length > 0 && (
+            {(report.top_items ?? []).length > 0 && (
               <div>
                 <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">
                   Top Performers
                 </h3>
                 <DataTable
                   columns={topItemColumns}
-                  data={report.top_items}
+                  data={report.top_items ?? []}
                   keyExtractor={(r) => r.name}
                   emptyTitle="No top items"
                 />
@@ -440,20 +440,20 @@ export default function ReportsPage() {
                   </div>
                   <div>
                     <span className="text-gray-500">Margin: </span>
-                    <span className="text-amber-700 font-medium">{report.worst_item.margin_pct.toFixed(1)}%</span>
+                    <span className="text-amber-700 font-medium">{(report.worst_item.margin_pct ?? 0).toFixed(1)}%</span>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Zero Sales Items */}
-            {report.zero_sales_items.length > 0 && (
+            {(report.zero_sales_items ?? []).length > 0 && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
                 <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-wider mb-3">
-                  Zero Sales Items ({report.zero_sales_items.length})
+                  Zero Sales Items ({(report.zero_sales_items ?? []).length})
                 </h3>
                 <ul className="flex flex-wrap gap-2">
-                  {report.zero_sales_items.map((name: string) => (
+                  {(report.zero_sales_items ?? []).map((name: string) => (
                     <li key={name}>
                       <StatusBadge variant="warning">{name}</StatusBadge>
                     </li>
@@ -468,7 +468,7 @@ export default function ReportsPage() {
             <h2 className="text-lg font-semibold text-gray-800 mb-3">Category Revenue</h2>
             <DataTable
               columns={categoryColumns}
-              data={report.category_revenue}
+              data={report.category_revenue ?? []}
               keyExtractor={(r) => r.category}
               emptyTitle="No category data"
               emptyDescription="No category revenue data is available for this report."
@@ -480,27 +480,27 @@ export default function ReportsPage() {
             <h2 className="text-lg font-semibold text-gray-800 mb-3">Staff Summary</h2>
             <DataTable
               columns={staffColumns}
-              data={report.staff_summary}
+              data={report.staff_summary ?? []}
               keyExtractor={(r) => r.name}
               emptyTitle="No staff data"
               emptyDescription="No staff data is available for this report."
             />
-            {report.staff_summary.length > 0 && (
+            {(report.staff_summary ?? []).length > 0 && (
               <div className="mt-3 flex flex-wrap gap-6 text-sm text-gray-600 px-1">
                 <span>
                   Total Hours:{' '}
                   <span className="font-semibold text-gray-800">
-                    {report.total_hours_worked.toFixed(1)} hrs
+                    {(report.total_hours_worked ?? 0).toFixed(1)} hrs
                   </span>
                 </span>
                 <span>
                   Total Labor Cost:{' '}
                   <span className="font-semibold text-gray-800">{cents(report.total_labor_cost)}</span>
                 </span>
-                {report.overtime_flags.length > 0 && (
+                {(report.overtime_flags ?? []).length > 0 && (
                   <span className="text-amber-600">
                     Overtime employees:{' '}
-                    <span className="font-semibold">{report.overtime_flags.join(', ')}</span>
+                    <span className="font-semibold">{(report.overtime_flags ?? []).join(', ')}</span>
                   </span>
                 )}
               </div>
@@ -508,17 +508,17 @@ export default function ReportsPage() {
           </div>
 
           {/* Inventory Alerts */}
-          {report.reorder_needed.length > 0 && (
+          {(report.reorder_needed ?? []).length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <h2 className="text-lg font-semibold text-gray-800">Inventory Alerts</h2>
                 <StatusBadge variant="warning">
-                  {report.reorder_needed.length} items need reorder
+                  {(report.reorder_needed ?? []).length} items need reorder
                 </StatusBadge>
               </div>
               <DataTable
                 columns={reorderColumns}
-                data={report.reorder_needed}
+                data={report.reorder_needed ?? []}
                 keyExtractor={(r) => r.name}
                 emptyTitle="No reorder needed"
               />

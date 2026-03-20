@@ -284,7 +284,7 @@ export default function OperationsPage() {
                     {overload.is_overloaded ? 'Overloaded' : 'Normal capacity'}
                   </span>
                   <StatusBadge variant={severityVariant(overload.severity)}>
-                    {overload.capacity_pct.toFixed(0)}%
+                    {(overload.capacity_pct ?? 0).toFixed(0)}%
                   </StatusBadge>
                 </div>
                 <span className="text-xs text-gray-400 ml-5">
@@ -346,26 +346,26 @@ export default function OperationsPage() {
             />
             <KPICard
               label="Avg Ticket Time"
-              value={realtime ? `${realtime.avg_ticket_time.toFixed(1)} min` : '—'}
+              value={realtime ? `${(realtime.avg_ticket_time ?? 0).toFixed(1)} min` : '—'}
               icon={Clock}
               iconColor="text-purple-600"
               bgTint="bg-purple-50"
             />
             <KPICard
               label="Capacity"
-              value={overload ? `${overload.capacity_pct.toFixed(0)}%` : '—'}
+              value={overload ? `${(overload.capacity_pct ?? 0).toFixed(0)}%` : '—'}
               icon={Zap}
               iconColor={
-                overload && overload.capacity_pct >= 90
+                overload && (overload.capacity_pct ?? 0) >= 90
                   ? 'text-red-600'
-                  : overload && overload.capacity_pct >= 70
+                  : overload && (overload.capacity_pct ?? 0) >= 70
                   ? 'text-amber-600'
                   : 'text-emerald-600'
               }
               bgTint={
-                overload && overload.capacity_pct >= 90
+                overload && (overload.capacity_pct ?? 0) >= 90
                   ? 'bg-red-50'
-                  : overload && overload.capacity_pct >= 70
+                  : overload && (overload.capacity_pct ?? 0) >= 70
                   ? 'bg-amber-50'
                   : 'bg-emerald-50'
               }
@@ -536,7 +536,7 @@ export default function OperationsPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <KPICard
                       label="Total Scheduled Hours"
-                      value={`${weekly.total_hours.toFixed(0)}h`}
+                      value={`${(weekly.total_hours ?? 0).toFixed(0)}h`}
                       icon={Clock}
                       iconColor="text-blue-600"
                       bgTint="bg-blue-50"
@@ -582,14 +582,14 @@ export default function OperationsPage() {
                       <div>
                         <p className="text-sm text-gray-500">30-Day Revenue</p>
                         <p className="text-2xl font-bold text-gray-800 mt-0.5">{dollars(strategic.revenue_30d)}</p>
-                        {strategic.revenue_delta_pct !== 0 && (
+                        {(strategic.revenue_delta_pct ?? 0) !== 0 && (
                           <span
                             className={`text-xs font-semibold mt-1 inline-block ${
-                              strategic.revenue_delta_pct >= 0 ? 'text-emerald-600' : 'text-red-600'
+                              (strategic.revenue_delta_pct ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'
                             }`}
                           >
-                            {strategic.revenue_delta_pct >= 0 ? '+' : ''}
-                            {strategic.revenue_delta_pct.toFixed(1)}% vs prior period
+                            {(strategic.revenue_delta_pct ?? 0) >= 0 ? '+' : ''}
+                            {(strategic.revenue_delta_pct ?? 0).toFixed(1)}% vs prior period
                           </span>
                         )}
                       </div>
@@ -611,7 +611,7 @@ export default function OperationsPage() {
                       <div>
                         <p className="text-sm text-gray-500">Labor Cost %</p>
                         <p className="text-2xl font-bold text-gray-800 mt-0.5">
-                          {strategic.labor_cost_pct.toFixed(1)}%
+                          {(strategic.labor_cost_pct ?? 0).toFixed(1)}%
                         </p>
                         {strategic.labor_trend && (
                           <span className="text-xs text-gray-400 mt-1 inline-block capitalize">

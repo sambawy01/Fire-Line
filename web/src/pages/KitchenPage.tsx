@@ -62,7 +62,7 @@ const ITEM_STATUS_COLORS: Record<string, string> = {
 // ── sub-components ────────────────────────────────────────────────────────────
 
 function StationCard({ station }: { station: KitchenStation }) {
-  const barColor = loadColor(station.load_pct);
+  const barColor = loadColor(station.load_pct ?? 0);
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
@@ -85,14 +85,14 @@ function StationCard({ station }: { station: KitchenStation }) {
       <div className="mb-2">
         <div className="flex justify-between text-xs text-gray-500 mb-1">
           <span>{station.current_load}/{station.max_concurrent} slots</span>
-          <span className={station.load_pct >= 80 ? 'text-red-600 font-semibold' : ''}>
-            {station.load_pct.toFixed(0)}%
+          <span className={(station.load_pct ?? 0) >= 80 ? 'text-red-600 font-semibold' : ''}>
+            {(station.load_pct ?? 0).toFixed(0)}%
           </span>
         </div>
         <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-            style={{ width: `${Math.min(station.load_pct, 100)}%` }}
+            style={{ width: `${Math.min(station.load_pct ?? 0, 100)}%` }}
           />
         </div>
       </div>
@@ -143,7 +143,7 @@ function TicketCard({
       </div>
 
       <div className="space-y-2">
-        {ticket.items.map((item) => {
+        {(ticket.items ?? []).map((item) => {
           const stationClass =
             STATION_COLORS[item.station_type] ?? 'bg-gray-100 text-gray-600';
           const statusClass =
@@ -236,7 +236,7 @@ export default function KitchenPage() {
           />
           <KPICard
             label="Items / Hour"
-            value={metricsData.items_per_hour.toFixed(0)}
+            value={(metricsData.items_per_hour ?? 0).toFixed(0)}
             icon={Zap}
             iconColor="text-blue-500"
             bgTint="bg-blue-50"
@@ -261,14 +261,14 @@ export default function KitchenPage() {
                 Overall:{' '}
                 <span
                   className={`font-bold ${
-                    capacityData.total_capacity_pct >= 80
+                    (capacityData.total_capacity_pct ?? 0) >= 80
                       ? 'text-red-600'
-                      : capacityData.total_capacity_pct >= 50
+                      : (capacityData.total_capacity_pct ?? 0) >= 50
                       ? 'text-yellow-600'
                       : 'text-green-600'
                   }`}
                 >
-                  {capacityData.total_capacity_pct.toFixed(0)}%
+                  {(capacityData.total_capacity_pct ?? 0).toFixed(0)}%
                 </span>
               </span>
               <span>{capacityData.active_tickets} active tickets</span>
