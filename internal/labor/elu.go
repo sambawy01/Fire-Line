@@ -155,8 +155,11 @@ func (s *Service) ListEmployeeProfiles(ctx context.Context, orgID, locationID st
 		if err != nil {
 			return fmt.Errorf("query employee profiles: %w", err)
 		}
-		defer rows.Close()
 
+		// Collect all rows first before closing, so we can run additional
+		// queries on the same connection without hitting "conn busy".
+		var raw []EmployeeProfile
+		var staffPointsList []float64
 		for rows.Next() {
 			var p EmployeeProfile
 			var eluJSON, availJSON []byte
@@ -173,6 +176,7 @@ func (s *Service) ListEmployeeProfiles(ctx context.Context, orgID, locationID st
 				&certsJSON,
 				&availJSON,
 			); err != nil {
+				rows.Close()
 				return fmt.Errorf("scan profile row: %w", err)
 			}
 
@@ -202,23 +206,29 @@ func (s *Service) ListEmployeeProfiles(ctx context.Context, orgID, locationID st
 				p.Certifications = []string{}
 			}
 
-			// Compute trend per employee
+			raw = append(raw, p)
+			staffPointsList = append(staffPointsList, staffPoints)
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return fmt.Errorf("iterate profile rows: %w", err)
+		}
+
+		// Now that rows are closed, compute points trend per employee in a
+		// separate loop — the connection is free for new queries.
+		for i := range raw {
 			var sevenDaysAgo float64
 			if err := tx.QueryRow(tenantCtx,
 				`SELECT COALESCE(SUM(points), 0)
 				 FROM staff_point_events
 				 WHERE employee_id = $1
 				   AND created_at < now() - INTERVAL '7 days'`,
-				p.EmployeeID,
+				raw[i].EmployeeID,
 			).Scan(&sevenDaysAgo); err != nil {
-				return fmt.Errorf("query points baseline for %s: %w", p.EmployeeID, err)
+				return fmt.Errorf("query points baseline for %s: %w", raw[i].EmployeeID, err)
 			}
-
-			p.PointsTrend = computePointsTrend(staffPoints, sevenDaysAgo)
-			profiles = append(profiles, p)
-		}
-		if err := rows.Err(); err != nil {
-			return fmt.Errorf("iterate profile rows: %w", err)
+			raw[i].PointsTrend = computePointsTrend(staffPointsList[i], sevenDaysAgo)
+			profiles = append(profiles, raw[i])
 		}
 		return nil
 	})

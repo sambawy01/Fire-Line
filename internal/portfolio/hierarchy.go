@@ -30,6 +30,15 @@ func (s *Service) CreateNode(ctx context.Context, orgID string, parentID *string
 		return nil, errors.New("node_type is required")
 	}
 
+	// Normalize empty-string pointers to nil so PostgreSQL receives NULL
+	// rather than an empty string, which is invalid for a UUID column.
+	if parentID != nil && *parentID == "" {
+		parentID = nil
+	}
+	if locationID != nil && *locationID == "" {
+		locationID = nil
+	}
+
 	var node PortfolioNode
 	err := s.pool.QueryRow(ctx, `
 		INSERT INTO portfolio_nodes (org_id, parent_node_id, name, node_type, location_id)

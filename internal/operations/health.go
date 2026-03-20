@@ -131,11 +131,12 @@ func (s *Service) computeStaffScore(ctx context.Context, orgID, locationID strin
 	var scheduled, required int
 	err := database.TenantTx(ctx, s.pool, func(tx pgx.Tx) error {
 		// Count shifts scheduled for today's date that overlap now.
+		// The shifts table tracks clock_in/clock_out, not shift_date.
 		if err := tx.QueryRow(ctx,
 			`SELECT COUNT(*)
 			 FROM shifts
 			 WHERE org_id = $1 AND location_id = $2
-			   AND DATE(shift_date) = CURRENT_DATE
+			   AND DATE(clock_in) = CURRENT_DATE
 			   AND status NOT IN ('cancelled')`,
 			orgID, locationID,
 		).Scan(&scheduled); err != nil {
