@@ -26,9 +26,10 @@ import (
 	"github.com/opsnerve/fireline/internal/marketing"
 	"github.com/opsnerve/fireline/internal/menu"
 	"github.com/opsnerve/fireline/internal/operations"
+	"github.com/opsnerve/fireline/internal/pipeline"
+	"github.com/opsnerve/fireline/internal/portfolio"
 	"github.com/opsnerve/fireline/internal/reporting"
 	"github.com/opsnerve/fireline/internal/vendor"
-	"github.com/opsnerve/fireline/internal/pipeline"
 	"github.com/opsnerve/fireline/pkg/config"
 	"github.com/opsnerve/fireline/pkg/database"
 	"github.com/opsnerve/fireline/pkg/observability"
@@ -132,6 +133,9 @@ func main() {
 	// ─── Marketing ───
 	mktSvc := marketing.New(pool.Raw(), bus)
 
+	// ─── Portfolio ───
+	portfolioSvc := portfolio.New(pool.Raw(), bus)
+
 	slog.Info("all modules initialized",
 		"event_bus", "ready",
 		"pipeline", "ready",
@@ -145,6 +149,7 @@ func main() {
 		"alerting", "ready",
 		"reporting", "ready",
 		"marketing", "ready",
+		"portfolio", "ready",
 	)
 
 	// ─── Auth ───
@@ -224,6 +229,9 @@ func main() {
 
 	mktHandler := api.NewMarketingHandler(mktSvc)
 	mktHandler.RegisterRoutes(mux, authMW)
+
+	portfolioHandler := api.NewPortfolioHandler(portfolioSvc)
+	portfolioHandler.RegisterRoutes(mux, authMW)
 
 	// CORS for frontend dev
 	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
