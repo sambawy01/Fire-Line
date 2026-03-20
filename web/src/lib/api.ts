@@ -376,6 +376,36 @@ export const menuApi = {
   },
 };
 
+// Labor Profiles / ELU / Points
+export interface EmployeeProfile {
+  employee_id: string;
+  display_name: string;
+  role: string;
+  status: string;
+  elu_ratings: Record<string, number>;
+  staff_points: number;
+  points_trend: 'up' | 'down' | 'stable';
+  certifications: string[];
+  availability: Record<string, any>;
+}
+
+export interface PointEvent {
+  event_id: string;
+  employee_id: string;
+  points: number;
+  reason: string;
+  description: string;
+  created_at: string;
+}
+
+export interface LeaderboardEntry {
+  employee_id: string;
+  display_name: string;
+  role: string;
+  staff_points: number;
+  points_trend: 'up' | 'down' | 'stable';
+}
+
 // Labor Intelligence
 export interface LaborSummary {
   total_labor_cost: number;
@@ -411,6 +441,18 @@ export const laborApi = {
     if (to) params.set('to', to);
     return request<{ employees: EmployeeDetail[] }>(`/labor/employees?${params}`);
   },
+  getProfiles: (locationId: string) =>
+    request<{ profiles: EmployeeProfile[] }>(`/labor/profiles?location_id=${locationId}`),
+  getProfile: (id: string) =>
+    request<EmployeeProfile>(`/labor/profiles/${id}`),
+  updateELU: (id: string, ratings: Record<string, number>) =>
+    request<any>(`/labor/profiles/${id}/elu`, { method: 'PUT', body: JSON.stringify({ ratings }) }),
+  awardPoints: (data: any) =>
+    request<any>('/labor/points', { method: 'POST', body: JSON.stringify(data) }),
+  getPointHistory: (employeeId: string) =>
+    request<{ events: PointEvent[] }>(`/labor/points/${employeeId}?limit=20`),
+  getLeaderboard: (locationId: string) =>
+    request<{ leaderboard: LeaderboardEntry[] }>(`/labor/leaderboard?location_id=${locationId}&limit=10`),
 };
 
 // Vendor Intelligence

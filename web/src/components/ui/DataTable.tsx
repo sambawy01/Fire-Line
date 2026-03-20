@@ -17,6 +17,7 @@ interface DataTableProps<T> {
   isLoading?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
+  onRowClick?: (row: T) => void;
 }
 
 export default function DataTable<T>({
@@ -26,6 +27,7 @@ export default function DataTable<T>({
   isLoading = false,
   emptyTitle = 'No data',
   emptyDescription,
+  onRowClick,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
@@ -89,7 +91,11 @@ export default function DataTable<T>({
           </thead>
           <tbody className="divide-y divide-gray-100">
             {sorted.map((row) => (
-              <tr key={keyExtractor(row)} className="hover:bg-gray-50 transition-colors">
+              <tr
+                key={keyExtractor(row)}
+                className={`hover:bg-gray-50 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+              >
                 {columns.map((col) => (
                   <td key={col.key} className={`px-6 py-3 ${alignClass(col.align)} text-gray-700`}>
                     {col.render

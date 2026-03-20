@@ -5,6 +5,8 @@ interface ActiveStaff {
   employee_id: string;
   display_name: string;
   role: string;
+  staff_points: number;
+  points_trend: 'up' | 'down' | 'stable';
 }
 
 interface Location {
@@ -40,6 +42,8 @@ interface PinVerifyResponse {
   employee_id: string;
   display_name: string;
   role: string;
+  staff_points: number;
+  points_trend: 'up' | 'down' | 'stable';
 }
 
 const INACTIVITY_TIMEOUT_MS = 120_000; // 2 minutes
@@ -85,6 +89,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         employee_id: data.employee_id,
         display_name: data.display_name,
         role: data.role,
+        staff_points: data.staff_points ?? 0,
+        points_trend: data.points_trend ?? 'stable',
       },
       lastActivity: Date.now(),
     });
