@@ -20,10 +20,10 @@ func (h *LaborHandler) RegisterSchedulingRoutes(mux *http.ServeMux, authMW func(
 	// Schedules — specific/static paths before parameterized ones
 	mux.Handle("POST /api/v1/labor/schedules/generate", authMW(http.HandlerFunc(h.GenerateScheduleDraft)))
 	mux.Handle("GET /api/v1/labor/schedules/employee/{id}", authMW(http.HandlerFunc(h.GetEmployeeSchedule)))
+	mux.Handle("GET /api/v1/labor/schedules/cost", authMW(http.HandlerFunc(h.ProjectLaborCost)))
 	mux.Handle("GET /api/v1/labor/schedules", authMW(http.HandlerFunc(h.GetSchedule)))
 	mux.Handle("PUT /api/v1/labor/schedules/{id}", authMW(http.HandlerFunc(h.UpdateSchedule)))
 	mux.Handle("POST /api/v1/labor/schedules/{id}/publish", authMW(http.HandlerFunc(h.PublishSchedule)))
-	mux.Handle("GET /api/v1/labor/schedules/{id}/cost", authMW(http.HandlerFunc(h.ProjectLaborCost)))
 
 	// Overtime risk
 	mux.Handle("GET /api/v1/labor/overtime-risk", authMW(http.HandlerFunc(h.CheckOvertimeRisk)))
@@ -254,7 +254,7 @@ func (h *LaborHandler) GetEmployeeSchedule(w http.ResponseWriter, r *http.Reques
 }
 
 // ProjectLaborCost returns a labor cost projection for a schedule.
-// GET /api/v1/labor/schedules/{id}/cost
+// GET /api/v1/labor/schedules/cost?schedule_id=X
 func (h *LaborHandler) ProjectLaborCost(w http.ResponseWriter, r *http.Request) {
 	orgID, err := tenant.OrgIDFrom(r.Context())
 	if err != nil {
@@ -262,9 +262,9 @@ func (h *LaborHandler) ProjectLaborCost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	scheduleID := r.PathValue("id")
+	scheduleID := r.URL.Query().Get("schedule_id")
 	if scheduleID == "" {
-		WriteError(w, http.StatusBadRequest, "SCHED_MISSING_ID", "schedule id is required")
+		WriteError(w, http.StatusBadRequest, "SCHED_MISSING_ID", "schedule_id is required")
 		return
 	}
 
