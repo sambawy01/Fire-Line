@@ -719,6 +719,168 @@ function RevenueRace({ branchRows }: { branchRows: BranchKPIRow[] }) {
 
 // ── CEO Executive Briefing ────────────────────────────────────────────────────
 
+const TEAM_MEMBERS = [
+  'Ahmed Hassan (GM - El Gouna)',
+  'Fatma Ali (GM - New Cairo)',
+  'Omar Sayed (GM - Zayed)',
+  'Layla Ibrahim (GM - North Coast)',
+  'Sara Mostafa (Operations Director)',
+  'You (CEO)',
+];
+
+interface ItemState {
+  expanded: boolean;
+  status: 'open' | 'assigned' | 'in_progress' | 'resolved';
+  assignedTo: string | null;
+  comments: { text: string; time: string }[];
+  showAssign: boolean;
+  showComment: boolean;
+  commentDraft: string;
+}
+
+function defaultItemState(): ItemState {
+  return {
+    expanded: false,
+    status: 'open',
+    assignedTo: null,
+    comments: [],
+    showAssign: false,
+    showComment: false,
+    commentDraft: '',
+  };
+}
+
+function StatusBadge({ status }: { status: ItemState['status'] }) {
+  if (status === 'open') return null;
+  const styles: Record<string, string> = {
+    assigned: 'bg-blue-500/20 text-blue-400',
+    in_progress: 'bg-amber-500/20 text-amber-400',
+    resolved: 'bg-green-500/20 text-green-400',
+  };
+  const labels: Record<string, string> = {
+    assigned: 'Assigned',
+    in_progress: 'In Progress',
+    resolved: 'Resolved',
+  };
+  return (
+    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${styles[status]}`}>
+      {labels[status]}
+    </span>
+  );
+}
+
+interface BriefingActionPanelProps {
+  itemKey: string;
+  state: ItemState;
+  isAttention: boolean;
+  onUpdate: (key: string, patch: Partial<ItemState>) => void;
+}
+
+function BriefingActionPanel({ itemKey, state, isAttention, onUpdate }: BriefingActionPanelProps) {
+  return (
+    <div className="bg-white/5 rounded-lg mt-2 p-3 border border-white/10 space-y-3">
+      {/* Action buttons row */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => onUpdate(itemKey, { showAssign: !state.showAssign, showComment: false })}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+        >
+          👤 Assign
+        </button>
+        <button
+          onClick={() => onUpdate(itemKey, { showComment: !state.showComment, showAssign: false })}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition bg-white/10 text-slate-300 hover:bg-white/15"
+        >
+          💬 Comment
+        </button>
+        {isAttention && (
+          <button
+            onClick={() => onUpdate(itemKey, { status: 'resolved', expanded: false })}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition bg-green-500/20 text-green-400 hover:bg-green-500/30"
+          >
+            ✓ Mark Resolved
+          </button>
+        )}
+        <button
+          onClick={() => onUpdate(itemKey, { status: 'in_progress', expanded: false })}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition bg-white/10 text-slate-400 hover:bg-white/15"
+        >
+          Acknowledge
+        </button>
+      </div>
+
+      {/* Assign dropdown */}
+      {state.showAssign && (
+        <div className="relative">
+          <div className="bg-slate-800 border border-white/15 rounded-lg shadow-xl py-1 w-56">
+            {TEAM_MEMBERS.map((member) => (
+              <div
+                key={member}
+                className="px-3 py-2 text-sm text-slate-300 hover:bg-white/10 cursor-pointer"
+                onClick={() => onUpdate(itemKey, {
+                  assignedTo: member,
+                  status: 'assigned',
+                  showAssign: false,
+                })}
+              >
+                {member}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Comment input */}
+      {state.showComment && (
+        <div className="flex gap-2 mt-2">
+          <input
+            type="text"
+            value={state.commentDraft}
+            onChange={(e) => onUpdate(itemKey, { commentDraft: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && state.commentDraft.trim()) {
+                onUpdate(itemKey, {
+                  comments: [...state.comments, { text: state.commentDraft.trim(), time: 'Just now' }],
+                  commentDraft: '',
+                  showComment: false,
+                });
+              }
+            }}
+            placeholder="Add a comment..."
+            className="bg-white/10 border border-white/15 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 flex-1 outline-none focus:border-white/30"
+          />
+          <button
+            onClick={() => {
+              if (state.commentDraft.trim()) {
+                onUpdate(itemKey, {
+                  comments: [...state.comments, { text: state.commentDraft.trim(), time: 'Just now' }],
+                  commentDraft: '',
+                  showComment: false,
+                });
+              }
+            }}
+            className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-500 transition"
+          >
+            Post
+          </button>
+        </div>
+      )}
+
+      {/* Posted comments */}
+      {state.comments.length > 0 && (
+        <div className="space-y-1.5">
+          {state.comments.map((c, i) => (
+            <div key={i} className="bg-white/5 rounded-lg px-3 py-2 text-xs">
+              <span className="text-slate-300">{c.text}</span>
+              <span className="text-slate-500 ml-2">{c.time}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface BriefingItem {
   icon: string;
   title: string;
@@ -820,6 +982,9 @@ function BriefingCard({
   borderColor,
   bgColor,
   headerColor,
+  columnKey,
+  itemStates,
+  onItemAction,
 }: {
   title: string;
   items: BriefingItem[];
@@ -827,7 +992,11 @@ function BriefingCard({
   borderColor: string;
   bgColor: string;
   headerColor: string;
+  columnKey: string;
+  itemStates: Record<string, ItemState>;
+  onItemAction: (key: string, patch: Partial<ItemState>) => void;
 }) {
+  const isAttention = columnKey === 'attention';
   return (
     <div
       className={`rounded-2xl border ${borderColor} ${bgColor} overflow-hidden flex flex-col`}
@@ -837,22 +1006,45 @@ function BriefingCard({
         <h3 className={`text-sm font-bold uppercase tracking-wider ${headerColor}`}>{title}</h3>
       </div>
       <div className="flex-1 divide-y divide-white/5">
-        {items.map((item, idx) => (
-          <div
-            key={idx}
-            className="group px-5 py-3.5 hover:bg-white/5 transition-colors duration-150 cursor-default flex items-start gap-3"
-          >
-            <span className="text-base shrink-0 mt-0.5">{item.icon}</span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-white leading-tight">{item.title}</p>
-                <span className="shrink-0 text-slate-600 group-hover:text-slate-400 transition-colors text-xs mt-0.5">→</span>
+        {items.map((item, idx) => {
+          const key = `${columnKey}-${idx}`;
+          const state = itemStates[key] ?? defaultItemState();
+          return (
+            <div key={idx} className="px-5 py-3.5">
+              <div
+                className="group flex items-start gap-3 cursor-pointer"
+                onClick={() => onItemAction(key, { expanded: !state.expanded, showAssign: false, showComment: false })}
+              >
+                <span className="text-base shrink-0 mt-0.5">{item.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-white leading-tight">{item.title}</p>
+                      <StatusBadge status={state.status} />
+                      {state.assignedTo && (
+                        <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-semibold">
+                          {state.assignedTo.split(' (')[0]}
+                        </span>
+                      )}
+                    </div>
+                    <span className={`shrink-0 text-slate-500 transition-transform duration-200 text-xs mt-0.5 ${state.expanded ? 'rotate-90' : ''}`}>▶</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.impact}</p>
+                  <p className="text-[10px] text-slate-600 mt-1 font-medium uppercase tracking-wide">{item.branch}</p>
+                </div>
               </div>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.impact}</p>
-              <p className="text-[10px] text-slate-600 mt-1 font-medium uppercase tracking-wide">{item.branch}</p>
+              {/* Expandable action panel */}
+              {state.expanded && (
+                <BriefingActionPanel
+                  itemKey={key}
+                  state={state}
+                  isAttention={isAttention}
+                  onUpdate={onItemAction}
+                />
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -881,7 +1073,36 @@ const AI_RECOMMENDATIONS = [
   },
 ];
 
+interface RecState {
+  expanded: boolean;
+  status: 'pending' | 'approved' | 'dismissed';
+  assignedTo: string | null;
+  showAssign: boolean;
+  showModify: boolean;
+  modifyDraft: string;
+}
+
+function defaultRecState(): RecState {
+  return {
+    expanded: false,
+    status: 'pending',
+    assignedTo: null,
+    showAssign: false,
+    showModify: false,
+    modifyDraft: '',
+  };
+}
+
 function AIRecommendations() {
+  const [recStates, setRecStates] = useState<Record<number, RecState>>({});
+
+  function updateRec(i: number, patch: Partial<RecState>) {
+    setRecStates((prev) => ({
+      ...prev,
+      [i]: { ...(prev[i] ?? defaultRecState()), ...patch },
+    }));
+  }
+
   return (
     <div className="space-y-4 mt-6">
       <div className="flex items-center gap-3">
@@ -893,27 +1114,122 @@ function AIRecommendations() {
         <div className="h-px flex-1 bg-white/5" />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {AI_RECOMMENDATIONS.map((rec, i) => (
-          <div
-            key={i}
-            className="bg-gradient-to-br from-indigo-950/40 to-purple-950/30 border border-indigo-500/20 rounded-xl p-4 hover:border-indigo-400/40 transition-colors"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">{rec.icon}</span>
-              <span
-                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  rec.confidence === 'High'
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'bg-amber-500/20 text-amber-400'
-                }`}
+        {AI_RECOMMENDATIONS.map((rec, i) => {
+          const state = recStates[i] ?? defaultRecState();
+          return (
+            <div
+              key={i}
+              className={`bg-gradient-to-br from-indigo-950/40 to-purple-950/30 border rounded-xl p-4 transition-colors ${
+                state.status === 'approved'
+                  ? 'border-green-500/40'
+                  : state.status === 'dismissed'
+                  ? 'border-white/10 opacity-50'
+                  : 'border-indigo-500/20 hover:border-indigo-400/40'
+              }`}
+            >
+              {/* Card header — clickable to expand */}
+              <div
+                className="cursor-pointer"
+                onClick={() => updateRec(i, { expanded: !state.expanded, showAssign: false, showModify: false })}
               >
-                {rec.confidence} Confidence
-              </span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{rec.icon}</span>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        rec.confidence === 'High'
+                          ? 'bg-green-500/20 text-green-400'
+                          : 'bg-amber-500/20 text-amber-400'
+                      }`}
+                    >
+                      {rec.confidence} Confidence
+                    </span>
+                    {state.status === 'approved' && (
+                      <span className="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+                        Approved ✓
+                      </span>
+                    )}
+                  </div>
+                  <span className={`text-slate-500 text-xs transition-transform duration-200 ${state.expanded ? 'rotate-90' : ''}`}>▶</span>
+                </div>
+                <h4 className="text-sm font-bold text-white mb-1">{rec.title}</h4>
+                <p className="text-xs text-slate-400 leading-relaxed">{rec.desc}</p>
+                {state.assignedTo && (
+                  <span className="mt-2 inline-block text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-semibold">
+                    {state.assignedTo.split(' (')[0]}
+                  </span>
+                )}
+              </div>
+
+              {/* Expandable action panel */}
+              {state.expanded && (
+                <div className="bg-white/5 rounded-lg mt-3 p-3 border border-white/10 space-y-3">
+                  {/* Action buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => updateRec(i, { status: 'approved', expanded: false })}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                    >
+                      ✓ Approve & Execute
+                    </button>
+                    <button
+                      onClick={() => updateRec(i, { showModify: !state.showModify, showAssign: false })}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+                    >
+                      ✏️ Modify
+                    </button>
+                    <button
+                      onClick={() => updateRec(i, { showAssign: !state.showAssign, showModify: false })}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition bg-white/10 text-slate-300 hover:bg-white/15"
+                    >
+                      👤 Assign to Team
+                    </button>
+                    <button
+                      onClick={() => updateRec(i, { status: 'dismissed', expanded: false })}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition bg-white/10 text-slate-400 hover:bg-white/15"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+
+                  {/* Assign dropdown */}
+                  {state.showAssign && (
+                    <div className="bg-slate-800 border border-white/15 rounded-lg shadow-xl py-1 w-56">
+                      {TEAM_MEMBERS.map((member) => (
+                        <div
+                          key={member}
+                          className="px-3 py-2 text-sm text-slate-300 hover:bg-white/10 cursor-pointer"
+                          onClick={() => updateRec(i, { assignedTo: member, showAssign: false })}
+                        >
+                          {member}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Modify text area */}
+                  {state.showModify && (
+                    <div className="space-y-2">
+                      <textarea
+                        rows={3}
+                        value={state.modifyDraft}
+                        onChange={(e) => updateRec(i, { modifyDraft: e.target.value })}
+                        placeholder="Describe how you'd like to adjust this recommendation..."
+                        className="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-white/30 resize-none"
+                      />
+                      <button
+                        onClick={() => updateRec(i, { showModify: false, status: 'approved' })}
+                        className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-500 transition"
+                      >
+                        Save & Approve Modified
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <h4 className="text-sm font-bold text-white mb-1">{rec.title}</h4>
-            <p className="text-xs text-slate-400 leading-relaxed">{rec.desc}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -922,6 +1238,14 @@ function AIRecommendations() {
 function CEOBriefing() {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const [itemStates, setItemStates] = useState<Record<string, ItemState>>({});
+
+  function handleItemAction(key: string, patch: Partial<ItemState>) {
+    setItemStates((prev) => ({
+      ...prev,
+      [key]: { ...(prev[key] ?? defaultItemState()), ...patch },
+    }));
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -962,6 +1286,9 @@ function CEOBriefing() {
           borderColor="border-red-500/40"
           bgColor="bg-red-950/20"
           headerColor="text-red-400"
+          columnKey="attention"
+          itemStates={itemStates}
+          onItemAction={handleItemAction}
         />
         <BriefingCard
           title="Performance Highlights"
@@ -970,6 +1297,9 @@ function CEOBriefing() {
           borderColor="border-green-500/40"
           bgColor="bg-green-950/20"
           headerColor="text-green-400"
+          columnKey="highlights"
+          itemStates={itemStates}
+          onItemAction={handleItemAction}
         />
         <BriefingCard
           title="Strategic Outlook"
@@ -978,6 +1308,9 @@ function CEOBriefing() {
           borderColor="border-blue-500/40"
           bgColor="bg-blue-950/20"
           headerColor="text-blue-400"
+          columnKey="outlook"
+          itemStates={itemStates}
+          onItemAction={handleItemAction}
         />
       </div>
 
