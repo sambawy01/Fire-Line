@@ -89,8 +89,8 @@ function PODetailModal({ poId, onClose }: { poId: string; onClose: () => void })
   const { data, isLoading, error } = usePO(poId);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white/5 rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-slate-800 border border-white/15 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div>
@@ -164,10 +164,10 @@ function PODetailModal({ poId, onClose }: { poId: string; onClose: () => void })
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-white/10 flex justify-end">
+        <div className="px-6 py-4 border-t border-white/10 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-white/10 text-slate-200 text-sm font-medium hover:bg-white/15 transition-colors"
+            className="px-4 py-2 rounded-lg bg-white/10 text-slate-200 text-sm font-medium hover:bg-white/20 transition-colors"
           >
             Close
           </button>
