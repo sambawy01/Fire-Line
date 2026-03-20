@@ -1,406 +1,691 @@
 import { useState } from 'react';
 import {
-  ScatterChart,
-  Scatter,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
   ResponsiveContainer,
-  ReferenceLine,
-  Cell,
 } from 'recharts';
 import { useLocationStore } from '../stores/location';
-import { useMenuItems, useMenuSummary } from '../hooks/useMenu';
-import KPICard from '../components/ui/KPICard';
+import {
+  useMenuScores,
+  useDependencies,
+  useCrossSell,
+  useScoreMenu,
+  useSimulatePrice,
+  useSimulateRemoval,
+  useSimulateIngredientCost,
+} from '../hooks/useMenuScoring';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ErrorBanner from '../components/ui/ErrorBanner';
-import Modal from '../components/ui/Modal';
-import type { MenuItemAnalysis } from '../lib/api';
-import { LayoutList, Star, TrendingDown, Percent } from 'lucide-react';
+import type { MenuItemScore, IngredientDependency, CrossSellPair, SimulationResult } from '../lib/api';
 
-function cents(v: number): string {
-  return `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+function dollars(cents: number): string {
+  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-const CHANNEL_LABELS: Record<string, string> = {
-  dine_in: 'Dine-in',
-  takeout: 'Takeout',
-  delivery: 'Delivery',
-  drive_thru: 'Drive-Thru',
+function deltaCls(v: number) {
+  return v >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-600 font-semibold';
+}
+
+function deltaLabel(v: number, isCents = true): string {
+  const formatted = isCents ? dollars(Math.abs(v)) : `$${Math.abs(v / 100).toFixed(2)}`;
+  return `${v >= 0 ? '+' : '-'}${formatted}`;
+}
+
+// ─── classification config ──────────────────────────────────────────────────
+
+const CLASSIFICATION_COLOR: Record<MenuItemScore['classification'], string> = {
+  powerhouse:       '#22c55e',
+  hidden_gem:       '#8b5cf6',
+  crowd_pleaser:    '#3b82f6',
+  workhorse:        '#6b7280',
+  complex_star:     '#f59e0b',
+  declining_star:   '#ef4444',
+  underperformer:   '#dc2626',
+  strategic_anchor: '#06b6d4',
 };
 
-const CLASSIFICATION_COLOR: Record<MenuItemAnalysis['classification'], string> = {
-  powerhouse: '#10B981',   // emerald-500
-  hidden_gem: '#3B82F6',   // blue-500
-  crowd_pleaser: '#F59E0B', // amber-500
-  underperformer: '#EF4444', // red-500
+const CLASSIFICATION_LABEL: Record<MenuItemScore['classification'], string> = {
+  powerhouse:       'Powerhouse',
+  hidden_gem:       'Hidden Gem',
+  crowd_pleaser:    'Crowd Pleaser',
+  workhorse:        'Workhorse',
+  complex_star:     'Complex Star',
+  declining_star:   'Declining Star',
+  underperformer:   'Underperformer',
+  strategic_anchor: 'Strategic Anchor',
 };
 
-const CLASSIFICATION_BADGE: Record<
-  MenuItemAnalysis['classification'],
-  { variant: 'success' | 'info' | 'warning' | 'critical'; label: string }
-> = {
-  powerhouse:    { variant: 'success',  label: 'Powerhouse' },
-  hidden_gem:    { variant: 'info',     label: 'Hidden Gem' },
-  crowd_pleaser: { variant: 'warning',  label: 'Crowd Pleaser' },
-  underperformer:{ variant: 'critical', label: 'Underperformer' },
-};
+function ClassificationBadge({ cls }: { cls: MenuItemScore['classification'] }) {
+  const color = CLASSIFICATION_COLOR[cls];
+  const label = CLASSIFICATION_LABEL[cls];
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
+      style={{ backgroundColor: color }}
+    >
+      {label}
+    </span>
+  );
+}
 
-const LEGEND_ITEMS: Array<{ classification: MenuItemAnalysis['classification']; label: string }> = [
-  { classification: 'powerhouse',    label: 'Powerhouse' },
-  { classification: 'hidden_gem',    label: 'Hidden Gem' },
-  { classification: 'crowd_pleaser', label: 'Crowd Pleaser' },
-  { classification: 'underperformer',label: 'Underperformer' },
-];
+// ─── radar chart for a single item ──────────────────────────────────────────
+
+function ItemRadar({ item }: { item: MenuItemScore }) {
+  const data = [
+    { axis: 'Margin',       value: item.margin_score },
+    { axis: 'Velocity',     value: item.velocity_score },
+    { axis: 'Complexity',   value: item.complexity_score },
+    { axis: 'Satisfaction', value: item.satisfaction_score },
+    { axis: 'Strategic',    value: item.strategic_score },
+  ];
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <RadarChart data={data}>
+        <PolarGrid />
+        <PolarAngleAxis dataKey="axis" tick={{ fontSize: 11 }} />
+        <Radar
+          name={item.name}
+          dataKey="value"
+          stroke={CLASSIFICATION_COLOR[item.classification]}
+          fill={CLASSIFICATION_COLOR[item.classification]}
+          fillOpacity={0.3}
+        />
+      </RadarChart>
+    </ResponsiveContainer>
+  );
+}
+
+// ─── simulation delta card ───────────────────────────────────────────────────
+
+function SimDeltaCard({ result }: { result: SimulationResult }) {
+  return (
+    <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+      <h4 className="text-sm font-semibold text-gray-700">Simulation Results</h4>
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <p className="text-gray-500 text-xs">Current Revenue</p>
+          <p className="font-medium">{dollars(result.current_revenue)}</p>
+        </div>
+        <div>
+          <p className="text-gray-500 text-xs">Projected Revenue</p>
+          <p className="font-medium">{dollars(result.projected_revenue)}</p>
+        </div>
+        <div>
+          <p className="text-gray-500 text-xs">Revenue Delta</p>
+          <p className={deltaCls(result.revenue_delta)}>{deltaLabel(result.revenue_delta)}</p>
+        </div>
+        <div>
+          <p className="text-gray-500 text-xs">Profit Delta</p>
+          <p className={deltaCls(result.profit_delta)}>{deltaLabel(result.profit_delta)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── tabs ────────────────────────────────────────────────────────────────────
+
+const TABS = ['Menu Matrix', 'Simulation', 'Dependencies', 'Cross-Sell'] as const;
+type Tab = typeof TABS[number];
+
+// ─── main page ───────────────────────────────────────────────────────────────
 
 export default function MenuPage() {
   const locationId = useLocationStore((s) => s.selectedLocationId);
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [selectedItem, setSelectedItem] = useState<MenuItemAnalysis | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>('Menu Matrix');
 
-  const {
-    data: itemsData,
-    isLoading: itemsLoading,
-    error: itemsError,
-    refetch: refetchItems,
-  } = useMenuItems(locationId);
+  // Menu Matrix state
+  const [classFilter, setClassFilter] = useState<string>('all');
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  const {
-    data: summary,
-    isLoading: summaryLoading,
-  } = useMenuSummary(locationId);
+  // Simulation state
+  const [priceItemId, setPriceItemId] = useState('');
+  const [newPrice, setNewPrice] = useState('');
+  const [priceResult, setPriceResult] = useState<SimulationResult | null>(null);
+
+  const [removeItemId, setRemoveItemId] = useState('');
+  const [removeResult, setRemoveResult] = useState<SimulationResult | null>(null);
+
+  const [costIngredientId, setCostIngredientId] = useState('');
+  const [newCost, setNewCost] = useState('');
+  const [costResult, setCostResult] = useState<SimulationResult | null>(null);
+
+  // Queries
+  const { data: scoresData, isLoading: scoresLoading, error: scoresError, refetch: refetchScores } = useMenuScores(locationId);
+  const { data: depsData,   isLoading: depsLoading,   error: depsError }   = useDependencies(locationId);
+  const { data: crossData,  isLoading: crossLoading,  error: crossError }  = useCrossSell(locationId);
+
+  // Mutations
+  const scoreMutation = useScoreMenu();
+  const priceMutation  = useSimulatePrice();
+  const removeMutation = useSimulateRemoval();
+  const costMutation   = useSimulateIngredientCost();
 
   if (!locationId) return <LoadingSpinner fullPage />;
 
-  const allItems = itemsData?.items ?? [];
+  const allItems   = scoresData?.items ?? [];
+  const allDeps    = depsData?.dependencies ?? [];
+  const allPairs   = crossData?.pairs ?? [];
 
-  // Collect unique categories for the filter dropdown
-  const categories = Array.from(new Set(allItems.map((i) => i.category))).sort();
+  // classifications for filter
+  const classifications = Array.from(new Set(allItems.map((i) => i.classification))).sort();
 
   const filteredItems =
-    categoryFilter === 'all'
-      ? allItems
-      : allItems.filter((i) => i.category === categoryFilter);
+    classFilter === 'all' ? allItems : allItems.filter((i) => i.classification === classFilter);
 
-  // Scatter plot data
-  const scatterData = filteredItems.map((item) => ({
-    x: item.popularity_pct,
-    y: item.contrib_margin_pct,
-    classification: item.classification,
-    name: item.name,
-  }));
+  // Score menu handler
+  async function handleRecalculate() {
+    await scoreMutation.mutateAsync(locationId);
+    refetchScores();
+  }
 
-  const medianMargin =
-    summary?.avg_margin_pct ?? (allItems.length > 0
-      ? allItems.reduce((acc, i) => acc + i.contrib_margin_pct, 0) / allItems.length
-      : 0);
+  // ── Tab 1: Menu Matrix columns ────────────────────────────────────────────
 
-  // Channel breakdown columns (used inside modal)
-  const channelColumns: Column<MenuItemAnalysis['by_channel'][number]>[] = [
-    {
-      key: 'channel',
-      header: 'Channel',
-      render: (r) => CHANNEL_LABELS[r.channel] ?? r.channel,
-    },
-    {
-      key: 'units_sold',
-      header: 'Units',
-      align: 'right',
-      sortable: true,
-    },
-    {
-      key: 'revenue',
-      header: 'Revenue',
-      align: 'right',
-      sortable: true,
-      render: (r) => cents(r.revenue),
-    },
-    {
-      key: 'commission',
-      header: 'Commission',
-      align: 'right',
-      render: (r) => cents(r.commission),
-    },
-    {
-      key: 'food_cost',
-      header: 'Food Cost',
-      align: 'right',
-      render: (r) => cents(r.food_cost),
-    },
-    {
-      key: 'margin',
-      header: 'Margin ($)',
-      align: 'right',
-      sortable: true,
-      render: (r) => cents(r.margin),
-    },
-    {
-      key: 'margin_pct',
-      header: 'Margin %',
-      align: 'right',
-      sortable: true,
-      render: (r) => `${r.margin_pct.toFixed(1)}%`,
-    },
-  ];
-
-  // Main item table columns — must be inside component to reference setSelectedItem
-  const itemColumns: Column<MenuItemAnalysis>[] = [
-    { key: 'name', header: 'Item', sortable: true },
+  const scoreColumns: Column<MenuItemScore>[] = [
+    { key: 'name',     header: 'Item',     sortable: true },
     { key: 'category', header: 'Category', sortable: true },
     {
       key: 'price',
       header: 'Price',
       align: 'right',
       sortable: true,
-      render: (r) => cents(r.price),
-    },
-    {
-      key: 'units_sold',
-      header: 'Units Sold',
-      align: 'right',
-      sortable: true,
-    },
-    {
-      key: 'food_cost',
-      header: 'Food Cost',
-      align: 'right',
-      render: (r) => cents(r.food_cost),
-    },
-    {
-      key: 'contrib_margin',
-      header: 'Margin ($)',
-      align: 'right',
-      sortable: true,
-      render: (r) => cents(r.contrib_margin),
-    },
-    {
-      key: 'contrib_margin_pct',
-      header: 'Margin %',
-      align: 'right',
-      sortable: true,
-      render: (r) => `${r.contrib_margin_pct.toFixed(1)}%`,
-    },
-    {
-      key: 'popularity_pct',
-      header: 'Popularity',
-      align: 'right',
-      sortable: true,
-      render: (r) => `${r.popularity_pct.toFixed(1)}%`,
+      render: (r) => `$${(r.price / 100).toFixed(2)}`,
     },
     {
       key: 'classification',
-      header: 'Class',
+      header: 'Classification',
       align: 'center',
-      render: (r) => {
-        const cfg = CLASSIFICATION_BADGE[r.classification];
-        return <StatusBadge variant={cfg.variant}>{cfg.label}</StatusBadge>;
-      },
+      render: (r) => <ClassificationBadge cls={r.classification} />,
     },
     {
-      key: 'detail',
+      key: 'margin_score',
+      header: 'Margin',
+      align: 'right',
+      sortable: true,
+      render: (r) => r.margin_score.toFixed(1),
+    },
+    {
+      key: 'velocity_score',
+      header: 'Velocity',
+      align: 'right',
+      sortable: true,
+      render: (r) => r.velocity_score.toFixed(1),
+    },
+    {
+      key: 'complexity_score',
+      header: 'Complexity',
+      align: 'right',
+      sortable: true,
+      render: (r) => r.complexity_score.toFixed(1),
+    },
+    {
+      key: 'satisfaction_score',
+      header: 'Satisfaction',
+      align: 'right',
+      sortable: true,
+      render: (r) => r.satisfaction_score.toFixed(1),
+    },
+    {
+      key: 'strategic_score',
+      header: 'Strategic',
+      align: 'right',
+      sortable: true,
+      render: (r) => r.strategic_score.toFixed(1),
+    },
+    {
+      key: 'expand',
       header: '',
       align: 'center',
       render: (r) => (
         <button
-          onClick={() => setSelectedItem(r)}
+          onClick={() => setExpandedRow(expandedRow === r.menu_item_id ? null : r.menu_item_id)}
           className="text-xs font-medium text-[#F97316] hover:underline focus:outline-none"
         >
-          Detail
+          {expandedRow === r.menu_item_id ? 'Close' : 'Detail'}
         </button>
       ),
     },
   ];
 
+  // ── Tab 3: Dependencies columns ───────────────────────────────────────────
+
+  const depColumns: Column<IngredientDependency>[] = [
+    {
+      key: 'ingredient_name',
+      header: 'Ingredient',
+      sortable: true,
+      render: (r) => (
+        <span className={r.menu_item_count === 1 ? 'text-red-600 font-semibold' : ''}>
+          {r.ingredient_name}
+          {r.menu_item_count === 1 && (
+            <span className="ml-2 text-[10px] bg-red-100 text-red-700 rounded px-1 py-0.5">SPOF</span>
+          )}
+        </span>
+      ),
+    },
+    {
+      key: 'menu_item_count',
+      header: '# Items',
+      align: 'right',
+      sortable: true,
+    },
+    {
+      key: 'menu_items',
+      header: 'Used By',
+      render: (r) => (
+        <span className="text-sm text-gray-600">{r.menu_items.join(', ')}</span>
+      ),
+    },
+  ];
+
+  // ── Tab 4: Cross-Sell columns ─────────────────────────────────────────────
+
+  const maxAffinity = allPairs.length > 0 ? Math.max(...allPairs.map((p) => p.affinity)) : 1;
+
+  const crossColumns: Column<CrossSellPair>[] = [
+    { key: 'item_a_name', header: 'Item A', sortable: true },
+    { key: 'item_b_name', header: 'Item B', sortable: true },
+    {
+      key: 'co_occurrences',
+      header: 'Co-orders',
+      align: 'right',
+      sortable: true,
+    },
+    {
+      key: 'affinity',
+      header: 'Affinity',
+      render: (r) => {
+        const pct = maxAffinity > 0 ? (r.affinity / maxAffinity) * 100 : 0;
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-28 h-2 rounded-full bg-gray-100 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[#F97316]"
+                style={{ width: `${pct.toFixed(1)}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-600 whitespace-nowrap">
+              {(r.affinity * 100).toFixed(1)}%
+            </span>
+          </div>
+        );
+      },
+    },
+  ];
+
+  // ── sorted deps ───────────────────────────────────────────────────────────
+  const sortedDeps = [...allDeps].sort((a, b) => b.menu_item_count - a.menu_item_count);
+
   return (
-    <div className="space-y-8">
-      {/* Page header */}
+    <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Menu Intelligence</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Item performance, margin analysis, and channel breakdown
+          5-dimension scoring, simulation sandbox, and cross-sell analysis
         </p>
       </div>
 
-      {itemsError && (
-        <ErrorBanner
-          message={
-            itemsError instanceof Error
-              ? itemsError.message
-              : 'Failed to load menu data'
-          }
-          retry={() => refetchItems()}
-        />
-      )}
-
-      {/* KPI Cards */}
-      {summaryLoading || itemsLoading ? (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner />
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <KPICard
-            label="Menu Items"
-            value={String(summary?.total_items ?? allItems.length)}
-            icon={LayoutList}
-            iconColor="text-blue-600"
-            bgTint="bg-blue-50"
-          />
-          <KPICard
-            label="Avg Margin %"
-            value={`${(summary?.avg_margin_pct ?? 0).toFixed(1)}%`}
-            icon={Percent}
-            iconColor="text-purple-600"
-            bgTint="bg-purple-50"
-          />
-          <KPICard
-            label="Powerhouses"
-            value={String(summary?.powerhouse_count ?? 0)}
-            icon={Star}
-            iconColor="text-emerald-600"
-            bgTint="bg-emerald-50"
-          />
-          <KPICard
-            label="Underperformers"
-            value={String(summary?.underperform_count ?? 0)}
-            icon={TrendingDown}
-            iconColor="text-red-600"
-            bgTint="bg-red-50"
-          />
-        </div>
-      )}
-
-      {/* Scatter plot */}
-      {filteredItems.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Popularity vs. Margin
-            </h2>
-            {/* Legend */}
-            <div className="flex flex-wrap gap-4">
-              {LEGEND_ITEMS.map(({ classification, label }) => (
-                <span key={classification} className="flex items-center gap-1.5 text-xs text-gray-600">
-                  <span
-                    className="inline-block h-3 w-3 rounded-full"
-                    style={{ backgroundColor: CLASSIFICATION_COLOR[classification] }}
-                  />
-                  {label}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis
-                  type="number"
-                  dataKey="x"
-                  name="Popularity"
-                  tick={{ fontSize: 12 }}
-                  label={{ value: 'Popularity %', position: 'insideBottom', offset: -4, fontSize: 12 }}
-                />
-                <YAxis
-                  type="number"
-                  dataKey="y"
-                  name="Margin %"
-                  tick={{ fontSize: 12 }}
-                  label={{ value: 'Margin %', angle: -90, position: 'insideLeft', offset: 10, fontSize: 12 }}
-                />
-                <Tooltip
-                  cursor={{ strokeDasharray: '3 3' }}
-                  content={({ payload }) => {
-                    if (!payload?.length) return null;
-                    const d = payload[0].payload as typeof scatterData[number];
-                    return (
-                      <div className="bg-white border border-gray-200 rounded-lg shadow-md px-3 py-2 text-xs">
-                        <p className="font-semibold text-gray-800 mb-1">{d.name}</p>
-                        <p className="text-gray-500">Popularity: {d.x.toFixed(1)}%</p>
-                        <p className="text-gray-500">Margin: {d.y.toFixed(1)}%</p>
-                      </div>
-                    );
-                  }}
-                />
-                <ReferenceLine
-                  y={medianMargin}
-                  stroke="#94A3B8"
-                  strokeDasharray="4 4"
-                  label={{ value: 'Avg margin', position: 'insideTopRight', fontSize: 11, fill: '#94A3B8' }}
-                />
-                <Scatter data={scatterData} isAnimationActive={false}>
-                  {scatterData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={CLASSIFICATION_COLOR[entry.classification]}
-                    />
-                  ))}
-                </Scatter>
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
-      {/* Category filter + table */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-gray-800">Item Detail</h2>
-          {categories.length > 0 && (
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
-            >
-              <option value="all">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        <DataTable
-          columns={itemColumns}
-          data={filteredItems}
-          keyExtractor={(r) => r.menu_item_id}
-          isLoading={itemsLoading}
-          emptyTitle="No menu items"
-          emptyDescription="No items match the selected category filter."
-        />
+      {/* Tab bar */}
+      <div className="flex gap-1 border-b border-gray-200">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === tab
+                ? 'border-[#F97316] text-[#F97316]'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      {/* Channel detail modal */}
-      <Modal
-        open={selectedItem !== null}
-        onClose={() => setSelectedItem(null)}
-        title={selectedItem ? `${selectedItem.name} — Channel Breakdown` : ''}
-      >
-        {selectedItem && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <StatusBadge variant={CLASSIFICATION_BADGE[selectedItem.classification].variant}>
-                {CLASSIFICATION_BADGE[selectedItem.classification].label}
-              </StatusBadge>
-              <span className="text-sm text-gray-500">
-                {selectedItem.category} &bull; {cents(selectedItem.price)}
-              </span>
-            </div>
-            <DataTable
-              columns={channelColumns}
-              data={selectedItem.by_channel}
-              keyExtractor={(r) => r.channel}
-              emptyTitle="No channel data"
+      {/* ── Tab 1: Menu Matrix ── */}
+      {activeTab === 'Menu Matrix' && (
+        <div className="space-y-4">
+          {scoresError && (
+            <ErrorBanner
+              message={scoresError instanceof Error ? scoresError.message : 'Failed to load scores'}
+              retry={() => refetchScores()}
             />
+          )}
+
+          {/* Controls */}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleRecalculate}
+              disabled={scoreMutation.isPending}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-[#F97316] text-white hover:bg-orange-600 disabled:opacity-50 transition-colors"
+            >
+              {scoreMutation.isPending ? 'Recalculating…' : 'Recalculate Scores'}
+            </button>
+            {scoreMutation.isSuccess && (
+              <span className="text-xs text-emerald-600 font-medium">Scores updated.</span>
+            )}
+            {classifications.length > 0 && (
+              <select
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+              >
+                <option value="all">All Classifications</option>
+                {classifications.map((c) => (
+                  <option key={c} value={c}>
+                    {CLASSIFICATION_LABEL[c]}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
-        )}
-      </Modal>
+
+          {/* Table with expandable rows */}
+          {scoresLoading ? (
+            <div className="flex justify-center py-12"><LoadingSpinner /></div>
+          ) : (
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <DataTable
+                columns={scoreColumns}
+                data={filteredItems}
+                keyExtractor={(r) => r.menu_item_id}
+                emptyTitle="No scores available"
+                emptyDescription="Click 'Recalculate Scores' to generate 5-dimension scores for this location."
+              />
+              {/* Expanded radar rows — rendered below table via overlay approach */}
+              {expandedRow && (() => {
+                const item = filteredItems.find((i) => i.menu_item_id === expandedRow);
+                if (!item) return null;
+                return (
+                  <div className="border-t border-orange-100 bg-orange-50 px-6 py-4">
+                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                      <div className="w-full md:w-72 shrink-0">
+                        <ItemRadar item={item} />
+                      </div>
+                      <div className="flex-1 space-y-2 text-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <ClassificationBadge cls={item.classification} />
+                          <span className="text-gray-500">{item.category}</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {[
+                            { label: 'Margin Score',       val: item.margin_score },
+                            { label: 'Velocity Score',     val: item.velocity_score },
+                            { label: 'Complexity Score',   val: item.complexity_score },
+                            { label: 'Satisfaction Score', val: item.satisfaction_score },
+                            { label: 'Strategic Score',    val: item.strategic_score },
+                          ].map(({ label, val }) => (
+                            <div key={label} className="bg-white rounded-lg border border-gray-200 p-3">
+                              <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
+                              <p className="text-xl font-bold text-gray-800 mt-0.5">{val.toFixed(1)}</p>
+                            </div>
+                          ))}
+                          <div className="bg-white rounded-lg border border-gray-200 p-3">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wide">Units Sold</p>
+                            <p className="text-xl font-bold text-gray-800 mt-0.5">{item.units_sold.toLocaleString()}</p>
+                          </div>
+                          <div className="bg-white rounded-lg border border-gray-200 p-3">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wide">Contrib. Margin</p>
+                            <p className="text-xl font-bold text-gray-800 mt-0.5">{dollars(item.contribution_margin)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Tab 2: Simulation Sandbox ── */}
+      {activeTab === 'Simulation' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+          {/* Card 1: Price Change */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+            <div>
+              <h3 className="text-base font-semibold text-gray-800">Price Change</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Simulate a new price point for a menu item.</p>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Menu Item</label>
+                <select
+                  value={priceItemId}
+                  onChange={(e) => setPriceItemId(e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                >
+                  <option value="">Select item…</option>
+                  {allItems.map((i) => (
+                    <option key={i.menu_item_id} value={i.menu_item_id}>{i.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">New Price ($)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newPrice}
+                  onChange={(e) => setNewPrice(e.target.value)}
+                  placeholder="e.g. 14.99"
+                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                />
+              </div>
+              <button
+                disabled={!priceItemId || !newPrice || priceMutation.isPending}
+                onClick={async () => {
+                  const result = await priceMutation.mutateAsync({
+                    locationId,
+                    menuItemId: priceItemId,
+                    newPrice: Math.round(parseFloat(newPrice) * 100),
+                  });
+                  setPriceResult(result);
+                }}
+                className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-[#F97316] text-white hover:bg-orange-600 disabled:opacity-50 transition-colors"
+              >
+                {priceMutation.isPending ? 'Simulating…' : 'Simulate'}
+              </button>
+              {priceMutation.isError && (
+                <p className="text-xs text-red-600">{(priceMutation.error as Error).message}</p>
+              )}
+            </div>
+            {priceResult && <SimDeltaCard result={priceResult} />}
+          </div>
+
+          {/* Card 2: Item Removal */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+            <div>
+              <h3 className="text-base font-semibold text-gray-800">Item Removal (86)</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Forecast impact of removing an item entirely.</p>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Menu Item</label>
+                <select
+                  value={removeItemId}
+                  onChange={(e) => setRemoveItemId(e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                >
+                  <option value="">Select item…</option>
+                  {allItems.map((i) => (
+                    <option key={i.menu_item_id} value={i.menu_item_id}>{i.name}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                disabled={!removeItemId || removeMutation.isPending}
+                onClick={async () => {
+                  const result = await removeMutation.mutateAsync({
+                    locationId,
+                    menuItemId: removeItemId,
+                  });
+                  setRemoveResult(result);
+                }}
+                className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-[#F97316] text-white hover:bg-orange-600 disabled:opacity-50 transition-colors"
+              >
+                {removeMutation.isPending ? 'Simulating…' : 'Simulate'}
+              </button>
+              {removeMutation.isError && (
+                <p className="text-xs text-red-600">{(removeMutation.error as Error).message}</p>
+              )}
+            </div>
+            {removeResult && (
+              <>
+                <SimDeltaCard result={removeResult} />
+                {removeResult.affected_items && removeResult.affected_items.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-semibold text-gray-600">Affected Ingredients</p>
+                    {removeResult.affected_items.map((ai) => (
+                      <div key={ai.menu_item_id} className="flex items-center justify-between text-xs">
+                        <span className="text-gray-700">{ai.name}</span>
+                        <StatusBadge variant={ai.shared ? 'info' : 'warning'}>
+                          {ai.shared ? 'Shared' : 'Exclusive'}
+                        </StatusBadge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Card 3: Ingredient Cost Change */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+            <div>
+              <h3 className="text-base font-semibold text-gray-800">Ingredient Cost Change</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Model the margin impact of a supplier price change.</p>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Ingredient</label>
+                <select
+                  value={costIngredientId}
+                  onChange={(e) => setCostIngredientId(e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                >
+                  <option value="">Select ingredient…</option>
+                  {allDeps.map((d) => (
+                    <option key={d.ingredient_id} value={d.ingredient_id}>{d.ingredient_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">New Cost per Unit ($)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newCost}
+                  onChange={(e) => setNewCost(e.target.value)}
+                  placeholder="e.g. 2.50"
+                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                />
+              </div>
+              <button
+                disabled={!costIngredientId || !newCost || costMutation.isPending}
+                onClick={async () => {
+                  const result = await costMutation.mutateAsync({
+                    locationId,
+                    ingredientId: costIngredientId,
+                    newCostPerUnit: parseFloat(newCost),
+                  });
+                  setCostResult(result);
+                }}
+                className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-[#F97316] text-white hover:bg-orange-600 disabled:opacity-50 transition-colors"
+              >
+                {costMutation.isPending ? 'Simulating…' : 'Simulate'}
+              </button>
+              {costMutation.isError && (
+                <p className="text-xs text-red-600">{(costMutation.error as Error).message}</p>
+              )}
+            </div>
+            {costResult && (
+              <>
+                <SimDeltaCard result={costResult} />
+                {costResult.affected_items && costResult.affected_items.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-semibold text-gray-600">Affected Items</p>
+                    {costResult.affected_items.map((ai) => (
+                      <div key={ai.menu_item_id} className="flex items-center justify-between text-xs">
+                        <span className="text-gray-700">{ai.name}</span>
+                        {ai.margin_delta !== undefined && (
+                          <span className={deltaCls(ai.margin_delta)}>
+                            {deltaLabel(ai.margin_delta)}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Tab 3: Dependencies ── */}
+      {activeTab === 'Dependencies' && (
+        <div className="space-y-4">
+          {depsError && (
+            <ErrorBanner
+              message={depsError instanceof Error ? depsError.message : 'Failed to load dependencies'}
+            />
+          )}
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-gray-500">
+              Ingredients sorted by menu item usage. Items highlighted in red are single points of failure (SPOF).
+            </p>
+          </div>
+          {depsLoading ? (
+            <div className="flex justify-center py-12"><LoadingSpinner /></div>
+          ) : (
+            <DataTable
+              columns={depColumns}
+              data={sortedDeps}
+              keyExtractor={(r) => r.ingredient_id}
+              emptyTitle="No dependency data"
+              emptyDescription="No ingredient dependency data is available for this location."
+            />
+          )}
+        </div>
+      )}
+
+      {/* ── Tab 4: Cross-Sell ── */}
+      {activeTab === 'Cross-Sell' && (
+        <div className="space-y-4">
+          {crossError && (
+            <ErrorBanner
+              message={crossError instanceof Error ? crossError.message : 'Failed to load cross-sell data'}
+            />
+          )}
+          <p className="text-sm text-gray-500">
+            Top item pairs most frequently ordered together. Affinity bar is normalized to the highest pair.
+          </p>
+          {crossLoading ? (
+            <div className="flex justify-center py-12"><LoadingSpinner /></div>
+          ) : (
+            <DataTable
+              columns={crossColumns}
+              data={allPairs}
+              keyExtractor={(r) => `${r.item_a_name}__${r.item_b_name}`}
+              emptyTitle="No cross-sell data"
+              emptyDescription="No co-occurrence data found for this location."
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

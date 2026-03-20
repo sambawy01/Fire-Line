@@ -376,6 +376,98 @@ export const menuApi = {
   },
 };
 
+// Menu Scoring (SP16)
+export interface MenuItemScore {
+  menu_item_id: string;
+  name: string;
+  category: string;
+  price: number;
+  margin_score: number;
+  velocity_score: number;
+  complexity_score: number;
+  satisfaction_score: number;
+  strategic_score: number;
+  classification:
+    | 'powerhouse'
+    | 'hidden_gem'
+    | 'crowd_pleaser'
+    | 'workhorse'
+    | 'complex_star'
+    | 'declining_star'
+    | 'underperformer'
+    | 'strategic_anchor';
+  contribution_margin: number;
+  units_sold: number;
+}
+
+export interface AffectedItem {
+  menu_item_id: string;
+  name: string;
+  shared: boolean;
+  margin_delta?: number;
+}
+
+export interface SimulationResult {
+  simulation_type: string;
+  current_revenue: number;
+  projected_revenue: number;
+  revenue_delta: number;
+  current_profit: number;
+  projected_profit: number;
+  profit_delta: number;
+  affected_items?: AffectedItem[];
+}
+
+export interface IngredientDependency {
+  ingredient_id: string;
+  ingredient_name: string;
+  menu_item_count: number;
+  menu_items: string[];
+}
+
+export interface CrossSellPair {
+  item_a_name: string;
+  item_b_name: string;
+  co_occurrences: number;
+  affinity: number;
+}
+
+export const menuScoringApi = {
+  triggerScore(locationId: string) {
+    return request<{ status: string }>('/menu/score', {
+      method: 'POST',
+      body: JSON.stringify({ location_id: locationId }),
+    });
+  },
+  getScores(locationId: string) {
+    return request<{ items: MenuItemScore[] }>(`/menu/scores?location_id=${locationId}`);
+  },
+  simulatePrice(locationId: string, menuItemId: string, newPrice: number) {
+    return request<SimulationResult>('/menu/simulate/price', {
+      method: 'POST',
+      body: JSON.stringify({ location_id: locationId, menu_item_id: menuItemId, new_price: newPrice }),
+    });
+  },
+  simulateRemoval(locationId: string, menuItemId: string) {
+    return request<SimulationResult>('/menu/simulate/removal', {
+      method: 'POST',
+      body: JSON.stringify({ location_id: locationId, menu_item_id: menuItemId }),
+    });
+  },
+  simulateIngredientCost(locationId: string, ingredientId: string, newCostPerUnit: number) {
+    return request<SimulationResult>('/menu/simulate/ingredient-cost', {
+      method: 'POST',
+      body: JSON.stringify({ location_id: locationId, ingredient_id: ingredientId, new_cost_per_unit: newCostPerUnit }),
+    });
+  },
+  getDependencies(locationId: string) {
+    return request<{ dependencies: IngredientDependency[] }>(`/menu/dependencies?location_id=${locationId}`);
+  },
+  getCrossSell(locationId: string, limit = 10) {
+    return request<{ pairs: CrossSellPair[] }>(`/menu/cross-sell?location_id=${locationId}&limit=${limit}`);
+  },
+};
+
 // Labor Profiles / ELU / Points
 export interface EmployeeProfile {
   employee_id: string;
