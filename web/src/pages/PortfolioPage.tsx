@@ -411,6 +411,373 @@ function useBranchData(locationId: string) {
   return { pnl, health, alertCount };
 }
 
+// ── Chain KPI Comparison Table ────────────────────────────────────────────────
+
+interface BranchKPIRow {
+  name: string;
+  shortName: string;
+  revenue: number;    // piasters
+  margin: number;     // percent
+  health: number;
+  alerts: number;
+}
+
+function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
+  const validBranches = branches.filter((b) => b.revenue > 0 || b.health > 0);
+  const chainAvgRevenue = validBranches.length
+    ? validBranches.reduce((s, b) => s + b.revenue, 0) / validBranches.length
+    : 0;
+  const chainAvgMargin = validBranches.length
+    ? validBranches.reduce((s, b) => s + b.margin, 0) / validBranches.length
+    : 0;
+  const chainAvgHealth = validBranches.length
+    ? validBranches.reduce((s, b) => s + b.health, 0) / validBranches.length
+    : 0;
+  const chainAvgAlerts = validBranches.length
+    ? validBranches.reduce((s, b) => s + b.alerts, 0) / validBranches.length
+    : 0;
+
+  const cols = [
+    ...branches,
+    {
+      name: 'Chain Avg',
+      shortName: 'Avg',
+      revenue: chainAvgRevenue,
+      margin: chainAvgMargin,
+      health: chainAvgHealth,
+      alerts: chainAvgAlerts,
+    },
+  ];
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[640px]">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-px flex-1 bg-white/5" />
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            Chain KPI Comparison
+          </span>
+          <div className="h-px flex-1 bg-white/5" />
+        </div>
+        <div className="rounded-xl border border-white/8 overflow-hidden">
+          {/* Header row */}
+          <div
+            className="grid text-center"
+            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+          >
+            <div className="bg-white/5 px-4 py-3 text-left">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Metric</span>
+            </div>
+            {cols.map((b, i) => (
+              <div
+                key={b.name}
+                className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/8 border-l border-white/8' : 'bg-white/5'}`}
+              >
+                <span className={`text-xs font-bold uppercase tracking-wider ${i === cols.length - 1 ? 'text-slate-300' : 'text-slate-400'}`}>
+                  {b.shortName}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Revenue row */}
+          <div
+            className="grid text-center border-t border-white/5"
+            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+          >
+            <div className="bg-white/3 px-4 py-3 text-left flex items-center gap-2">
+              <span className="text-xs text-slate-400 font-medium">Revenue (EGP K)</span>
+            </div>
+            {cols.map((b, i) => (
+              <div
+                key={b.name}
+                className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
+              >
+                <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : 'text-emerald-400'}`}>
+                  {b.revenue > 0 ? Math.round(b.revenue / 10000).toLocaleString() + 'K' : '—'}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Margin row */}
+          <div
+            className="grid text-center border-t border-white/5"
+            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+          >
+            <div className="bg-white/3 px-4 py-3 text-left">
+              <span className="text-xs text-slate-400 font-medium">Gross Margin</span>
+            </div>
+            {cols.map((b, i) => (
+              <div
+                key={b.name}
+                className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
+              >
+                <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : 'text-blue-400'}`}>
+                  {b.margin > 0 ? b.margin.toFixed(1) + '%' : '—'}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Health row */}
+          <div
+            className="grid text-center border-t border-white/5"
+            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+          >
+            <div className="bg-white/3 px-4 py-3 text-left">
+              <span className="text-xs text-slate-400 font-medium">Health Score</span>
+            </div>
+            {cols.map((b, i) => {
+              const score = Math.round(b.health);
+              const color = score >= 75 ? 'text-green-400' : score >= 50 ? 'text-amber-400' : 'text-red-400';
+              return (
+                <div
+                  key={b.name}
+                  className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
+                >
+                  <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : color}`}>
+                    {score > 0 ? score : '—'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Alerts row */}
+          <div
+            className="grid text-center border-t border-white/5"
+            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+          >
+            <div className="bg-white/3 px-4 py-3 text-left">
+              <span className="text-xs text-slate-400 font-medium">Active Alerts</span>
+            </div>
+            {cols.map((b, i) => {
+              const count = Math.round(b.alerts);
+              return (
+                <div
+                  key={b.name}
+                  className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
+                >
+                  <span className={`text-sm font-bold ${count > 0 ? (i === cols.length - 1 ? 'text-slate-300' : 'text-red-400') : 'text-slate-500'}`}>
+                    {count}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── CEO Executive Briefing ────────────────────────────────────────────────────
+
+interface BriefingItem {
+  icon: string;
+  title: string;
+  impact: string;
+  branch: string;
+}
+
+const ATTENTION_ITEMS: BriefingItem[] = [
+  {
+    icon: '🔴',
+    title: 'Food Cost Breach — New Cairo',
+    impact: 'Trending 34.2% vs 32% target. Protein costs drove +EGP 18,000 excess this month.',
+    branch: 'New Cairo · Action: Review Sea Bass sourcing',
+  },
+  {
+    icon: '🔴',
+    title: 'VIP Customer Churn Risk',
+    impact: '5 high-CLV guests (avg EGP 2,400/mo) haven\'t visited in 21+ days. Projected loss: EGP 12,000/mo.',
+    branch: 'El Gouna & Sheikh Zayed',
+  },
+  {
+    icon: '🟡',
+    title: 'North Coast Ticket Time Degradation',
+    impact: 'Average ticket time increased from 12→18 min this week. Ceviche Bar is the bottleneck.',
+    branch: 'North Coast · Guest complaints likely to follow',
+  },
+  {
+    icon: '🟡',
+    title: 'Labor Overtime at 3 Branches',
+    impact: '7 staff exceeded 40hr/week. Projected overtime cost: EGP 8,500.',
+    branch: 'New Cairo, Zayed, North Coast',
+  },
+  {
+    icon: '🟡',
+    title: 'Vendor Reliability Drop — Metro Market',
+    impact: 'OTIF rate fell to 72%. 3 short deliveries this month affecting produce quality.',
+    branch: 'North Coast',
+  },
+];
+
+const HIGHLIGHT_ITEMS: BriefingItem[] = [
+  {
+    icon: '✅',
+    title: 'Chain Revenue On Track',
+    impact: 'EGP 387K today across 4 branches (target: 400K). Trending +5% vs last week.',
+    branch: 'All Branches',
+  },
+  {
+    icon: '✅',
+    title: 'Sheikh Zayed Best Performer',
+    impact: '12% below chain average on food cost. Recommend propagating their portioning practices.',
+    branch: 'Sheikh Zayed',
+  },
+  {
+    icon: '✅',
+    title: 'Pisco Hour Campaign Success',
+    impact: '45 redemptions, EGP 2,250 attributed revenue. Consider expanding to all branches.',
+    branch: 'El Gouna',
+  },
+  {
+    icon: '✅',
+    title: 'New Menu Classification',
+    impact: 'Empanadas reclassified to \'crowd_pleaser\' after 22% velocity increase post portion adjustment.',
+    branch: 'All Branches',
+  },
+];
+
+const OUTLOOK_ITEMS: BriefingItem[] = [
+  {
+    icon: '📊',
+    title: 'Q2 Pisco Price Forecast',
+    impact: 'Specialty Imports projects 15% price increase. Forward-purchasing 3-month supply saves ~EGP 25,000.',
+    branch: 'Strategic · Recommend action by April 1',
+  },
+  {
+    icon: '📊',
+    title: 'Ramadan Prep Required',
+    impact: 'Ramadan starts April 2. Historical: +30% dinner volume, −40% lunch. Schedule adjustments needed.',
+    branch: 'All Branches',
+  },
+  {
+    icon: '📊',
+    title: 'North Coast Seasonal Ramp',
+    impact: 'Summer season begins May 1. Last year\'s volume was 2.3× winter. Hiring pipeline should start now.',
+    branch: 'North Coast',
+  },
+  {
+    icon: '📊',
+    title: 'Expansion Opportunity',
+    impact: 'Zayed consistently exceeds capacity on weekends (92% kitchen utilization). Consider satellite prep kitchen.',
+    branch: 'Sheikh Zayed',
+  },
+];
+
+function BriefingCard({
+  title,
+  items,
+  accentColor,
+  borderColor,
+  bgColor,
+  headerColor,
+}: {
+  title: string;
+  items: BriefingItem[];
+  accentColor: string;
+  borderColor: string;
+  bgColor: string;
+  headerColor: string;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border ${borderColor} ${bgColor} overflow-hidden flex flex-col`}
+      style={{ borderLeftWidth: '3px' }}
+    >
+      <div className="px-5 py-4 border-b border-white/5">
+        <h3 className={`text-sm font-bold uppercase tracking-wider ${headerColor}`}>{title}</h3>
+      </div>
+      <div className="flex-1 divide-y divide-white/5">
+        {items.map((item, idx) => (
+          <div
+            key={idx}
+            className="group px-5 py-3.5 hover:bg-white/5 transition-colors duration-150 cursor-default flex items-start gap-3"
+          >
+            <span className="text-base shrink-0 mt-0.5">{item.icon}</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-semibold text-white leading-tight">{item.title}</p>
+                <span className="shrink-0 text-slate-600 group-hover:text-slate-400 transition-colors text-xs mt-0.5">→</span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.impact}</p>
+              <p className="text-[10px] text-slate-600 mt-1 font-medium uppercase tracking-wide">{item.branch}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CEOBriefing() {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      { threshold: 0.1 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="space-y-6"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(24px)',
+        transition: 'opacity 0.6s ease, transform 0.6s ease',
+      }}
+    >
+      {/* Section header */}
+      <div className="flex items-center gap-4">
+        <div className="h-px flex-1 bg-white/5" />
+        <div className="flex items-center gap-2.5">
+          <Zap className="h-4 w-4 text-amber-400" />
+          <span className="text-sm font-bold text-white uppercase tracking-widest">Executive Briefing</span>
+          <span className="text-xs text-slate-500 font-medium">· Updated just now</span>
+        </div>
+        <div className="h-px flex-1 bg-white/5" />
+      </div>
+
+      {/* 3-column grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <BriefingCard
+          title="Requires Attention"
+          items={ATTENTION_ITEMS}
+          accentColor="red"
+          borderColor="border-red-500/40"
+          bgColor="bg-red-950/20"
+          headerColor="text-red-400"
+        />
+        <BriefingCard
+          title="Performance Highlights"
+          items={HIGHLIGHT_ITEMS}
+          accentColor="green"
+          borderColor="border-green-500/40"
+          bgColor="bg-green-950/20"
+          headerColor="text-green-400"
+        />
+        <BriefingCard
+          title="Strategic Outlook"
+          items={OUTLOOK_ITEMS}
+          accentColor="blue"
+          borderColor="border-blue-500/40"
+          bgColor="bg-blue-950/20"
+          headerColor="text-blue-400"
+        />
+      </div>
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const LOCATION_CITIES: Record<string, string> = {
@@ -453,6 +820,18 @@ export default function PortfolioPage() {
     setLocation(locationId);
     navigate('/dashboard');
   };
+
+  // Build per-branch rows for comparison table
+  const branchRows: BranchKPIRow[] = [data0, data1, data2, data3]
+    .slice(0, locations.length)
+    .map((d, idx) => ({
+      name: locations[idx]?.name ?? '',
+      shortName: locations[idx]?.name?.split(' ')[0] ?? '',
+      revenue: d.pnl.data?.net_revenue ?? 0,
+      margin: d.pnl.data?.gross_margin ?? 0,
+      health: d.health.data?.overall_score ?? 0,
+      alerts: d.alertCount.data?.count ?? 0,
+    }));
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -539,6 +918,14 @@ export default function PortfolioPage() {
             <p className="text-slate-400">Loading branch data...</p>
           </div>
         )}
+
+        {/* Chain KPI Comparison Table */}
+        {branchRows.length > 0 && (
+          <ChainComparisonTable branches={branchRows} />
+        )}
+
+        {/* CEO Executive Briefing */}
+        <CEOBriefing />
 
         {/* Footer */}
         <div className="text-center pb-6">
