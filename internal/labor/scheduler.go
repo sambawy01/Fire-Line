@@ -2,6 +2,7 @@ package labor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -359,11 +360,17 @@ func (s *Service) GetSchedule(ctx context.Context, orgID, locationID, weekStart 
 			&sched.CreatedBy,
 		)
 		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return pgx.ErrNoRows
+			}
 			return fmt.Errorf("query schedule: %w", err)
 		}
 		return nil
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

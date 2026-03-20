@@ -26,6 +26,7 @@ func (h *PortfolioHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.H
 	// Hierarchy
 	mux.Handle("POST /api/v1/portfolio/nodes", authMW(http.HandlerFunc(h.CreateNode)))
 	mux.Handle("GET /api/v1/portfolio/nodes", authMW(http.HandlerFunc(h.GetHierarchy)))
+	mux.Handle("GET /api/v1/portfolio/hierarchy", authMW(http.HandlerFunc(h.GetHierarchy)))
 	mux.Handle("PUT /api/v1/portfolio/nodes/{id}", authMW(http.HandlerFunc(h.UpdateNode)))
 	mux.Handle("DELETE /api/v1/portfolio/nodes/{id}", authMW(http.HandlerFunc(h.DeleteNode)))
 

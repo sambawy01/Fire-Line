@@ -63,7 +63,7 @@ func (s *Service) GetEmployeeProfile(ctx context.Context, orgID, employeeID stri
 			    e.status,
 			    e.elu_ratings,
 			    e.staff_points,
-			    e.certifications,
+			    COALESCE(array_to_json(e.certifications), '[]')::TEXT,
 			    e.availability
 			FROM employees e
 			WHERE e.employee_id = $1`,
@@ -145,7 +145,7 @@ func (s *Service) ListEmployeeProfiles(ctx context.Context, orgID, locationID st
 			    e.status,
 			    e.elu_ratings,
 			    e.staff_points,
-			    e.certifications,
+			    COALESCE(array_to_json(e.certifications), '[]')::TEXT,
 			    e.availability
 			FROM employees e
 			WHERE e.location_id = $1

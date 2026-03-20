@@ -249,15 +249,15 @@ func (s *Service) ListGuests(ctx context.Context, orgID, locationID, sortBy stri
 
 		if locationID != "" {
 			rows, err = tx.Query(tenantCtx,
-				`SELECT DISTINCT gp.guest_id, gp.privacy_tier, gp.first_name, gp.email, gp.phone,
+				`SELECT gp.guest_id, gp.privacy_tier, gp.first_name, gp.email, gp.phone,
 				        gp.total_visits, gp.total_spend, gp.avg_check, gp.preferred_channel,
 				        gp.favorite_items, gp.clv_score::FLOAT8,
 				        gp.segment, gp.churn_risk, gp.churn_probability::FLOAT8,
 				        to_char(gp.next_visit_predicted, 'YYYY-MM-DD'), gp.last_visit_at
 				 FROM guest_profiles gp
-				 JOIN guest_visits gv ON gv.guest_id = gp.guest_id
-				 WHERE gp.org_id = $1 AND gv.location_id = $2
-				 ORDER BY gp.`+orderClause+`
+				 WHERE gp.org_id = $1
+				   AND EXISTS (SELECT 1 FROM guest_visits gv WHERE gv.guest_id = gp.guest_id AND gv.location_id = $2)
+				 ORDER BY `+orderClause+`
 				 LIMIT $3 OFFSET $4`,
 				orgID, locationID, limit, offset,
 			)
