@@ -125,6 +125,7 @@ type LoginResult struct {
 	OrgID        string
 	Role         string
 	DisplayName  string
+	StaffPoints  float64
 	AccessToken  string
 	RefreshToken string
 	MFARequired  bool
@@ -229,7 +230,7 @@ type PINLoginRequest struct {
 
 func (s *Service) PINLogin(ctx context.Context, req PINLoginRequest) (*LoginResult, error) {
 	rows, err := s.adminPool.Query(ctx,
-		`SELECT e.employee_id, e.org_id, e.role, e.pin_hash, e.user_id, e.display_name
+		`SELECT e.employee_id, e.org_id, e.role, e.pin_hash, e.user_id, e.display_name, e.staff_points
 		 FROM employees e
 		 WHERE e.location_id = $1 AND e.status = 'active' AND e.pin_hash IS NOT NULL`,
 		req.LocationID,
@@ -242,7 +243,8 @@ func (s *Service) PINLogin(ctx context.Context, req PINLoginRequest) (*LoginResu
 	for rows.Next() {
 		var employeeID, orgID, role, pinHash, displayName string
 		var userID *string
-		if err := rows.Scan(&employeeID, &orgID, &role, &pinHash, &userID, &displayName); err != nil {
+		var staffPoints float64
+		if err := rows.Scan(&employeeID, &orgID, &role, &pinHash, &userID, &displayName, &staffPoints); err != nil {
 			return nil, fmt.Errorf("scan employee: %w", err)
 		}
 
@@ -270,6 +272,7 @@ func (s *Service) PINLogin(ctx context.Context, req PINLoginRequest) (*LoginResu
 			OrgID:       orgID,
 			Role:        role,
 			DisplayName: displayName,
+			StaffPoints: staffPoints,
 			AccessToken: accessToken,
 		}, nil
 	}

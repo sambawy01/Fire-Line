@@ -98,6 +98,8 @@ func (h *Handler) PINVerify(w http.ResponseWriter, r *http.Request) {
 		"employee_id":  result.UserID,
 		"display_name": result.DisplayName,
 		"role":         result.Role,
+		"staff_points": result.StaffPoints,
+		"points_trend": pinPointsTrend(result.StaffPoints),
 	})
 }
 
@@ -224,4 +226,19 @@ func writeHandlerError(w http.ResponseWriter, status int, code, message string) 
 			"message": message,
 		},
 	})
+}
+
+// pinPointsTrend returns a simple trend label for the PIN verify response.
+// Because PIN login is pre-tenant (no DB access to history), we use the
+// staff_points balance as a proxy: positive balance = up, zero = stable.
+// Full trend computation (vs 7-day baseline) is available via the profile API.
+func pinPointsTrend(staffPoints float64) string {
+	switch {
+	case staffPoints > 5:
+		return "up"
+	case staffPoints < -5:
+		return "down"
+	default:
+		return "stable"
+	}
 }
