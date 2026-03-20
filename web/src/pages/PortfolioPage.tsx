@@ -725,6 +725,13 @@ const TEAM_MEMBERS = [
   'Omar Sayed (GM - Zayed)',
   'Layla Ibrahim (GM - North Coast)',
   'Sara Mostafa (Operations Director)',
+  'Khaled Nabil (Finance Director)',
+  'Dina Rashwan (Legal & Compliance)',
+  'Hany Farid (Supply Chain Manager)',
+  'Rania Helmy (HR Director)',
+  'Marketing Department',
+  'Finance Department',
+  'Legal Department',
   'You (CEO)',
 ];
 
