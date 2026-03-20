@@ -29,7 +29,7 @@ type PurchaseOrder struct {
 	Notes           string     `json:"notes"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
-	LineCount       int        `json:"line_count,omitempty"`
+	LineCount       int        `json:"line_count"`
 }
 
 // POLine represents a single line within a purchase order.
