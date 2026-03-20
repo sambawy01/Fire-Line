@@ -21,6 +21,7 @@ import {
   Calendar,
   ChefHat,
   Megaphone,
+  Wrench,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
 import { useLocationStore } from '../stores/location';
@@ -39,6 +40,7 @@ const navItems = [
   { to: '/customers', label: 'Customers', icon: UserCheck },
   { to: '/operations', label: 'Operations', icon: Activity },
   { to: '/kitchen', label: 'Kitchen', icon: ChefHat },
+  { to: '/maintenance', label: 'Maintenance', icon: Wrench },
   { to: '/reports', label: 'Reports', icon: FileText },
   { to: '/marketing', label: 'Marketing', icon: Megaphone },
   { to: '/alerts', label: 'Alerts', icon: Bell, showBadge: true },

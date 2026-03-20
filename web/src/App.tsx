@@ -19,6 +19,7 @@ import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import SchedulingPage from './pages/SchedulingPage';
 import KitchenPage from './pages/KitchenPage';
+import MaintenancePage from './pages/MaintenancePage';
 import MarketingPage from './pages/MarketingPage';
 import PortfolioPage from './pages/PortfolioPage';
 
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="customers" element={<CustomerPage />} />
             <Route path="operations" element={<OperationsPage />} />
             <Route path="kitchen" element={<KitchenPage />} />
+            <Route path="maintenance" element={<MaintenancePage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="marketing" element={<MarketingPage />} />
             <Route path="alerts" element={<AlertsPage />} />

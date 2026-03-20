@@ -1408,4 +1408,138 @@ export const onboardingApi = {
   },
 };
 
+// ─── Maintenance & Equipment ─────────────────────────────────────────────────
+
+export interface Equipment {
+  equipment_id: string;
+  org_id: string;
+  location_id: string;
+  name: string;
+  category: 'cooking' | 'refrigeration' | 'hvac' | 'plumbing' | 'electrical' | 'safety' | 'other';
+  make: string | null;
+  model: string | null;
+  serial_number: string | null;
+  install_date: string | null;
+  warranty_expiry: string | null;
+  status: 'operational' | 'needs_maintenance' | 'under_repair' | 'out_of_service' | 'retired';
+  last_maintenance: string | null;
+  next_maintenance: string | null;
+  maintenance_interval_days: number;
+  health_score: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MaintenanceTicket {
+  ticket_id: string;
+  org_id: string;
+  location_id: string;
+  equipment_id: string;
+  equipment_name: string;
+  ticket_number: string;
+  type: 'preventive' | 'corrective' | 'emergency' | 'inspection';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'open' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled';
+  title: string;
+  description: string | null;
+  assigned_to: string | null;
+  estimated_cost: number;
+  actual_cost: number;
+  scheduled_date: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  resolution: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  logs?: MaintenanceLog[];
+}
+
+export interface MaintenanceLog {
+  log_id: string;
+  org_id: string;
+  ticket_id: string | null;
+  equipment_id: string;
+  action: string;
+  notes: string | null;
+  cost: number;
+  performed_by: string | null;
+  performed_at: string;
+}
+
+export interface MaintenanceStats {
+  open_tickets: number;
+  in_progress_tickets: number;
+  overdue_count: number;
+  total_cost_this_month: number;
+  avg_resolution_hours: number;
+  total_equipment: number;
+  operational_count: number;
+  needs_maintenance_count: number;
+  out_of_service_count: number;
+  avg_health_score: number;
+  tickets_by_type: { type: string; count: number }[];
+  health_distribution: { range: string; count: number }[];
+}
+
+export const maintenanceApi = {
+  // Equipment
+  listEquipment(locationId?: string, status?: string, category?: string) {
+    const params = new URLSearchParams();
+    if (locationId) params.set('location_id', locationId);
+    if (status) params.set('status', status);
+    if (category) params.set('category', category);
+    return request<{ equipment: Equipment[] }>(`/maintenance/equipment?${params}`);
+  },
+  getEquipment(id: string) {
+    return request<Equipment>(`/maintenance/equipment/${id}`);
+  },
+  createEquipment(data: Partial<Equipment>) {
+    return request<Equipment>('/maintenance/equipment', { method: 'POST', body: JSON.stringify(data) });
+  },
+  updateEquipment(id: string, data: Partial<Equipment>) {
+    return request<Equipment>(`/maintenance/equipment/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  },
+
+  // Tickets
+  listTickets(locationId?: string, status?: string, priority?: string) {
+    const params = new URLSearchParams();
+    if (locationId) params.set('location_id', locationId);
+    if (status) params.set('status', status);
+    if (priority) params.set('priority', priority);
+    return request<{ tickets: MaintenanceTicket[] }>(`/maintenance/tickets?${params}`);
+  },
+  getTicket(id: string) {
+    return request<MaintenanceTicket>(`/maintenance/tickets/${id}`);
+  },
+  createTicket(data: any) {
+    return request<MaintenanceTicket>('/maintenance/tickets', { method: 'POST', body: JSON.stringify(data) });
+  },
+  updateTicket(id: string, data: any) {
+    return request<{ status: string }>(`/maintenance/tickets/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  },
+  completeTicket(id: string, resolution: string, actualCost: number) {
+    return request<{ status: string }>(`/maintenance/tickets/${id}/complete`, {
+      method: 'POST',
+      body: JSON.stringify({ resolution, actual_cost: actualCost }),
+    });
+  },
+  addLog(ticketId: string, data: { action: string; notes?: string; cost?: number; performed_by?: string }) {
+    return request<MaintenanceLog>(`/maintenance/tickets/${ticketId}/log`, { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  // Analytics
+  getOverdue(locationId?: string) {
+    const params = new URLSearchParams();
+    if (locationId) params.set('location_id', locationId);
+    return request<{ equipment: Equipment[] }>(`/maintenance/overdue?${params}`);
+  },
+  getStats(locationId?: string) {
+    const params = new URLSearchParams();
+    if (locationId) params.set('location_id', locationId);
+    return request<MaintenanceStats>(`/maintenance/stats?${params}`);
+  },
+};
+
 export { ApiError };
