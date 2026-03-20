@@ -41,13 +41,13 @@ const tickerStyle = `
 // ── AI Insights for ticker ────────────────────────────────────────────────────
 
 const AI_INSIGHTS = [
-  "📈 Ceviche Clásico sales up 23% this week at El Gouna — consider featuring in social media",
+  "📈 Ceviche Clásico sales up 23% this week at Nimbu El Gouna — consider featuring in social media",
   "⚠️ Beef Tenderloin cost spike detected — 3 menu items affected, margin impact: -2.1%",
   "🎯 Pisco Sour is the #1 margin contributor across all branches at 78% gross margin",
   "👥 5 VIP customers at risk of churning — combined monthly value: EGP 12,000",
-  "🔄 Auto-PO generated for Sysco Egypt — 8 items below reorder point at New Cairo",
-  "📊 Sheikh Zayed outperforming chain average by 12% on food cost control",
-  "🌡️ Kitchen capacity at North Coast hit 92% during Friday dinner — consider overflow prep",
+  "🔄 Auto-PO generated for Sysco Egypt — 8 items below reorder point at Nimbu New Cairo",
+  "📊 Nimbu Zayed outperforming chain average by 12% on food cost control",
+  "🌡️ Kitchen capacity at Nimbu North Coast hit 92% during Friday dinner — consider overflow prep",
   "💡 Empanadas velocity up 22% after portion adjustment — reclassified to crowd_pleaser",
   "📦 Metro Market OTIF rate dropped to 72% — AI recommends shifting 30% to Seoudi Fresh",
   "🎉 Loyalty program: 15 active members, 24 transactions, EGP 3,200 in points issued",
@@ -729,33 +729,33 @@ interface BriefingItem {
 const ATTENTION_ITEMS: BriefingItem[] = [
   {
     icon: '🔴',
-    title: 'Food Cost Breach — New Cairo',
+    title: 'Food Cost Breach — Nimbu New Cairo',
     impact: 'Trending 34.2% vs 32% target. Protein costs drove +EGP 18,000 excess this month.',
-    branch: 'New Cairo · Action: Review Sea Bass sourcing',
+    branch: 'Nimbu New Cairo · Action: Review Sea Bass sourcing',
   },
   {
     icon: '🔴',
     title: 'VIP Customer Churn Risk',
     impact: '5 high-CLV guests (avg EGP 2,400/mo) haven\'t visited in 21+ days. Projected loss: EGP 12,000/mo.',
-    branch: 'El Gouna & Sheikh Zayed',
+    branch: 'Nimbu El Gouna & Nimbu Zayed',
   },
   {
     icon: '🟡',
-    title: 'North Coast Ticket Time Degradation',
+    title: 'Nimbu North Coast Ticket Time Degradation',
     impact: 'Average ticket time increased from 12→18 min this week. Ceviche Bar is the bottleneck.',
-    branch: 'North Coast · Guest complaints likely to follow',
+    branch: 'Nimbu North Coast · Guest complaints likely to follow',
   },
   {
     icon: '🟡',
     title: 'Labor Overtime at 3 Branches',
     impact: '7 staff exceeded 40hr/week. Projected overtime cost: EGP 8,500.',
-    branch: 'New Cairo, Zayed, North Coast',
+    branch: 'Nimbu New Cairo, Zayed, Nimbu North Coast',
   },
   {
     icon: '🟡',
     title: 'Vendor Reliability Drop — Metro Market',
     impact: 'OTIF rate fell to 72%. 3 short deliveries this month affecting produce quality.',
-    branch: 'North Coast',
+    branch: 'Nimbu North Coast',
   },
 ];
 
@@ -768,15 +768,15 @@ const HIGHLIGHT_ITEMS: BriefingItem[] = [
   },
   {
     icon: '✅',
-    title: 'Sheikh Zayed Best Performer',
+    title: 'Nimbu Zayed Best Performer',
     impact: '12% below chain average on food cost. Recommend propagating their portioning practices.',
-    branch: 'Sheikh Zayed',
+    branch: 'Nimbu Zayed',
   },
   {
     icon: '✅',
     title: 'Pisco Hour Campaign Success',
     impact: '45 redemptions, EGP 2,250 attributed revenue. Consider expanding to all branches.',
-    branch: 'El Gouna',
+    branch: 'Nimbu El Gouna',
   },
   {
     icon: '✅',
@@ -801,15 +801,15 @@ const OUTLOOK_ITEMS: BriefingItem[] = [
   },
   {
     icon: '📊',
-    title: 'North Coast Seasonal Ramp',
+    title: 'Nimbu North Coast Seasonal Ramp',
     impact: 'Summer season begins May 1. Last year\'s volume was 2.3× winter. Hiring pipeline should start now.',
-    branch: 'North Coast',
+    branch: 'Nimbu North Coast',
   },
   {
     icon: '📊',
     title: 'Expansion Opportunity',
     impact: 'Zayed consistently exceeds capacity on weekends (92% kitchen utilization). Consider satellite prep kitchen.',
-    branch: 'Sheikh Zayed',
+    branch: 'Nimbu Zayed',
   },
 ];
 
@@ -870,7 +870,7 @@ const AI_RECOMMENDATIONS = [
   {
     icon: '📅',
     title: 'Schedule Optimization',
-    desc: 'Reduce Tuesday lunch shift by 2 staff at El Gouna. Historical covers suggest overstaffing. Save EGP 1,800/week.',
+    desc: 'Reduce Tuesday lunch shift by 2 staff at Nimbu El Gouna. Historical covers suggest overstaffing. Save EGP 1,800/week.',
     confidence: 'Medium',
   },
   {
@@ -990,10 +990,10 @@ function CEOBriefing() {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const LOCATION_CITIES: Record<string, string> = {
-  'El Gouna': 'El Gouna, Red Sea',
-  'New Cairo': 'New Cairo, Cairo',
-  'Sheikh Zayed': 'Sheikh Zayed, Giza',
-  'North Coast': 'North Coast',
+  'Nimbu El Gouna': 'El Gouna, Red Sea',
+  'Nimbu New Cairo': 'New Cairo, Cairo',
+  'Nimbu Zayed': 'Sheikh Zayed, Giza',
+  'Nimbu North Coast': 'North Coast',
 };
 
 export default function PortfolioPage() {
@@ -1083,7 +1083,7 @@ export default function PortfolioPage() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tight leading-none">
-            Chicha Egypt
+            Nimbu
           </h1>
           <p className="text-lg text-slate-400 font-medium max-w-xl mx-auto">
             AI-Powered Operations Command Center
