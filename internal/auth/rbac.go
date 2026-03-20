@@ -29,6 +29,8 @@ var rolePermissions = map[string][]string{
 		"inventory:approve",
 		"inventory:purchase",
 		"inventory:receive",
+		"labor:elu",
+		"labor:points",
 	},
 	"gm": {
 		"schedule:read_own",
@@ -53,6 +55,8 @@ var rolePermissions = map[string][]string{
 		"inventory:approve",
 		"inventory:purchase",
 		"inventory:receive",
+		"labor:elu",
+		"labor:points",
 	},
 	"owner": {
 		"schedule:read_own",
@@ -82,6 +86,8 @@ var rolePermissions = map[string][]string{
 		"inventory:approve",
 		"inventory:purchase",
 		"inventory:receive",
+		"labor:elu",
+		"labor:points",
 	},
 }
 
