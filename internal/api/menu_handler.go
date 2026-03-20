@@ -19,6 +19,20 @@ func NewMenuHandler(svc *menu.Service) *MenuHandler {
 func (h *MenuHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.Handler) http.Handler) {
 	mux.Handle("GET /api/v1/menu/items", authMW(http.HandlerFunc(h.GetItems)))
 	mux.Handle("GET /api/v1/menu/summary", authMW(http.HandlerFunc(h.GetSummary)))
+
+	// Scoring — specific paths before parameterized
+	mux.Handle("POST /api/v1/menu/score", authMW(http.HandlerFunc(h.ScoreMenuItems)))
+	mux.Handle("GET /api/v1/menu/scores", authMW(http.HandlerFunc(h.GetMenuScores)))
+	mux.Handle("PUT /api/v1/menu/scores/{id}/strategic", authMW(http.HandlerFunc(h.SetStrategicScore)))
+
+	// Simulation
+	mux.Handle("POST /api/v1/menu/simulate/price", authMW(http.HandlerFunc(h.SimulatePriceChange)))
+	mux.Handle("POST /api/v1/menu/simulate/removal", authMW(http.HandlerFunc(h.SimulateItemRemoval)))
+	mux.Handle("POST /api/v1/menu/simulate/ingredient-cost", authMW(http.HandlerFunc(h.SimulateIngredientCost)))
+
+	// Intelligence
+	mux.Handle("GET /api/v1/menu/dependencies", authMW(http.HandlerFunc(h.GetDependencies)))
+	mux.Handle("GET /api/v1/menu/cross-sell", authMW(http.HandlerFunc(h.GetCrossSell)))
 }
 
 func (h *MenuHandler) GetItems(w http.ResponseWriter, r *http.Request) {
