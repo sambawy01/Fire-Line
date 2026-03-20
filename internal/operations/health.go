@@ -147,7 +147,7 @@ func (s *Service) computeStaffScore(ctx context.Context, orgID, locationID strin
 		if err := tx.QueryRow(ctx,
 			`SELECT COALESCE(
 			    (SELECT SUM(required_headcount)
-			     FROM demand_forecasts
+			     FROM labor_demand_forecast
 			     WHERE org_id = $1 AND location_id = $2
 			       AND forecast_date = CURRENT_DATE),
 			    0
@@ -187,10 +187,10 @@ func (s *Service) computeInventoryScore(ctx context.Context, orgID, locationID s
 		}
 
 		if err := tx.QueryRow(ctx,
-			`SELECT COUNT(DISTINCT ingredient_id)
-			 FROM par_levels
+			`SELECT COUNT(*)
+			 FROM ingredient_location_configs
 			 WHERE org_id = $1 AND location_id = $2
-			   AND current_qty < par_qty`,
+			   AND reorder_point > 0 AND par_level > 0`,
 			orgID, locationID,
 		).Scan(&breaches); err != nil {
 			return fmt.Errorf("count par breaches: %w", err)

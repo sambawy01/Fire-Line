@@ -3,9 +3,12 @@ package portfolio
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/opsnerve/fireline/internal/tenant"
+	"github.com/opsnerve/fireline/pkg/database"
 )
 
 // PortfolioNode represents a node in the portfolio hierarchy.
@@ -57,29 +60,36 @@ func (s *Service) CreateNode(ctx context.Context, orgID string, parentID *string
 // GetHierarchy returns the full flat list of portfolio nodes for an org.
 // Clients reconstruct the tree using parent_node_id.
 func (s *Service) GetHierarchy(ctx context.Context, orgID string) ([]PortfolioNode, error) {
-	rows, err := s.pool.Query(ctx, `
-		SELECT node_id, org_id, parent_node_id, name, node_type, location_id, sort_order, created_at, updated_at
-		FROM portfolio_nodes
-		WHERE org_id = $1
-		ORDER BY sort_order, name
-	`, orgID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
+	tenantCtx := tenant.WithOrgID(ctx, orgID)
 	var nodes []PortfolioNode
-	for rows.Next() {
-		var n PortfolioNode
-		if err := rows.Scan(
-			&n.NodeID, &n.OrgID, &n.ParentNodeID, &n.Name, &n.NodeType,
-			&n.LocationID, &n.SortOrder, &n.CreatedAt, &n.UpdatedAt,
-		); err != nil {
-			return nil, err
+
+	err := database.TenantTx(tenantCtx, s.pool, func(tx pgx.Tx) error {
+		rows, err := tx.Query(tenantCtx, `
+			SELECT node_id, org_id, parent_node_id, name, node_type, location_id, sort_order, created_at, updated_at
+			FROM portfolio_nodes
+			ORDER BY sort_order, name
+		`)
+		if err != nil {
+			return fmt.Errorf("query nodes: %w", err)
 		}
-		nodes = append(nodes, n)
+		defer rows.Close()
+
+		for rows.Next() {
+			var n PortfolioNode
+			if err := rows.Scan(
+				&n.NodeID, &n.OrgID, &n.ParentNodeID, &n.Name, &n.NodeType,
+				&n.LocationID, &n.SortOrder, &n.CreatedAt, &n.UpdatedAt,
+			); err != nil {
+				return err
+			}
+			nodes = append(nodes, n)
+		}
+		return rows.Err()
+	})
+	if nodes == nil {
+		nodes = []PortfolioNode{}
 	}
-	return nodes, rows.Err()
+	return nodes, err
 }
 
 // UpdateNode renames a portfolio node.
