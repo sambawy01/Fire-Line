@@ -1584,6 +1584,66 @@ const AI_RECOMMENDATIONS: AIRecommendation[] = [
       'Track redemption and subsequent visit frequency over 30 days',
     ],
   },
+  {
+    icon: '📦',
+    title: 'Forward-Purchase Pisco',
+    desc: 'Buy 3-month Pisco supply before Q2 price increase. Save ~EGP 25,000 vs spot buying.',
+    confidence: 'High',
+    projectedImpact: 'EGP 25,000 savings over 3 months · Requires EGP 180,000 upfront',
+    riskLevel: 'Medium',
+    explanation: 'Specialty Imports has indicated a 15% Pisco price increase in Q2. At current consumption (35 units/day chain-wide), a 3-month forward purchase locks in current pricing and saves approximately EGP 25,000.',
+    implementationSteps: ['Negotiate forward contract with Specialty Imports', 'Approve EGP 180,000 purchase order', 'Arrange storage at Nimbu Zayed warehouse', 'Monitor inventory drawdown weekly'],
+  },
+  {
+    icon: '👥',
+    title: 'Cross-Train Ceviche Station',
+    desc: 'Train 3 additional cooks on ceviche prep to eliminate single-point-of-failure at Nimbu North Coast.',
+    confidence: 'High',
+    projectedImpact: 'Reduce ticket time by 33% · Eliminate station bottleneck · Improve resilience',
+    riskLevel: 'Low',
+    explanation: 'The Nimbu North Coast ticket time spike (12→18 min) is caused by a single undertrained cook on the Ceviche Bar. Cross-training 3 existing cooks eliminates this vulnerability.',
+    implementationSteps: ['Identify 3 cooks with highest ELU scores on adjacent stations', 'Schedule 2-hour ceviche training sessions over 1 week', 'Shadow shifts with experienced ceviche cook from El Gouna', 'Validate ELU rating >1.0 before solo assignment'],
+  },
+  {
+    icon: '🎪',
+    title: 'Launch Ramadan Menu',
+    desc: 'Create a limited Iftar set menu (EGP 450/person). Historical data shows 30% dinner volume increase during Ramadan.',
+    confidence: 'Medium',
+    projectedImpact: 'Projected +EGP 120,000 revenue during Ramadan · 30-day campaign',
+    riskLevel: 'Medium',
+    explanation: 'Ramadan starts April 2. Historical data from comparable restaurants shows a 30% increase in dinner covers during Ramadan, with strong demand for set menus and family-style dining.',
+    implementationSteps: ['Design 3-tier Iftar menu (Basic EGP 350, Classic EGP 450, Premium EGP 650)', 'Source dates, laban, and traditional Ramadan items', 'Train staff on Iftar service flow and timing', 'Launch social media campaign 1 week before Ramadan'],
+  },
+  {
+    icon: '📊',
+    title: 'Renegotiate Delivery Commissions',
+    desc: 'Nimbu Zayed delivery margin dropped to 18%. Negotiate platform commission from 28% to 22% or adjust delivery prices.',
+    confidence: 'Medium',
+    projectedImpact: 'Restore delivery margin to 24% · +EGP 8,400/month at Zayed alone',
+    riskLevel: 'Low',
+    explanation: 'Delivery app commission at Nimbu Zayed increased from 22% to 28% without notice. This pushed delivery channel margin from 24% to 18%, making delivery nearly unprofitable.',
+    implementationSteps: ['Contact platform account manager — request commission review', 'Prepare switching threat (competitor platform offers 20%)', 'If negotiation fails, increase delivery menu prices by 6%', 'Consider launching direct ordering via WhatsApp to bypass commission'],
+  },
+  {
+    icon: '🏆',
+    title: 'Propagate Zayed Best Practice',
+    desc: 'Nimbu Zayed\'s ceviche prep scheduling reduces fish waste by 22%. Roll out to all branches.',
+    confidence: 'High',
+    projectedImpact: 'Chain-wide fish waste reduction: 22% · Save ~EGP 15,000/month across 4 branches',
+    riskLevel: 'Low',
+    explanation: 'Nimbu Zayed runs demand-based ceviche prep scheduling instead of batch prep. This reduces Sea Bass and Shrimp waste by 22% compared to the chain average.',
+    implementationSteps: ['Document Zayed ceviche prep SOP in detail', 'Schedule training sessions at El Gouna, New Cairo, North Coast', 'Implement demand-forecast-linked prep scheduling at each branch', 'Track waste reduction weekly for 30 days'],
+  },
+  {
+    icon: '⚡',
+    title: 'Install Kitchen Display Screens',
+    desc: 'Replace paper tickets with KDS screens at Nimbu North Coast. Reduce ticket errors by 40%.',
+    confidence: 'Medium',
+    projectedImpact: '-40% ticket errors · -15% food waste from wrong orders · EGP 6,000/month savings',
+    riskLevel: 'Low',
+    explanation: 'Nimbu North Coast still uses paper tickets. Analysis of void/remake data shows 8% of tickets have errors vs 3% at KDS-equipped branches. Digital ticket routing also improves station coordination.',
+    implementationSteps: ['Purchase 3 KDS screens for North Coast kitchen (budget: EGP 15,000)', 'Install and configure with FireLine KDS module', 'Train kitchen staff over 2 days', 'Run parallel paper+digital for 1 week before full cutover'],
+  },
 ];
 
 interface RecState {
@@ -1820,23 +1880,22 @@ function AIRecommendations() {
         <div className="flex items-center gap-2">
           <span className="text-base">🧠</span>
           <span className="text-xs font-bold text-white uppercase tracking-widest">AI Recommendations</span>
+          <span className="text-[10px] bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded-full font-bold">
+            {AI_RECOMMENDATIONS.filter((_, i) => !(recStates[i]?.status === 'approved' || recStates[i]?.status === 'dismissed')).length} pending
+          </span>
         </div>
         <div className="h-px flex-1 bg-white/5" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="overflow-x-auto pb-2 -mx-2 px-2">
+        <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
         {AI_RECOMMENDATIONS.map((rec, i) => {
           const state = recStates[i] ?? defaultRecState();
+          if (state.status === 'approved' || state.status === 'dismissed') return null;
           return (
             <div
               key={i}
               onClick={() => updateRec(i, { modalOpen: true })}
-              className={`bg-gradient-to-br from-indigo-950/40 to-purple-950/30 border rounded-xl p-4 transition-all cursor-pointer group ${
-                state.status === 'approved'
-                  ? 'border-green-500/40'
-                  : state.status === 'dismissed'
-                  ? 'border-white/10 opacity-50'
-                  : 'border-indigo-500/20 hover:border-indigo-400/40 hover:scale-[1.02]'
-              }`}
+              className="bg-gradient-to-br from-indigo-950/40 to-purple-950/30 border border-indigo-500/20 hover:border-indigo-400/40 hover:scale-[1.02] rounded-xl p-4 transition-all cursor-pointer group w-80 flex-shrink-0"
             >
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
@@ -1869,7 +1928,19 @@ function AIRecommendations() {
             </div>
           );
         })}
+        </div>
       </div>
+
+      {/* Empty state */}
+      {AI_RECOMMENDATIONS.every((_, i) => {
+        const s = recStates[i];
+        return s && (s.status === 'approved' || s.status === 'dismissed');
+      }) && (
+        <div className="text-center py-8 text-slate-500 text-sm">
+          <span className="text-2xl block mb-2">✨</span>
+          All recommendations acted on. New AI insights will appear as patterns are detected.
+        </div>
+      )}
 
       {/* Recommendation Modal */}
       {openModalIdx !== undefined && (() => {
