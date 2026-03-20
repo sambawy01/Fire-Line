@@ -60,6 +60,18 @@ func TestRole_HasPermission(t *testing.T) {
 		{"shift_manager", "labor:points", true},
 		{"staff", "labor:points", false},
 		{"read_only", "labor:points", false},
+		// labor:schedule permission
+		{"owner", "labor:schedule", true},
+		{"gm", "labor:schedule", true},
+		{"shift_manager", "labor:schedule", true},
+		{"staff", "labor:schedule", false},
+		{"read_only", "labor:schedule", false},
+		// labor:swap permission
+		{"owner", "labor:swap", true},
+		{"gm", "labor:swap", true},
+		{"shift_manager", "labor:swap", true},
+		{"staff", "labor:swap", true},
+		{"read_only", "labor:swap", false},
 	}
 
 	for _, tt := range tests {
