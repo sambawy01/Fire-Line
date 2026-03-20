@@ -488,7 +488,52 @@ export const vendorApi = {
   },
 };
 
-// Customer Intelligence
+// Guest Profiles (SP15)
+export interface GuestProfile {
+  guest_id: string;
+  privacy_tier: string;
+  first_name: string | null;
+  total_visits: number;
+  total_spend: number;
+  avg_check: number;
+  clv_score: number;
+  segment: string;
+  churn_risk: string;
+  churn_probability: number;
+  last_visit_at: string | null;
+}
+
+export interface SegmentDistribution {
+  segment: string;
+  count: number;
+}
+
+export interface ChurnDistribution {
+  risk: string;
+  count: number;
+}
+
+export interface CLVBucket {
+  range: string;
+  count: number;
+}
+
+export const guestApi = {
+  list: (locationId: string, sortBy?: string) =>
+    request<{ guests: GuestProfile[] }>(`/customers/guests?location_id=${locationId}&sort_by=${sortBy || 'clv_score'}&limit=50`),
+  get: (id: string) =>
+    request<GuestProfile>(`/customers/guests/${id}`),
+  segments: () =>
+    request<{ segments: SegmentDistribution[] }>('/customers/analytics/segments'),
+  churn: () =>
+    request<{ distribution: ChurnDistribution[] }>('/customers/analytics/churn'),
+  clv: () =>
+    request<{ buckets: CLVBucket[] }>('/customers/analytics/clv'),
+  refresh: () =>
+    request<any>('/customers/analytics/refresh', { method: 'POST' }),
+};
+
+// Customer Intelligence (legacy)
 export interface CustomerDetail {
   customer_id: string;
   name: string;
