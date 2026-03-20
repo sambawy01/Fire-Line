@@ -22,6 +22,15 @@ func NewVendorHandler(svc *vendor.Service) *VendorHandler {
 func (h *VendorHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.Handler) http.Handler) {
 	mux.Handle("GET /api/v1/vendors", authMW(http.HandlerFunc(h.GetVendors)))
 	mux.Handle("GET /api/v1/vendors/summary", authMW(http.HandlerFunc(h.GetSummary)))
+
+	// SP17: Vendor reliability scoring and price intelligence.
+	mux.Handle("POST /api/v1/vendors/scores/calculate", authMW(http.HandlerFunc(h.CalculateVendorScores)))
+	mux.Handle("GET /api/v1/vendors/scores", authMW(http.HandlerFunc(h.GetVendorScores)))
+	mux.Handle("GET /api/v1/vendors/scorecard", authMW(http.HandlerFunc(h.GetVendorScorecard)))
+	mux.Handle("GET /api/v1/vendors/compare", authMW(http.HandlerFunc(h.CompareVendors)))
+	mux.Handle("GET /api/v1/vendors/price-trend", authMW(http.HandlerFunc(h.GetPriceTrend)))
+	mux.Handle("GET /api/v1/vendors/price-anomalies", authMW(http.HandlerFunc(h.DetectPriceAnomalies)))
+	mux.Handle("GET /api/v1/vendors/recommend", authMW(http.HandlerFunc(h.RecommendVendor)))
 }
 
 // GetVendors returns the list of vendors with spend and scoring analytics.
