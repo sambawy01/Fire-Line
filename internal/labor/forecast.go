@@ -37,7 +37,7 @@ func (s *Service) GenerateForecast(ctx context.Context, orgID, locationID string
 			    to_char(date_trunc('hour', closed_at) +
 			        INTERVAL '30 min' * FLOOR(EXTRACT(MINUTE FROM closed_at) / 30),
 			        'HH24:MI') AS time_block,
-			    ROUND(AVG(cover_count)) AS avg_covers
+			    COUNT(*)::INT AS avg_covers
 			FROM checks
 			WHERE location_id = $1
 			  AND status = 'closed'
