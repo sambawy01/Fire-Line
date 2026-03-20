@@ -46,7 +46,7 @@ func (h *VendorHandler) GetVendorScores(w http.ResponseWriter, r *http.Request) 
 		WriteError(w, http.StatusInternalServerError, "VENDOR_SCORES_ERROR", err.Error())
 		return
 	}
-	WriteJSON(w, http.StatusOK, map[string]any{"scores": scores})
+	WriteJSON(w, http.StatusOK, map[string]any{"vendor_scores": scores})
 }
 
 // GetVendorScorecard returns a detailed scorecard for a single vendor.

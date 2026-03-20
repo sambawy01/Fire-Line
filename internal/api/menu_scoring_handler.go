@@ -49,7 +49,7 @@ func (h *MenuHandler) GetMenuScores(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, http.StatusInternalServerError, "MENU_SCORES_ERROR", err.Error())
 		return
 	}
-	WriteJSON(w, http.StatusOK, map[string]any{"scores": scores})
+	WriteJSON(w, http.StatusOK, map[string]any{"items": scores})
 }
 
 // SetStrategicScore handles PUT /api/v1/menu/scores/{id}/strategic
