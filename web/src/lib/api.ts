@@ -1026,4 +1026,103 @@ export const kitchenApi = {
     }),
 };
 
+// Operations Command Center (SP18)
+export interface OperationalHealth {
+  overall_score: number;
+  kitchen_score: number;
+  ticket_score: number;
+  staff_score: number;
+  financial_score: number;
+  inventory_score: number;
+  status: string;
+}
+
+export interface SuggestedAction {
+  action_type: string;
+  description: string;
+  impact: string;
+}
+
+export interface OverloadStatus {
+  is_overloaded: boolean;
+  capacity_pct: number;
+  severity: string;
+  suggested_actions: SuggestedAction[];
+}
+
+export interface TicketPriority {
+  ticket_id: string;
+  order_number: string;
+  channel: string;
+  priority_score: number;
+  sla_minutes: number;
+  elapsed_minutes: number;
+  urgency: string;
+}
+
+export interface RealtimeHorizon {
+  health: OperationalHealth;
+  overload: OverloadStatus;
+  active_tickets: number;
+  avg_ticket_time: number;
+  station_loads: Record<string, number>;
+}
+
+export interface ShiftHorizon {
+  forecasted_covers: number;
+  scheduled_staff: number;
+  required_staff: number;
+  staff_gap: number;
+  expected_revenue: number;
+}
+
+export interface DailyHorizon {
+  prep_items: number;
+  expected_deliveries: number;
+  scheduled_shifts: number;
+  forecasted_revenue: number;
+}
+
+export interface WeeklyHorizon {
+  total_hours: number;
+  pending_pos: number;
+  projected_labor_cost: number;
+  projected_revenue: number;
+}
+
+export interface StrategicHorizon {
+  revenue_30d: number;
+  revenue_delta_pct: number;
+  cogs_30d: number;
+  labor_cost_pct: number;
+  labor_trend: string;
+}
+
+export const opsCommandApi = {
+  getHealth(locationId: string) {
+    return request<OperationalHealth>(`/operations/health?location_id=${locationId}`);
+  },
+  getOverload(locationId: string) {
+    return request<OverloadStatus>(`/operations/overload?location_id=${locationId}`);
+  },
+  getPriorities(locationId: string) {
+    return request<{ priorities: TicketPriority[] }>(`/operations/priority?location_id=${locationId}`);
+  },
+  getRealtimeHorizon(locationId: string) {
+    return request<RealtimeHorizon>(`/operations/horizon/realtime?location_id=${locationId}`);
+  },
+  getShiftHorizon(locationId: string) {
+    return request<ShiftHorizon>(`/operations/horizon/shift?location_id=${locationId}`);
+  },
+  getDailyHorizon(locationId: string) {
+    return request<DailyHorizon>(`/operations/horizon/daily?location_id=${locationId}`);
+  },
+  getWeeklyHorizon(locationId: string) {
+    return request<WeeklyHorizon>(`/operations/horizon/weekly?location_id=${locationId}`);
+  },
+  getStrategicHorizon(locationId: string) {
+    return request<StrategicHorizon>(`/operations/horizon/strategic?location_id=${locationId}`);
+  },
+};
+
 export { ApiError };
