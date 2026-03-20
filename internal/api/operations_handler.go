@@ -39,6 +39,19 @@ func (h *OperationsHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.
 	mux.Handle("GET /api/v1/operations/kds/station/{type}", authMW(http.HandlerFunc(h.GetStationKDSTickets)))
 	mux.Handle("PUT /api/v1/operations/kds/items/{id}/bump", authMW(http.HandlerFunc(h.BumpKDSItem)))
 	mux.Handle("DELETE /api/v1/operations/kds/tickets/{id}", authMW(http.HandlerFunc(h.CancelKDSTicket)))
+
+	// Overload, health, priority — specific paths first
+	mux.Handle("GET /api/v1/operations/overload", authMW(http.HandlerFunc(h.GetOverloadStatus)))
+	mux.Handle("POST /api/v1/operations/overload/respond", authMW(http.HandlerFunc(h.ApplyOverloadResponse)))
+	mux.Handle("GET /api/v1/operations/health", authMW(http.HandlerFunc(h.GetHealth)))
+	mux.Handle("GET /api/v1/operations/priority", authMW(http.HandlerFunc(h.GetTicketPriorities)))
+
+	// Planning horizons — specific paths first
+	mux.Handle("GET /api/v1/operations/horizon/realtime", authMW(http.HandlerFunc(h.GetRealTimeHorizon)))
+	mux.Handle("GET /api/v1/operations/horizon/shift", authMW(http.HandlerFunc(h.GetShiftHorizon)))
+	mux.Handle("GET /api/v1/operations/horizon/daily", authMW(http.HandlerFunc(h.GetDailyHorizon)))
+	mux.Handle("GET /api/v1/operations/horizon/weekly", authMW(http.HandlerFunc(h.GetWeeklyHorizon)))
+	mux.Handle("GET /api/v1/operations/horizon/strategic", authMW(http.HandlerFunc(h.GetStrategicHorizon)))
 }
 
 // GetSummary returns operational KPIs for a location.
