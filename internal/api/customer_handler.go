@@ -18,11 +18,25 @@ func NewCustomerHandler(svc *customer.Service) *CustomerHandler {
 }
 
 // RegisterRoutes mounts customer routes onto the provided mux, all behind the
-// auth middleware.
+// auth middleware. Specific paths are registered before parameterized ones to
+// avoid pattern conflicts.
 func (h *CustomerHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.Handler) http.Handler) {
+	// Existing routes.
 	mux.Handle("GET /api/v1/customers", authMW(http.HandlerFunc(h.GetCustomers)))
 	mux.Handle("GET /api/v1/customers/summary", authMW(http.HandlerFunc(h.GetSummary)))
 	mux.Handle("POST /api/v1/customers/analyze", authMW(http.HandlerFunc(h.Analyze)))
+
+	// Guest intelligence — analytics (specific paths before parameterized).
+	mux.Handle("POST /api/v1/customers/analytics/refresh", authMW(http.HandlerFunc(h.RefreshAnalytics)))
+	mux.Handle("GET /api/v1/customers/analytics/segments", authMW(http.HandlerFunc(h.GetSegmentDist)))
+	mux.Handle("GET /api/v1/customers/analytics/churn", authMW(http.HandlerFunc(h.GetChurnDist)))
+	mux.Handle("GET /api/v1/customers/analytics/clv", authMW(http.HandlerFunc(h.GetCLVDist)))
+
+	// Guest intelligence — profiles.
+	mux.Handle("POST /api/v1/customers/resolve", authMW(http.HandlerFunc(h.ResolveGuest)))
+	mux.Handle("GET /api/v1/customers/guests", authMW(http.HandlerFunc(h.ListGuests)))
+	mux.Handle("GET /api/v1/customers/guests/{id}", authMW(http.HandlerFunc(h.GetGuest)))
+	mux.Handle("PUT /api/v1/customers/guests/{id}/enrich", authMW(http.HandlerFunc(h.EnrichGuest)))
 }
 
 // GetCustomers returns all customers for a location ordered by total spend.
