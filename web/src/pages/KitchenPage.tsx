@@ -229,7 +229,7 @@ export default function KitchenPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <KPICard
             label="Avg Ticket Time"
-            value={fmtSecs(metricsData.avg_ticket_time_secs)}
+            value={fmtSecs(metricsData.avg_ticket_time_secs ?? 0)}
             icon={Clock}
             iconColor="text-[#F97316]"
             bgTint="bg-orange-500/10"
@@ -243,7 +243,7 @@ export default function KitchenPage() {
           />
           <KPICard
             label="Tickets Completed Today"
-            value={metricsData.tickets_completed.toLocaleString()}
+            value={(metricsData.tickets_completed ?? 0).toLocaleString()}
             icon={CheckCircle}
             iconColor="text-green-500"
             bgTint="bg-green-500/10"
@@ -271,7 +271,7 @@ export default function KitchenPage() {
                   {(capacityData.total_capacity_pct ?? 0).toFixed(0)}%
                 </span>
               </span>
-              <span>{capacityData.active_tickets} active tickets</span>
+              <span>{capacityData.active_tickets ?? 0} active tickets</span>
             </div>
           )}
         </div>
