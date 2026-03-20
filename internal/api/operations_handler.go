@@ -21,6 +21,24 @@ func NewOperationsHandler(svc *operations.Service) *OperationsHandler {
 func (h *OperationsHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.Handler) http.Handler) {
 	mux.Handle("GET /api/v1/operations/summary", authMW(http.HandlerFunc(h.GetSummary)))
 	mux.Handle("GET /api/v1/operations/hourly", authMW(http.HandlerFunc(h.GetHourly)))
+
+	// Kitchen stations — specific paths before parameterized
+	mux.Handle("GET /api/v1/operations/stations", authMW(http.HandlerFunc(h.GetStations)))
+	mux.Handle("POST /api/v1/operations/stations/setup", authMW(http.HandlerFunc(h.SetupStations)))
+	mux.Handle("GET /api/v1/operations/capacity", authMW(http.HandlerFunc(h.GetCapacity)))
+	mux.Handle("GET /api/v1/operations/ticket-time-estimate", authMW(http.HandlerFunc(h.EstimateTicketTime)))
+
+	// Resource profiles
+	mux.Handle("GET /api/v1/operations/resource-profiles/{menu_item_id}", authMW(http.HandlerFunc(h.GetResourceProfiles)))
+	mux.Handle("PUT /api/v1/operations/resource-profiles/{menu_item_id}", authMW(http.HandlerFunc(h.SetResourceProfiles)))
+
+	// KDS — specific paths before parameterized
+	mux.Handle("GET /api/v1/operations/kds/metrics", authMW(http.HandlerFunc(h.GetKDSMetrics)))
+	mux.Handle("POST /api/v1/operations/kds/tickets", authMW(http.HandlerFunc(h.CreateKDSTicket)))
+	mux.Handle("GET /api/v1/operations/kds/tickets", authMW(http.HandlerFunc(h.GetAllKDSTickets)))
+	mux.Handle("GET /api/v1/operations/kds/station/{type}", authMW(http.HandlerFunc(h.GetStationKDSTickets)))
+	mux.Handle("PUT /api/v1/operations/kds/items/{id}/bump", authMW(http.HandlerFunc(h.BumpKDSItem)))
+	mux.Handle("DELETE /api/v1/operations/kds/tickets/{id}", authMW(http.HandlerFunc(h.CancelKDSTicket)))
 }
 
 // GetSummary returns operational KPIs for a location.
