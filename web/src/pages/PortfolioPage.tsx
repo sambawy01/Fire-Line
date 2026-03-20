@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
 } from 'recharts';
 import {
@@ -19,6 +25,33 @@ import { usePnL } from '../hooks/useFinancial';
 import { useHealth } from '../hooks/useOperations';
 import { useAlertQueue, useAlertCount } from '../hooks/useAlerts';
 import { useLaborSummary } from '../hooks/useLabor';
+
+// ── CSS Animation for ticker ──────────────────────────────────────────────────
+
+const tickerStyle = `
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-scroll-left {
+  animation: scroll-left 60s linear infinite;
+}
+`;
+
+// ── AI Insights for ticker ────────────────────────────────────────────────────
+
+const AI_INSIGHTS = [
+  "📈 Ceviche Clásico sales up 23% this week at El Gouna — consider featuring in social media",
+  "⚠️ Beef Tenderloin cost spike detected — 3 menu items affected, margin impact: -2.1%",
+  "🎯 Pisco Sour is the #1 margin contributor across all branches at 78% gross margin",
+  "👥 5 VIP customers at risk of churning — combined monthly value: EGP 12,000",
+  "🔄 Auto-PO generated for Sysco Egypt — 8 items below reorder point at New Cairo",
+  "📊 Sheikh Zayed outperforming chain average by 12% on food cost control",
+  "🌡️ Kitchen capacity at North Coast hit 92% during Friday dinner — consider overflow prep",
+  "💡 Empanadas velocity up 22% after portion adjustment — reclassified to crowd_pleaser",
+  "📦 Metro Market OTIF rate dropped to 72% — AI recommends shifting 30% to Seoudi Fresh",
+  "🎉 Loyalty program: 15 active members, 24 transactions, EGP 3,200 in points issued",
+];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -184,6 +217,14 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
   const animatedRevenue = useCountUp(Math.round(revenue / 100));
   const animatedOrders = useCountUp(orders);
 
+  // Revenue progress bar
+  const TARGET_PIASTERS = 10_000_000; // 100K EGP
+  const revenuePct = Math.min((revenue / TARGET_PIASTERS) * 100, 100);
+  const progressColor =
+    revenuePct >= 80 ? 'bg-green-500' :
+    revenuePct >= 50 ? 'bg-amber-500' :
+    'bg-red-500';
+
   return (
     <div
       onClick={onClick}
@@ -256,6 +297,20 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
           </div>
         </div>
 
+        {/* Feature 1: Revenue vs Target Progress Bar */}
+        <div className="mt-1">
+          <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+            <span>Daily Target</span>
+            <span>{Math.round(revenue / 10000)}K / 100K EGP</span>
+          </div>
+          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-1000 ${progressColor}`}
+              style={{ width: `${revenuePct}%` }}
+            />
+          </div>
+        </div>
+
         {/* Sparkline */}
         <div className="h-14 -mx-1">
           <ResponsiveContainer width="100%" height="100%">
@@ -304,6 +359,12 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
               <span className="text-xs">{staffOnShift} on shift</span>
             </div>
           )}
+        </div>
+
+        {/* Feature 5: Staff On Floor Summary */}
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 -mt-2">
+          <Users className="h-3 w-3" />
+          <span>{staffOnShift > 0 ? `${staffOnShift} staff on floor` : 'Staff data loading...'}</span>
         </div>
 
         {/* Click CTA overlay on hover */}
@@ -449,124 +510,208 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
     },
   ];
 
+  // Data for bar chart
+  const branchChartData = branches.map((b) => ({
+    name: b.shortName,
+    revenue: Math.round(b.revenue / 10000),
+    health: Math.round(b.health),
+  }));
+
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[640px]">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-px flex-1 bg-white/5" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-            Chain KPI Comparison
-          </span>
-          <div className="h-px flex-1 bg-white/5" />
-        </div>
-        <div className="rounded-xl border border-white/8 overflow-hidden">
-          {/* Header row */}
-          <div
-            className="grid text-center"
-            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
-          >
-            <div className="bg-white/5 px-4 py-3 text-left">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Metric</span>
-            </div>
-            {cols.map((b, i) => (
-              <div
-                key={b.name}
-                className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/8 border-l border-white/8' : 'bg-white/5'}`}
-              >
-                <span className={`text-xs font-bold uppercase tracking-wider ${i === cols.length - 1 ? 'text-slate-300' : 'text-slate-400'}`}>
-                  {b.shortName}
-                </span>
-              </div>
-            ))}
+    <div className="space-y-6">
+      <div className="overflow-x-auto">
+        <div className="min-w-[640px]">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-px flex-1 bg-white/5" />
+            <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              Chain KPI Comparison
+            </span>
+            <div className="h-px flex-1 bg-white/5" />
           </div>
-
-          {/* Revenue row */}
-          <div
-            className="grid text-center border-t border-white/5"
-            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
-          >
-            <div className="bg-white/3 px-4 py-3 text-left flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-medium">Revenue (EGP K)</span>
-            </div>
-            {cols.map((b, i) => (
-              <div
-                key={b.name}
-                className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
-              >
-                <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : 'text-emerald-400'}`}>
-                  {b.revenue > 0 ? Math.round(b.revenue / 10000).toLocaleString() + 'K' : '—'}
-                </span>
+          <div className="rounded-xl border border-white/8 overflow-hidden">
+            {/* Header row */}
+            <div
+              className="grid text-center"
+              style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+            >
+              <div className="bg-white/5 px-4 py-3 text-left">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Metric</span>
               </div>
-            ))}
-          </div>
-
-          {/* Margin row */}
-          <div
-            className="grid text-center border-t border-white/5"
-            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
-          >
-            <div className="bg-white/3 px-4 py-3 text-left">
-              <span className="text-xs text-slate-400 font-medium">Gross Margin</span>
+              {cols.map((b, i) => (
+                <div
+                  key={b.name}
+                  className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/8 border-l border-white/8' : 'bg-white/5'}`}
+                >
+                  <span className={`text-xs font-bold uppercase tracking-wider ${i === cols.length - 1 ? 'text-slate-300' : 'text-slate-400'}`}>
+                    {b.shortName}
+                  </span>
+                </div>
+              ))}
             </div>
-            {cols.map((b, i) => (
-              <div
-                key={b.name}
-                className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
-              >
-                <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : 'text-blue-400'}`}>
-                  {b.margin > 0 ? b.margin.toFixed(1) + '%' : '—'}
-                </span>
+
+            {/* Revenue row */}
+            <div
+              className="grid text-center border-t border-white/5"
+              style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+            >
+              <div className="bg-white/3 px-4 py-3 text-left flex items-center gap-2">
+                <span className="text-xs text-slate-400 font-medium">Revenue (EGP K)</span>
               </div>
-            ))}
-          </div>
-
-          {/* Health row */}
-          <div
-            className="grid text-center border-t border-white/5"
-            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
-          >
-            <div className="bg-white/3 px-4 py-3 text-left">
-              <span className="text-xs text-slate-400 font-medium">Health Score</span>
-            </div>
-            {cols.map((b, i) => {
-              const score = Math.round(b.health);
-              const color = score >= 75 ? 'text-green-400' : score >= 50 ? 'text-amber-400' : 'text-red-400';
-              return (
+              {cols.map((b, i) => (
                 <div
                   key={b.name}
                   className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
                 >
-                  <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : color}`}>
-                    {score > 0 ? score : '—'}
+                  <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : 'text-emerald-400'}`}>
+                    {b.revenue > 0 ? Math.round(b.revenue / 10000).toLocaleString() + 'K' : '—'}
                   </span>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Alerts row */}
-          <div
-            className="grid text-center border-t border-white/5"
-            style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
-          >
-            <div className="bg-white/3 px-4 py-3 text-left">
-              <span className="text-xs text-slate-400 font-medium">Active Alerts</span>
+              ))}
             </div>
-            {cols.map((b, i) => {
-              const count = Math.round(b.alerts);
-              return (
+
+            {/* Margin row */}
+            <div
+              className="grid text-center border-t border-white/5"
+              style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+            >
+              <div className="bg-white/3 px-4 py-3 text-left">
+                <span className="text-xs text-slate-400 font-medium">Gross Margin</span>
+              </div>
+              {cols.map((b, i) => (
                 <div
                   key={b.name}
                   className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
                 >
-                  <span className={`text-sm font-bold ${count > 0 ? (i === cols.length - 1 ? 'text-slate-300' : 'text-red-400') : 'text-slate-500'}`}>
-                    {count}
+                  <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : 'text-blue-400'}`}>
+                    {b.margin > 0 ? b.margin.toFixed(1) + '%' : '—'}
                   </span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+
+            {/* Health row */}
+            <div
+              className="grid text-center border-t border-white/5"
+              style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+            >
+              <div className="bg-white/3 px-4 py-3 text-left">
+                <span className="text-xs text-slate-400 font-medium">Health Score</span>
+              </div>
+              {cols.map((b, i) => {
+                const score = Math.round(b.health);
+                const color = score >= 75 ? 'text-green-400' : score >= 50 ? 'text-amber-400' : 'text-red-400';
+                return (
+                  <div
+                    key={b.name}
+                    className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
+                  >
+                    <span className={`text-sm font-bold ${i === cols.length - 1 ? 'text-slate-300' : color}`}>
+                      {score > 0 ? score : '—'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Alerts row */}
+            <div
+              className="grid text-center border-t border-white/5"
+              style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
+            >
+              <div className="bg-white/3 px-4 py-3 text-left">
+                <span className="text-xs text-slate-400 font-medium">Active Alerts</span>
+              </div>
+              {cols.map((b, i) => {
+                const count = Math.round(b.alerts);
+                return (
+                  <div
+                    key={b.name}
+                    className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
+                  >
+                    <span className={`text-sm font-bold ${count > 0 ? (i === cols.length - 1 ? 'text-slate-300' : 'text-red-400') : 'text-slate-500'}`}>
+                      {count}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Feature 3: Chain-Wide Comparison Bar Chart */}
+      <div className="bg-white/3 border border-white/8 rounded-xl p-5">
+        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4 text-center">
+          Branch Performance Chart
+        </p>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={branchChartData} margin={{ top: 10, right: 20, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+            <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+            <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} />
+            <Tooltip
+              contentStyle={{
+                background: '#1e293b',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '8px',
+                color: '#f1f5f9',
+              }}
+            />
+            <Bar dataKey="revenue" name="Revenue (K EGP)" fill="#22c55e" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="health" name="Health Score" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ── Feature 2: AI Insights Ticker ────────────────────────────────────────────
+
+function AIInsightsTicker() {
+  return (
+    <div className="overflow-hidden bg-slate-900/50 border-y border-white/5 py-3">
+      <div className="animate-scroll-left flex gap-12 whitespace-nowrap">
+        {[...AI_INSIGHTS, ...AI_INSIGHTS].map((insight, i) => (
+          <span key={i} className="text-sm text-slate-300">{insight}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Feature 4: Today's Revenue Race ──────────────────────────────────────────
+
+function RevenueRace({ branchRows }: { branchRows: BranchKPIRow[] }) {
+  const sorted = [...branchRows].sort((a, b) => b.revenue - a.revenue);
+  const maxRevenue = Math.max(...sorted.map((r) => r.revenue), 1);
+
+  return (
+    <div className="bg-white/3 border border-white/8 rounded-xl p-5 space-y-4">
+      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Today's Revenue Race</h3>
+      <div className="space-y-3">
+        {sorted.map((b, idx) => {
+          const pct = (b.revenue / maxRevenue) * 100;
+          return (
+            <div key={b.name} className="flex items-center gap-3">
+              <span className="text-xs text-slate-400 w-24 truncate">{b.shortName}</span>
+              <div className="flex-1 h-6 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ${
+                    idx === 0
+                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                      : 'bg-gradient-to-r from-slate-600 to-slate-500'
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="text-xs font-bold text-white w-16 text-right">
+                {Math.round(b.revenue / 10000)}K
+              </span>
+              {idx === 0 && <span className="text-xs">🏆</span>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -713,6 +858,67 @@ function BriefingCard({
   );
 }
 
+// ── Feature 6: AI Recommendation Cards ───────────────────────────────────────
+
+const AI_RECOMMENDATIONS = [
+  {
+    icon: '🧠',
+    title: 'Dynamic Pricing Opportunity',
+    desc: 'Increase Churrasco Chimichurri by 8% (EGP 520→562). Model predicts <3% volume drop, +EGP 4,200/month profit.',
+    confidence: 'High',
+  },
+  {
+    icon: '📅',
+    title: 'Schedule Optimization',
+    desc: 'Reduce Tuesday lunch shift by 2 staff at El Gouna. Historical covers suggest overstaffing. Save EGP 1,800/week.',
+    confidence: 'Medium',
+  },
+  {
+    icon: '🎯',
+    title: 'Win-Back Campaign',
+    desc: 'Target 5 lapsed VIP guests with personalized Pisco Sour offer. Similar campaigns recovered 60% of at-risk guests.',
+    confidence: 'High',
+  },
+];
+
+function AIRecommendations() {
+  return (
+    <div className="space-y-4 mt-6">
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-white/5" />
+        <div className="flex items-center gap-2">
+          <span className="text-base">🧠</span>
+          <span className="text-xs font-bold text-white uppercase tracking-widest">AI Recommendations</span>
+        </div>
+        <div className="h-px flex-1 bg-white/5" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {AI_RECOMMENDATIONS.map((rec, i) => (
+          <div
+            key={i}
+            className="bg-gradient-to-br from-indigo-950/40 to-purple-950/30 border border-indigo-500/20 rounded-xl p-4 hover:border-indigo-400/40 transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">{rec.icon}</span>
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  rec.confidence === 'High'
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-amber-500/20 text-amber-400'
+                }`}
+              >
+                {rec.confidence} Confidence
+              </span>
+            </div>
+            <h4 className="text-sm font-bold text-white mb-1">{rec.title}</h4>
+            <p className="text-xs text-slate-400 leading-relaxed">{rec.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function CEOBriefing() {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -774,6 +980,9 @@ function CEOBriefing() {
           headerColor="text-blue-400"
         />
       </div>
+
+      {/* Feature 6: AI Recommendation Cards */}
+      <AIRecommendations />
     </div>
   );
 }
@@ -835,6 +1044,9 @@ export default function PortfolioPage() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
+      {/* Inject ticker animation CSS */}
+      <style>{tickerStyle}</style>
+
       {/* Animated background */}
       <div
         className="fixed inset-0 -z-10"
@@ -919,9 +1131,19 @@ export default function PortfolioPage() {
           </div>
         )}
 
-        {/* Chain KPI Comparison Table */}
+        {/* Chain KPI Comparison Table + Bar Chart */}
         {branchRows.length > 0 && (
           <ChainComparisonTable branches={branchRows} />
+        )}
+
+        {/* Feature 2: AI Insights Ticker */}
+        <div className="-mx-4 sm:-mx-6 lg:-mx-8">
+          <AIInsightsTicker />
+        </div>
+
+        {/* Feature 4: Revenue Race */}
+        {branchRows.length > 0 && (
+          <RevenueRace branchRows={branchRows} />
         )}
 
         {/* CEO Executive Briefing */}
