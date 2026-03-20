@@ -27,8 +27,8 @@ import { useLocationStore } from '../stores/location';
 import { useAlertCount } from '../hooks/useAlerts';
 
 const navItems = [
-  { to: '/portfolio', label: 'Portfolio', icon: Building2 },
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/', label: 'Portfolio', icon: Building2 },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/inventory', label: 'Inventory', icon: Package },
   { to: '/purchase-orders', label: 'Purchase Orders', icon: ShoppingCart },
   { to: '/financial', label: 'Financial', icon: DollarSign },

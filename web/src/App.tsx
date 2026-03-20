@@ -44,7 +44,8 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<DashboardPage />} />
+            <Route index element={<PortfolioPage />} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="inventory" element={<InventoryPage />} />
             <Route path="purchase-orders" element={<PurchaseOrdersPage />} />
             <Route path="financial" element={<FinancialPage />} />
@@ -57,7 +58,6 @@ export default function App() {
             <Route path="kitchen" element={<KitchenPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="marketing" element={<MarketingPage />} />
-            <Route path="portfolio" element={<PortfolioPage />} />
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="adapters" element={<AdaptersPage />} />
           </Route>
