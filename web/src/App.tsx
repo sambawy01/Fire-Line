@@ -16,6 +16,7 @@ import CustomerPage from './pages/CustomerPage';
 import OperationsPage from './pages/OperationsPage';
 import ReportsPage from './pages/ReportsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
+import SchedulingPage from './pages/SchedulingPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="financial" element={<FinancialPage />} />
             <Route path="menu" element={<MenuPage />} />
             <Route path="labor" element={<LaborPage />} />
+            <Route path="scheduling" element={<SchedulingPage />} />
             <Route path="vendors" element={<VendorPage />} />
             <Route path="customers" element={<CustomerPage />} />
             <Route path="operations" element={<OperationsPage />} />

@@ -686,4 +686,67 @@ export const poApi = {
     request<{ breaches: PARBreach[] }>(`/inventory/par-breaches?location_id=${locationId}`),
 };
 
+// Scheduling
+export interface ScheduledShift {
+  scheduled_shift_id: string;
+  employee_id: string;
+  employee_name: string;
+  shift_date: string;
+  start_time: string;
+  end_time: string;
+  station: string;
+  status: string;
+}
+
+export interface ScheduleWithShifts {
+  schedule_id: string;
+  location_id: string;
+  week_start: string;
+  status: string;
+  shifts: ScheduledShift[];
+}
+
+export interface LaborCostProjection {
+  total_hours: number;
+  total_cost: number;
+  labor_cost_pct: number;
+  budget_target_pct: number;
+  over_under: string;
+}
+
+export interface ForecastBlock {
+  time_block: string;
+  forecasted_covers: number;
+  required_headcount: number;
+}
+
+export interface OvertimeRisk {
+  employee_id: string;
+  employee_name: string;
+  scheduled_hours: number;
+  severity: string;
+}
+
+export interface SwapRequest {
+  swap_id: string;
+  requester_name: string;
+  target_name: string;
+  status: string;
+  reason: string;
+  created_at: string;
+}
+
+export const schedulingApi = {
+  getSchedule: (locationId: string, weekStart: string) =>
+    request<ScheduleWithShifts>(`/labor/schedules?location_id=${locationId}&week_start=${weekStart}`),
+  generate: (locationId: string, weekStart: string) =>
+    request<ScheduleWithShifts>('/labor/schedules/generate', { method: 'POST', body: JSON.stringify({ location_id: locationId, week_start: weekStart }) }),
+  publish: (id: string) => request<any>(`/labor/schedules/${id}/publish`, { method: 'POST' }),
+  cost: (id: string) => request<LaborCostProjection>(`/labor/schedules/${id}/cost`),
+  forecast: (locationId: string, date: string) => request<{ forecast: ForecastBlock[] }>(`/labor/forecast?location_id=${locationId}&date=${date}`),
+  swaps: (locationId: string) => request<{ swap_requests: SwapRequest[] }>(`/labor/swaps?location_id=${locationId}&status=pending`),
+  reviewSwap: (id: string, approved: boolean) => request<any>(`/labor/swaps/${id}`, { method: 'PUT', body: JSON.stringify({ approved }) }),
+  overtimeRisk: (locationId: string, weekStart: string) => request<{ risks: OvertimeRisk[] }>(`/labor/overtime-risk?location_id=${locationId}&week_start=${weekStart}`),
+};
+
 export { ApiError };

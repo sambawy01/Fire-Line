@@ -17,6 +17,7 @@ import {
   Activity,
   FileText,
   ShoppingCart,
+  Calendar,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
 import { useLocationStore } from '../stores/location';
@@ -29,6 +30,7 @@ const navItems = [
   { to: '/financial', label: 'Financial', icon: DollarSign },
   { to: '/menu', label: 'Menu', icon: UtensilsCrossed },
   { to: '/labor', label: 'Labor', icon: Users },
+  { to: '/scheduling', label: 'Scheduling', icon: Calendar },
   { to: '/vendors', label: 'Vendors', icon: Truck },
   { to: '/customers', label: 'Customers', icon: UserCheck },
   { to: '/operations', label: 'Operations', icon: Activity },
