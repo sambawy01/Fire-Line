@@ -70,6 +70,7 @@ var rolePermissions = map[string][]string{
 		"operations:kds",
 		"marketing:read",
 		"marketing:write",
+		"portfolio:read",
 	},
 	"owner": {
 		"schedule:read_own",
@@ -107,6 +108,8 @@ var rolePermissions = map[string][]string{
 		"operations:kds",
 		"marketing:read",
 		"marketing:write",
+		"portfolio:read",
+		"portfolio:write",
 	},
 }
 
