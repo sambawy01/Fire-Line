@@ -18,6 +18,7 @@ import {
   FileText,
   ShoppingCart,
   Calendar,
+  ChefHat,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
 import { useLocationStore } from '../stores/location';
@@ -34,6 +35,7 @@ const navItems = [
   { to: '/vendors', label: 'Vendors', icon: Truck },
   { to: '/customers', label: 'Customers', icon: UserCheck },
   { to: '/operations', label: 'Operations', icon: Activity },
+  { to: '/kitchen', label: 'Kitchen', icon: ChefHat },
   { to: '/reports', label: 'Reports', icon: FileText },
   { to: '/alerts', label: 'Alerts', icon: Bell, showBadge: true },
   { to: '/adapters', label: 'Adapters', icon: Plug },

@@ -749,4 +749,69 @@ export const schedulingApi = {
   overtimeRisk: (locationId: string, weekStart: string) => request<{ risks: OvertimeRisk[] }>(`/labor/overtime-risk?location_id=${locationId}&week_start=${weekStart}`),
 };
 
+// Kitchen Operations
+export interface KitchenStation {
+  station_id: string;
+  name: string;
+  station_type: string;
+  max_concurrent: number;
+  current_load: number;
+  load_pct: number;
+  status: string;
+}
+
+export interface KitchenCapacity {
+  stations: KitchenStation[];
+  total_capacity_pct: number;
+  active_tickets: number;
+  avg_ticket_time_secs: number;
+}
+
+export interface KDSTicketItem {
+  ticket_item_id: string;
+  item_name: string;
+  quantity: number;
+  station_type: string;
+  status: string;
+}
+
+export interface KDSTicket {
+  ticket_id: string;
+  order_number: string;
+  channel: string;
+  status: string;
+  items: KDSTicketItem[];
+  elapsed_secs: number;
+  created_at: string;
+}
+
+export interface KDSMetricsByStation {
+  station_type: string;
+  avg_time_secs: number;
+  items_completed: number;
+}
+
+export interface KDSMetrics {
+  avg_ticket_time_secs: number;
+  items_per_hour: number;
+  tickets_completed: number;
+  by_station: KDSMetricsByStation[];
+}
+
+export const kitchenApi = {
+  capacity: (locationId: string) =>
+    request<KitchenCapacity>(`/operations/capacity?location_id=${locationId}`),
+  tickets: (locationId: string) =>
+    request<{ tickets: KDSTicket[] }>(`/operations/kds/tickets?location_id=${locationId}`),
+  stationTickets: (stationType: string, locationId: string) =>
+    request<{ tickets: KDSTicket[] }>(`/operations/kds/station/${stationType}?location_id=${locationId}`),
+  metrics: (locationId: string) =>
+    request<KDSMetrics>(`/operations/kds/metrics?location_id=${locationId}`),
+  bumpItem: (itemId: string, status: string) =>
+    request<any>(`/operations/kds/items/${itemId}/bump`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }),
+};
+
 export { ApiError };
