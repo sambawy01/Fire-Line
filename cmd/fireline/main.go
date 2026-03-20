@@ -119,11 +119,13 @@ func main() {
 	// Seed demo alerts if the demo org exists
 	if cfg.Env == "development" {
 		var demoOrgID string
-		err := adminPool.Raw().QueryRow(ctx, "SELECT org_id FROM organizations WHERE slug = 'bistro-cloud'").Scan(&demoOrgID)
+		err := adminPool.Raw().QueryRow(ctx, "SELECT org_id FROM organizations LIMIT 1").Scan(&demoOrgID)
 		if err == nil && demoOrgID != "" {
 			alertSvc.SeedAlerts(demoOrgID, []string{
 				"a1111111-1111-1111-1111-111111111111",
 				"b2222222-2222-2222-2222-222222222222",
+				"c3333333-3333-3333-3333-333333333333",
+				"d4444444-4444-4444-4444-444444444444",
 			})
 		}
 	}
