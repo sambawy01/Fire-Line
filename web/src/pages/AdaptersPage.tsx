@@ -105,13 +105,13 @@ export default function AdaptersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Plug className="h-7 w-7 text-gray-900" />
-            <h1 className="text-2xl font-bold text-gray-900">
+            <Plug className="h-7 w-7 text-white" />
+            <h1 className="text-2xl font-bold text-white">
               POS Connections
             </h1>
           </div>
@@ -130,7 +130,7 @@ export default function AdaptersPage() {
             return (
               <div
                 key={adapter.id}
-                className="rounded-xl border border-gray-200 bg-white shadow-sm"
+                className="rounded-xl border border-white/10 bg-white shadow-sm"
               >
                 <div className="p-5">
                   {/* Top row: logo + name + status */}
@@ -144,10 +144,10 @@ export default function AdaptersPage() {
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate text-base font-semibold text-gray-900">
+                      <h3 className="truncate text-base font-semibold text-white">
                         {adapter.name}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-slate-400">
                         {adapter.type} &middot; {adapter.location}
                       </p>
                     </div>
@@ -168,7 +168,7 @@ export default function AdaptersPage() {
                     {adapter.capabilities.map((cap) => (
                       <span
                         key={cap}
-                        className="rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600"
+                        className="rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-slate-300"
                       >
                         {cap}
                       </span>
@@ -176,16 +176,16 @@ export default function AdaptersPage() {
                   </div>
 
                   {/* Last sync */}
-                  <p className="mb-4 flex items-center gap-1 text-xs text-gray-400">
+                  <p className="mb-4 flex items-center gap-1 text-xs text-slate-500">
                     <Clock className="h-3.5 w-3.5" />
                     Last sync: {formatTimestamp(adapter.lastSync)}
                   </p>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
+                  <div className="flex items-center gap-3 border-t border-white/5 pt-4">
                     <button
                       onClick={() => handleViewDetails(adapter.id)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-gray-200 transition-colors hover:bg-gray-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-1.5 text-sm font-medium text-slate-200 ring-1 ring-gray-200 transition-colors hover:bg-white/5"
                     >
                       <Eye className="h-4 w-4" />
                       View Details
@@ -195,7 +195,7 @@ export default function AdaptersPage() {
                       className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
                         adapter.status === 'paused'
                           ? 'bg-[#F97316] text-white hover:bg-[#EA580C]'
-                          : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50'
+                          : 'bg-white text-slate-200 ring-1 ring-gray-200 hover:bg-white/5'
                       }`}
                     >
                       {adapter.status === 'paused' ? (

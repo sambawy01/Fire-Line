@@ -67,7 +67,7 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-slate-900">
       {/* Sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 bg-[#1E293B] text-white">
         {/* Logo */}
@@ -140,16 +140,16 @@ export default function Layout() {
       {/* Main content */}
       <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
         {/* Top header */}
-        <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800">
+        <header className="sticky top-0 z-10 bg-slate-800 border-b border-white/10 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">
             {locations.length === 1 ? locations[0].name : 'FireLine'}
           </h2>
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-slate-200">
                 {role ?? 'Operator'}
               </p>
-              <p className="text-xs text-gray-400">Restaurant Manager</p>
+              <p className="text-xs text-slate-400">Restaurant Manager</p>
             </div>
             <div className="h-9 w-9 rounded-full bg-[#1E293B] flex items-center justify-center">
               <User className="h-5 w-5 text-white" />

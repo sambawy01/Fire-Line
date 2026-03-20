@@ -58,11 +58,11 @@ function pct(v: number): string {
 function SubScoreBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="space-y-1">
-      <div className="flex justify-between text-xs text-gray-500">
+      <div className="flex justify-between text-xs text-slate-400">
         <span>{label}</span>
         <span className={scoreColor(value)}>{value.toFixed(0)}</span>
       </div>
-      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${scoreBarColor(value)}`}
           style={{ width: `${Math.min(value, 100)}%` }}
@@ -98,7 +98,7 @@ function ScorecardsTab({ locationId }: { locationId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">Reliability scores across all vendors for this location.</p>
+        <p className="text-sm text-slate-400">Reliability scores across all vendors for this location.</p>
         <button
           onClick={() => void handleRecalculate()}
           disabled={calcMutation.isPending}
@@ -121,7 +121,7 @@ function ScorecardsTab({ locationId }: { locationId: string }) {
           <LoadingSpinner />
         </div>
       ) : scores.length === 0 ? (
-        <div className="text-center py-12 text-gray-400 text-sm">
+        <div className="text-center py-12 text-slate-500 text-sm">
           No scores available. Click Recalculate to generate scores.
         </div>
       ) : (
@@ -129,11 +129,11 @@ function ScorecardsTab({ locationId }: { locationId: string }) {
           {scores.map((vs) => (
             <div
               key={vs.vendor_name}
-              className={`bg-white rounded-xl border p-5 shadow-sm space-y-4 ${scoreBg(vs.overall_score)}`}
+              className={`bg-white/5 rounded-xl border p-5 space-y-4 ${scoreBg(vs.overall_score)}`}
             >
               {/* Header */}
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-gray-800 text-base leading-tight">{vs.vendor_name}</h3>
+                <h3 className="font-semibold text-white text-base leading-tight">{vs.vendor_name}</h3>
                 <span className={`text-3xl font-bold tabular-nums ${scoreColor(vs.overall_score)}`}>
                   {vs.overall_score.toFixed(0)}
                 </span>
@@ -148,18 +148,18 @@ function ScorecardsTab({ locationId }: { locationId: string }) {
               </div>
 
               {/* Stats row */}
-              <div className="grid grid-cols-3 gap-2 pt-1 border-t border-gray-200 text-center">
+              <div className="grid grid-cols-3 gap-2 pt-1 border-t border-white/10 text-center">
                 <div>
-                  <p className="text-xs text-gray-400">OTIF</p>
-                  <p className="text-sm font-semibold text-gray-700">{pct(vs.otif_rate)}</p>
+                  <p className="text-xs text-slate-500">OTIF</p>
+                  <p className="text-sm font-semibold text-slate-200">{pct(vs.otif_rate)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Orders</p>
-                  <p className="text-sm font-semibold text-gray-700">{vs.total_orders}</p>
+                  <p className="text-xs text-slate-500">Orders</p>
+                  <p className="text-sm font-semibold text-slate-200">{vs.total_orders}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Avg Lead</p>
-                  <p className="text-sm font-semibold text-gray-700">{vs.avg_lead_days.toFixed(1)}d</p>
+                  <p className="text-xs text-slate-500">Avg Lead</p>
+                  <p className="text-sm font-semibold text-slate-200">{vs.avg_lead_days.toFixed(1)}d</p>
                 </div>
               </div>
             </div>
@@ -207,11 +207,11 @@ function PriceIntelligenceTab({ locationId }: { locationId: string }) {
       {/* Controls */}
       <div className="flex flex-wrap gap-4 items-end">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Ingredient</label>
+          <label className="block text-xs font-medium text-slate-400 mb-1">Ingredient</label>
           <select
             value={selectedIngredientId}
             onChange={(e) => setSelectedIngredientId(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-white/10 rounded-lg px-3 py-2 text-sm text-white bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select ingredient…</option>
             {ingredients.map((ing) => (
@@ -222,11 +222,11 @@ function PriceIntelligenceTab({ locationId }: { locationId: string }) {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Vendor</label>
+          <label className="block text-xs font-medium text-slate-400 mb-1">Vendor</label>
           <select
             value={selectedVendor}
             onChange={(e) => setSelectedVendor(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-white/10 rounded-lg px-3 py-2 text-sm text-white bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select vendor…</option>
             {vendorNames.map((v) => (
@@ -237,16 +237,16 @@ function PriceIntelligenceTab({ locationId }: { locationId: string }) {
       </div>
 
       {/* Price trend chart */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Unit Cost Trend (6 months)</h3>
+      <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-5">
+        <h3 className="text-sm font-semibold text-slate-200 mb-4">Unit Cost Trend (6 months)</h3>
         {trendLoading ? (
           <div className="flex justify-center py-10"><LoadingSpinner /></div>
         ) : !selectedIngredientId || !selectedVendor ? (
-          <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
+          <div className="flex items-center justify-center h-40 text-slate-500 text-sm">
             Select an ingredient and vendor to view the price trend.
           </div>
         ) : chartData.length === 0 ? (
-          <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
+          <div className="flex items-center justify-center h-40 text-slate-500 text-sm">
             No price history available for this selection.
           </div>
         ) : (
@@ -291,24 +291,24 @@ function PriceIntelligenceTab({ locationId }: { locationId: string }) {
 
       {/* Price anomaly alerts */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
           Price Anomaly Alerts
         </h3>
         {anomalyLoading ? (
           <div className="flex justify-center py-6"><LoadingSpinner /></div>
         ) : anomalies.length === 0 ? (
-          <div className="text-sm text-gray-400 py-4">No price anomalies detected.</div>
+          <div className="text-sm text-slate-500 py-4">No price anomalies detected.</div>
         ) : (
           <div className="space-y-3">
             {anomalies.map((a, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-start justify-between gap-4"
+                className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-4 flex items-start justify-between gap-4"
               >
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">{a.ingredient_name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-sm font-semibold text-white">{a.ingredient_name}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
                     {a.vendor_name} &middot; Current: {cents(a.current_price)} &middot; Avg: {cents(a.avg_price)} &middot; Z-score: {a.z_score.toFixed(2)}
                   </p>
                 </div>
@@ -343,11 +343,11 @@ function ComparisonTab({ locationId }: { locationId: string }) {
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Ingredient</label>
+        <label className="block text-xs font-medium text-slate-400 mb-1">Ingredient</label>
         <select
           value={selectedIngredientId}
           onChange={(e) => setSelectedIngredientId(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-white/10 rounded-lg px-3 py-2 text-sm text-white bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Select ingredient…</option>
           {ingredients.map((ing) => (
@@ -359,20 +359,20 @@ function ComparisonTab({ locationId }: { locationId: string }) {
       </div>
 
       {!selectedIngredientId ? (
-        <div className="text-center py-16 text-gray-400 text-sm">
+        <div className="text-center py-16 text-slate-500 text-sm">
           Select an ingredient to compare vendors side by side.
         </div>
       ) : isLoading ? (
         <div className="flex justify-center py-12"><LoadingSpinner /></div>
       ) : vendors.length === 0 ? (
-        <div className="text-center py-12 text-gray-400 text-sm">
+        <div className="text-center py-12 text-slate-500 text-sm">
           No vendor comparison data available for this ingredient.
         </div>
       ) : (
         <>
           {compareData?.ingredient_name && (
-            <p className="text-sm text-gray-500">
-              Comparing vendors for <span className="font-semibold text-gray-700">{compareData.ingredient_name}</span>
+            <p className="text-sm text-slate-400">
+              Comparing vendors for <span className="font-semibold text-slate-200">{compareData.ingredient_name}</span>
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -381,14 +381,14 @@ function ComparisonTab({ locationId }: { locationId: string }) {
               return (
                 <div
                   key={v.vendor_name}
-                  className={`bg-white rounded-xl border-2 shadow-sm p-5 space-y-4 transition ${
+                  className={`bg-white/5 rounded-xl border-2 p-5 space-y-4 transition ${
                     isRecommended
-                      ? 'border-blue-500 ring-2 ring-blue-200'
-                      : 'border-gray-200'
+                      ? 'border-blue-500 ring-2 ring-blue-500/30'
+                      : 'border-white/10'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-gray-800 text-base leading-tight">{v.vendor_name}</h3>
+                    <h3 className="font-semibold text-white text-base leading-tight">{v.vendor_name}</h3>
                     {isRecommended && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium shrink-0">
                         <TrendingUp className="h-3 w-3" />
@@ -398,23 +398,23 @@ function ComparisonTab({ locationId }: { locationId: string }) {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gray-50 rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-400">Score</p>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <p className="text-xs text-slate-500">Score</p>
                       <p className={`text-xl font-bold tabular-nums ${scoreColor(v.overall_score)}`}>
                         {v.overall_score.toFixed(0)}
                       </p>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-400">Unit Cost</p>
-                      <p className="text-xl font-bold text-gray-800">{cents(v.unit_cost)}</p>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <p className="text-xs text-slate-500">Unit Cost</p>
+                      <p className="text-xl font-bold text-white">{cents(v.unit_cost)}</p>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-400">OTIF</p>
-                      <p className="text-lg font-semibold text-gray-700">{pct(v.otif_rate)}</p>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <p className="text-xs text-slate-500">OTIF</p>
+                      <p className="text-lg font-semibold text-slate-200">{pct(v.otif_rate)}</p>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-400">Lead Time</p>
-                      <p className="text-lg font-semibold text-gray-700">{v.avg_lead_days.toFixed(1)}d</p>
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <p className="text-xs text-slate-500">Lead Time</p>
+                      <p className="text-lg font-semibold text-slate-200">{v.avg_lead_days.toFixed(1)}d</p>
                     </div>
                   </div>
                 </div>
@@ -446,8 +446,8 @@ export default function VendorPage() {
     <div className="space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Vendor Intelligence</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-white">Vendor Intelligence</h1>
+        <p className="text-sm text-slate-400 mt-1">
           Reliability scorecards, price intelligence, and vendor comparison
         </p>
       </div>
@@ -470,8 +470,8 @@ export default function VendorPage() {
             label="Total Vendors"
             value={String(vendors.length)}
             icon={Truck}
-            iconColor="text-gray-600"
-            bgTint="bg-gray-100"
+            iconColor="text-slate-300"
+            bgTint="bg-white/10"
           />
           <KPICard
             label="Avg Reliability"
@@ -499,15 +499,15 @@ export default function VendorPage() {
 
       {/* Tabs */}
       <div>
-        <div className="flex gap-1 border-b border-gray-200 mb-6">
+        <div className="flex gap-1 border-b border-white/10 mb-6">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition ${
                 activeTab === tab.id
-                  ? 'bg-white border border-b-white border-gray-200 text-blue-600 -mb-px'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white border border-b-white border-white/10 text-blue-600 -mb-px'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               {tab.label}

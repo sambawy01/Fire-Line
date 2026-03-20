@@ -23,9 +23,9 @@ function loadColor(pct: number): string {
 
 function urgencyClasses(elapsedSecs: number): string {
   const mins = elapsedSecs / 60;
-  if (mins >= 10) return 'border-red-500 bg-red-50';
-  if (mins >= 5) return 'border-yellow-400 bg-yellow-50';
-  return 'border-green-400 bg-green-50';
+  if (mins >= 10) return 'border-red-500 bg-red-500/10';
+  if (mins >= 5) return 'border-yellow-400 bg-yellow-400/10';
+  return 'border-green-400 bg-green-400/10';
 }
 
 function urgencyTextColor(elapsedSecs: number): string {
@@ -45,18 +45,18 @@ const CHANNEL_LABELS: Record<string, string> = {
 };
 
 const STATION_COLORS: Record<string, string> = {
-  grill: 'bg-orange-100 text-orange-700',
-  fry: 'bg-yellow-100 text-yellow-700',
-  salad: 'bg-green-100 text-green-700',
-  dessert: 'bg-pink-100 text-pink-700',
-  beverage: 'bg-blue-100 text-blue-700',
-  expo: 'bg-purple-100 text-purple-700',
+  grill: 'bg-orange-500/20 text-orange-400',
+  fry: 'bg-yellow-500/20 text-yellow-400',
+  salad: 'bg-green-500/20 text-green-400',
+  dessert: 'bg-pink-500/20 text-pink-400',
+  beverage: 'bg-blue-500/20 text-blue-400',
+  expo: 'bg-purple-500/20 text-purple-400',
 };
 
 const ITEM_STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-gray-100 text-gray-600',
-  cooking: 'bg-orange-100 text-orange-700',
-  ready: 'bg-green-100 text-green-700',
+  pending: 'bg-white/10 text-slate-300',
+  cooking: 'bg-orange-500/20 text-orange-400',
+  ready: 'bg-green-500/20 text-green-400',
 };
 
 // ── sub-components ────────────────────────────────────────────────────────────
@@ -64,17 +64,17 @@ const ITEM_STATUS_COLORS: Record<string, string> = {
 function StationCard({ station }: { station: KitchenStation }) {
   const barColor = loadColor(station.load_pct ?? 0);
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+    <div className="bg-white/5 rounded-xl border border-white/10 p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="font-semibold text-gray-800">{station.name}</p>
-          <p className="text-xs text-gray-400 capitalize">{station.station_type}</p>
+          <p className="font-semibold text-white">{station.name}</p>
+          <p className="text-xs text-slate-500 capitalize">{station.station_type}</p>
         </div>
         <span
           className={`text-xs font-bold px-2 py-0.5 rounded-full ${
             station.status === 'active'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-500'
+              ? 'bg-green-500/20 text-green-400'
+              : 'bg-white/10 text-slate-400'
           }`}
         >
           {station.status}
@@ -83,13 +83,13 @@ function StationCard({ station }: { station: KitchenStation }) {
 
       {/* load bar */}
       <div className="mb-2">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
+        <div className="flex justify-between text-xs text-slate-400 mb-1">
           <span>{station.current_load}/{station.max_concurrent} slots</span>
           <span className={(station.load_pct ?? 0) >= 80 ? 'text-red-600 font-semibold' : ''}>
             {(station.load_pct ?? 0).toFixed(0)}%
           </span>
         </div>
-        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${barColor}`}
             style={{ width: `${Math.min(station.load_pct ?? 0, 100)}%` }}
@@ -131,13 +131,13 @@ function TicketCard({
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-800 text-lg">#{ticket.order_number}</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-600">
+          <span className="font-bold text-white text-lg">#{ticket.order_number}</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-white border border-white/10 text-slate-300">
             {CHANNEL_LABELS[ticket.channel] ?? ticket.channel}
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <Clock className="h-3.5 w-3.5 text-gray-400" />
+          <Clock className="h-3.5 w-3.5 text-slate-500" />
           <ElapsedTimer baseSecs={ticket.elapsed_secs} />
         </div>
       </div>
@@ -145,20 +145,20 @@ function TicketCard({
       <div className="space-y-2">
         {(ticket.items ?? []).map((item) => {
           const stationClass =
-            STATION_COLORS[item.station_type] ?? 'bg-gray-100 text-gray-600';
+            STATION_COLORS[item.station_type] ?? 'bg-gray-100 text-slate-300';
           const statusClass =
-            ITEM_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-gray-600';
+            ITEM_STATUS_COLORS[item.status] ?? 'bg-gray-100 text-slate-300';
 
           return (
             <div
               key={item.ticket_item_id}
-              className="flex items-center justify-between bg-white/80 rounded-lg px-3 py-2"
+              className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2"
             >
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="font-semibold text-gray-700 text-sm">
+                <span className="font-semibold text-slate-200 text-sm">
                   {item.quantity}×
                 </span>
-                <span className="text-sm text-gray-700 truncate">{item.item_name}</span>
+                <span className="text-sm text-slate-200 truncate">{item.item_name}</span>
                 <span className={`text-xs px-1.5 py-0.5 rounded-full capitalize ${stationClass}`}>
                   {item.station_type}
                 </span>
@@ -219,8 +219,8 @@ export default function KitchenPage() {
       <div className="flex items-center gap-3">
         <ChefHat className="h-7 w-7 text-[#F97316]" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Kitchen Operations</h1>
-          <p className="text-sm text-gray-500">Live station load and active ticket management</p>
+          <h1 className="text-2xl font-bold text-white">Kitchen Operations</h1>
+          <p className="text-sm text-slate-400">Live station load and active ticket management</p>
         </div>
       </div>
 
@@ -232,21 +232,21 @@ export default function KitchenPage() {
             value={fmtSecs(metricsData.avg_ticket_time_secs)}
             icon={Clock}
             iconColor="text-[#F97316]"
-            bgTint="bg-orange-50"
+            bgTint="bg-orange-500/10"
           />
           <KPICard
             label="Items / Hour"
             value={(metricsData.items_per_hour ?? 0).toFixed(0)}
             icon={Zap}
             iconColor="text-blue-500"
-            bgTint="bg-blue-50"
+            bgTint="bg-blue-500/10"
           />
           <KPICard
             label="Tickets Completed Today"
             value={metricsData.tickets_completed.toLocaleString()}
             icon={CheckCircle}
             iconColor="text-green-500"
-            bgTint="bg-green-50"
+            bgTint="bg-green-500/10"
           />
         </div>
       )}
@@ -254,9 +254,9 @@ export default function KitchenPage() {
       {/* ── Section 2: Station Load ────────────────────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Station Load</h2>
+          <h2 className="text-lg font-semibold text-white">Station Load</h2>
           {capacityData && (
-            <div className="flex items-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-4 text-sm text-slate-400">
               <span>
                 Overall:{' '}
                 <span
@@ -277,7 +277,7 @@ export default function KitchenPage() {
         </div>
 
         {stations.length === 0 ? (
-          <div className="text-center py-10 text-gray-400">No stations configured.</div>
+          <div className="text-center py-10 text-slate-500">No stations configured.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {stations.map((s) => (
@@ -290,8 +290,8 @@ export default function KitchenPage() {
       {/* ── Section 3: Active Tickets (expo view) ──────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Active Tickets</h2>
-          <div className="flex items-center gap-3 text-xs text-gray-500">
+          <h2 className="text-lg font-semibold text-white">Active Tickets</h2>
+          <div className="flex items-center gap-3 text-xs text-slate-400">
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400" /> &lt;5 min
             </span>
@@ -305,7 +305,7 @@ export default function KitchenPage() {
         </div>
 
         {tickets.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-slate-500">
             <ChefHat className="h-12 w-12 mx-auto mb-3 opacity-30" />
             <p className="text-lg font-medium">No active tickets</p>
             <p className="text-sm">Kitchen is clear</p>

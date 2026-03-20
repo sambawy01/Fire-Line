@@ -102,12 +102,12 @@ function HealthGauge({ score, status }: { score: number; status: string }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-gray-800">{score}</span>
-          <span className="text-xs text-gray-400">/ 100</span>
+          <span className="text-2xl font-bold text-white">{score}</span>
+          <span className="text-xs text-slate-500">/ 100</span>
         </div>
       </div>
       <span className="text-sm font-semibold" style={{ color }}>{healthLabel(status)}</span>
-      <span className="text-xs text-gray-400 uppercase tracking-wide">Ops Health</span>
+      <span className="text-xs text-slate-500 uppercase tracking-wide">Ops Health</span>
     </div>
   );
 }
@@ -118,7 +118,7 @@ function SubScorePill({ label, score }: { label: string; score: number }) {
   const color = healthColor(score);
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <span className="text-xs text-gray-500">{label}</span>
+      <span className="text-xs text-slate-400">{label}</span>
       <span className="text-sm font-bold" style={{ color }}>{score}</span>
     </div>
   );
@@ -145,7 +145,7 @@ const priorityColumns: Column<TicketPriority>[] = [
   {
     key: 'order_number',
     header: 'Order',
-    render: (r) => <span className="font-mono font-semibold text-gray-700">{r.order_number}</span>,
+    render: (r) => <span className="font-mono font-semibold text-slate-200">{r.order_number}</span>,
   },
   {
     key: 'channel',
@@ -160,7 +160,7 @@ const priorityColumns: Column<TicketPriority>[] = [
     align: 'right',
     render: (r) => (
       <div className="flex items-center gap-2 justify-end">
-        <div className="w-20 h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="w-20 h-2 bg-white/10 rounded-full overflow-hidden">
           <div
             className="h-full rounded-full"
             style={{
@@ -169,7 +169,7 @@ const priorityColumns: Column<TicketPriority>[] = [
             }}
           />
         </div>
-        <span className="text-xs text-gray-600 w-6 text-right">{r.priority_score}</span>
+        <span className="text-xs text-slate-300 w-6 text-right">{r.priority_score}</span>
       </div>
     ),
   },
@@ -180,7 +180,7 @@ const priorityColumns: Column<TicketPriority>[] = [
     render: (r) => {
       const remaining = r.sla_minutes - r.elapsed_minutes;
       const pct = Math.min((r.elapsed_minutes / r.sla_minutes) * 100, 100);
-      const timeColor = pct >= 90 ? 'text-red-600' : pct >= 70 ? 'text-amber-600' : 'text-gray-600';
+      const timeColor = pct >= 90 ? 'text-red-600' : pct >= 70 ? 'text-amber-600' : 'text-slate-300';
       return (
         <span className={`text-sm font-mono ${timeColor}`}>
           {r.elapsed_minutes.toFixed(0)}m / {r.sla_minutes}m
@@ -242,8 +242,8 @@ export default function OperationsPage() {
     <div className="space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Operations Command Center</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-white">Operations Command Center</h1>
+        <p className="text-sm text-slate-400 mt-1">
           Live health score, capacity status, ticket priorities, and planning horizons
         </p>
       </div>
@@ -251,7 +251,7 @@ export default function OperationsPage() {
       {healthError && <ErrorBanner message={errorMessage} />}
 
       {/* ── Top Bar: Health + Overload ── */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="bg-white/5 rounded-xl border border-white/10 p-6 shadow-sm">
         {healthLoading || overloadLoading ? (
           <div className="flex justify-center py-6">
             <LoadingSpinner />
@@ -273,21 +273,21 @@ export default function OperationsPage() {
             )}
 
             {/* Separator */}
-            <div className="hidden sm:block h-16 w-px bg-gray-100" />
+            <div className="hidden sm:block h-16 w-px bg-white/10" />
 
             {/* Overload indicator */}
             {overload && (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
                   <OverloadDot severity={overload.severity} />
-                  <span className="text-sm font-semibold text-gray-700">
+                  <span className="text-sm font-semibold text-slate-200">
                     {overload.is_overloaded ? 'Overloaded' : 'Normal capacity'}
                   </span>
                   <StatusBadge variant={severityVariant(overload.severity)}>
                     {(overload.capacity_pct ?? 0).toFixed(0)}%
                   </StatusBadge>
                 </div>
-                <span className="text-xs text-gray-400 ml-5">
+                <span className="text-xs text-slate-500 ml-5">
                   {overload.severity.charAt(0).toUpperCase() + overload.severity.slice(1)} severity
                 </span>
               </div>
@@ -299,7 +299,7 @@ export default function OperationsPage() {
       {/* ── Suggested actions (dismissible) ── */}
       {visibleActions.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Suggested Actions</h2>
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">Suggested Actions</h2>
           {(overload?.suggested_actions ?? []).map((action, i) => {
             if (dismissedActions.has(String(i))) return null;
             return (
@@ -331,7 +331,7 @@ export default function OperationsPage() {
 
       {/* ── Section 1: Real-Time ── */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Real-Time Status</h2>
+        <h2 className="text-lg font-semibold text-white">Real-Time Status</h2>
 
         {realtimeLoading ? (
           <div className="flex justify-center py-6"><LoadingSpinner /></div>
@@ -375,7 +375,7 @@ export default function OperationsPage() {
 
         {/* Ticket Priority Table */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Ticket Priority Queue</h3>
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">Ticket Priority Queue</h3>
           <DataTable
             columns={priorityColumns}
             data={priorities}
@@ -388,24 +388,24 @@ export default function OperationsPage() {
       </div>
 
       {/* ── Section 2: Planning Horizons ── */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm overflow-hidden">
         {/* Collapsible header */}
         <button
           onClick={() => setHorizonsOpen((v) => !v)}
-          className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-white/5 transition-colors"
         >
-          <h2 className="text-lg font-semibold text-gray-800">Planning Horizons</h2>
+          <h2 className="text-lg font-semibold text-white">Planning Horizons</h2>
           {horizonsOpen ? (
-            <ChevronUp className="h-5 w-5 text-gray-400" />
+            <ChevronUp className="h-5 w-5 text-slate-500" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-gray-400" />
+            <ChevronDown className="h-5 w-5 text-slate-500" />
           )}
         </button>
 
         {horizonsOpen && (
-          <div className="border-t border-gray-100">
+          <div className="border-t border-white/5">
             {/* Tabs */}
-            <div className="flex border-b border-gray-100 px-6 gap-1 pt-2">
+            <div className="flex border-b border-white/5 px-6 gap-1 pt-2">
               {HORIZON_TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -413,7 +413,7 @@ export default function OperationsPage() {
                   className={`px-4 py-2 text-sm font-medium rounded-t transition-colors ${
                     activeTab === tab.id
                       ? 'text-orange-600 border-b-2 border-orange-500 bg-orange-50'
-                      : 'text-gray-500 hover:text-gray-700'
+                      : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   {tab.label}
@@ -484,7 +484,7 @@ export default function OperationsPage() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center text-gray-400 py-8 text-sm">No shift data available</p>
+                  <p className="text-center text-slate-500 py-8 text-sm">No shift data available</p>
                 )
               )}
 
@@ -524,7 +524,7 @@ export default function OperationsPage() {
                     />
                   </div>
                 ) : (
-                  <p className="text-center text-gray-400 py-8 text-sm">No daily data available</p>
+                  <p className="text-center text-slate-500 py-8 text-sm">No daily data available</p>
                 )
               )}
 
@@ -564,7 +564,7 @@ export default function OperationsPage() {
                     />
                   </div>
                 ) : (
-                  <p className="text-center text-gray-400 py-8 text-sm">No weekly data available</p>
+                  <p className="text-center text-slate-500 py-8 text-sm">No weekly data available</p>
                 )
               )}
 
@@ -575,13 +575,13 @@ export default function OperationsPage() {
                 ) : strategic ? (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {/* Revenue card with delta */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm flex items-start gap-4">
+                    <div className="bg-white/5 rounded-xl border border-white/10 p-5 shadow-sm flex items-start gap-4">
                       <div className="bg-green-50 p-3 rounded-lg">
                         <DollarSign className="h-6 w-6 text-green-600" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">30-Day Revenue</p>
-                        <p className="text-2xl font-bold text-gray-800 mt-0.5">{dollars(strategic.revenue_30d)}</p>
+                        <p className="text-sm text-slate-400">30-Day Revenue</p>
+                        <p className="text-2xl font-bold text-white mt-0.5">{dollars(strategic.revenue_30d)}</p>
                         {(strategic.revenue_delta_pct ?? 0) !== 0 && (
                           <span
                             className={`text-xs font-semibold mt-1 inline-block ${
@@ -604,17 +604,17 @@ export default function OperationsPage() {
                     />
 
                     {/* Labor cost % with trend */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm flex items-start gap-4">
+                    <div className="bg-white/5 rounded-xl border border-white/10 p-5 shadow-sm flex items-start gap-4">
                       <div className="bg-red-50 p-3 rounded-lg">
                         <Users className="h-6 w-6 text-red-600" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Labor Cost %</p>
-                        <p className="text-2xl font-bold text-gray-800 mt-0.5">
+                        <p className="text-sm text-slate-400">Labor Cost %</p>
+                        <p className="text-2xl font-bold text-white mt-0.5">
                           {(strategic.labor_cost_pct ?? 0).toFixed(1)}%
                         </p>
                         {strategic.labor_trend && (
-                          <span className="text-xs text-gray-400 mt-1 inline-block capitalize">
+                          <span className="text-xs text-slate-500 mt-1 inline-block capitalize">
                             Trend: {strategic.labor_trend}
                           </span>
                         )}
@@ -622,7 +622,7 @@ export default function OperationsPage() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center text-gray-400 py-8 text-sm">No strategic data available</p>
+                  <p className="text-center text-slate-500 py-8 text-sm">No strategic data available</p>
                 )
               )}
             </div>

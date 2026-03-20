@@ -106,23 +106,23 @@ function ItemRadar({ item }: { item: MenuItemScore }) {
 
 function SimDeltaCard({ result }: { result: SimulationResult }) {
   return (
-    <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
-      <h4 className="text-sm font-semibold text-gray-700">Simulation Results</h4>
+    <div className="mt-4 rounded-lg border border-white/10 bg-gray-50 p-4 space-y-3">
+      <h4 className="text-sm font-semibold text-slate-200">Simulation Results</h4>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-gray-500 text-xs">Current Revenue</p>
+          <p className="text-slate-400 text-xs">Current Revenue</p>
           <p className="font-medium">{dollars(result.current_revenue)}</p>
         </div>
         <div>
-          <p className="text-gray-500 text-xs">Projected Revenue</p>
+          <p className="text-slate-400 text-xs">Projected Revenue</p>
           <p className="font-medium">{dollars(result.projected_revenue)}</p>
         </div>
         <div>
-          <p className="text-gray-500 text-xs">Revenue Delta</p>
+          <p className="text-slate-400 text-xs">Revenue Delta</p>
           <p className={deltaCls(result.revenue_delta)}>{deltaLabel(result.revenue_delta)}</p>
         </div>
         <div>
-          <p className="text-gray-500 text-xs">Profit Delta</p>
+          <p className="text-slate-400 text-xs">Profit Delta</p>
           <p className={deltaCls(result.profit_delta)}>{deltaLabel(result.profit_delta)}</p>
         </div>
       </div>
@@ -280,7 +280,7 @@ export default function MenuPage() {
       key: 'menu_items',
       header: 'Used By',
       render: (r) => (
-        <span className="text-sm text-gray-600">{r.menu_items.join(', ')}</span>
+        <span className="text-sm text-slate-300">{r.menu_items.join(', ')}</span>
       ),
     },
   ];
@@ -311,7 +311,7 @@ export default function MenuPage() {
                 style={{ width: `${pct.toFixed(1)}%` }}
               />
             </div>
-            <span className="text-xs text-gray-600 whitespace-nowrap">
+            <span className="text-xs text-slate-300 whitespace-nowrap">
               {(r.affinity * 100).toFixed(1)}%
             </span>
           </div>
@@ -327,14 +327,14 @@ export default function MenuPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Menu Intelligence</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-white">Menu Intelligence</h1>
+        <p className="text-sm text-slate-400 mt-1">
           5-dimension scoring, simulation sandbox, and cross-sell analysis
         </p>
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-white/10">
         {TABS.map((tab) => (
           <button
             key={tab}
@@ -342,7 +342,7 @@ export default function MenuPage() {
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab
                 ? 'border-[#F97316] text-[#F97316]'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             {tab}
@@ -376,7 +376,7 @@ export default function MenuPage() {
               <select
                 value={classFilter}
                 onChange={(e) => setClassFilter(e.target.value)}
-                className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                className="text-sm border border-white/20 rounded-md px-3 py-1.5 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#F97316]"
               >
                 <option value="all">All Classifications</option>
                 {classifications.map((c) => (
@@ -392,7 +392,7 @@ export default function MenuPage() {
           {scoresLoading ? (
             <div className="flex justify-center py-12"><LoadingSpinner /></div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm overflow-hidden">
               <DataTable
                 columns={scoreColumns}
                 data={filteredItems}
@@ -405,7 +405,7 @@ export default function MenuPage() {
                 const item = filteredItems.find((i) => i.menu_item_id === expandedRow);
                 if (!item) return null;
                 return (
-                  <div className="border-t border-orange-100 bg-orange-50 px-6 py-4">
+                  <div className="border-t border-orange-500/20 bg-orange-500/10 px-6 py-4">
                     <div className="flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-full md:w-72 shrink-0">
                         <ItemRadar item={item} />
@@ -413,7 +413,7 @@ export default function MenuPage() {
                       <div className="flex-1 space-y-2 text-sm">
                         <div className="flex items-center gap-2 mb-2">
                           <ClassificationBadge cls={item.classification} />
-                          <span className="text-gray-500">{item.category}</span>
+                          <span className="text-slate-400">{item.category}</span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                           {[
@@ -423,18 +423,18 @@ export default function MenuPage() {
                             { label: 'Satisfaction Score', val: item.satisfaction_score },
                             { label: 'Strategic Score',    val: item.strategic_score },
                           ].map(({ label, val }) => (
-                            <div key={label} className="bg-white rounded-lg border border-gray-200 p-3">
-                              <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
-                              <p className="text-xl font-bold text-gray-800 mt-0.5">{val.toFixed(1)}</p>
+                            <div key={label} className="bg-white/5 rounded-lg border border-white/10 p-3">
+                              <p className="text-[10px] text-slate-400 uppercase tracking-wide">{label}</p>
+                              <p className="text-xl font-bold text-white mt-0.5">{val.toFixed(1)}</p>
                             </div>
                           ))}
-                          <div className="bg-white rounded-lg border border-gray-200 p-3">
-                            <p className="text-[10px] text-gray-500 uppercase tracking-wide">Units Sold</p>
-                            <p className="text-xl font-bold text-gray-800 mt-0.5">{item.units_sold.toLocaleString()}</p>
+                          <div className="bg-white/5 rounded-lg border border-white/10 p-3">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Units Sold</p>
+                            <p className="text-xl font-bold text-white mt-0.5">{item.units_sold.toLocaleString()}</p>
                           </div>
-                          <div className="bg-white rounded-lg border border-gray-200 p-3">
-                            <p className="text-[10px] text-gray-500 uppercase tracking-wide">Contrib. Margin</p>
-                            <p className="text-xl font-bold text-gray-800 mt-0.5">{dollars(item.contribution_margin)}</p>
+                          <div className="bg-white/5 rounded-lg border border-white/10 p-3">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Contrib. Margin</p>
+                            <p className="text-xl font-bold text-white mt-0.5">{dollars(item.contribution_margin)}</p>
                           </div>
                         </div>
                       </div>
@@ -452,18 +452,18 @@ export default function MenuPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
           {/* Card 1: Price Change */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+          <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-5 space-y-4">
             <div>
-              <h3 className="text-base font-semibold text-gray-800">Price Change</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Simulate a new price point for a menu item.</p>
+              <h3 className="text-base font-semibold text-white">Price Change</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Simulate a new price point for a menu item.</p>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Menu Item</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Menu Item</label>
                 <select
                   value={priceItemId}
                   onChange={(e) => setPriceItemId(e.target.value)}
-                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                  className="w-full text-sm border border-white/20 rounded-md px-3 py-1.5 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                 >
                   <option value="">Select item…</option>
                   {allItems.map((i) => (
@@ -472,7 +472,7 @@ export default function MenuPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">New Price ($)</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">New Price ($)</label>
                 <input
                   type="number"
                   min="0"
@@ -480,7 +480,7 @@ export default function MenuPage() {
                   value={newPrice}
                   onChange={(e) => setNewPrice(e.target.value)}
                   placeholder="e.g. 14.99"
-                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                  className="w-full text-sm border border-white/20 rounded-md px-3 py-1.5 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                 />
               </div>
               <button
@@ -505,18 +505,18 @@ export default function MenuPage() {
           </div>
 
           {/* Card 2: Item Removal */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+          <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-5 space-y-4">
             <div>
-              <h3 className="text-base font-semibold text-gray-800">Item Removal (86)</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Forecast impact of removing an item entirely.</p>
+              <h3 className="text-base font-semibold text-white">Item Removal (86)</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Forecast impact of removing an item entirely.</p>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Menu Item</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Menu Item</label>
                 <select
                   value={removeItemId}
                   onChange={(e) => setRemoveItemId(e.target.value)}
-                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                  className="w-full text-sm border border-white/20 rounded-md px-3 py-1.5 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                 >
                   <option value="">Select item…</option>
                   {allItems.map((i) => (
@@ -546,10 +546,10 @@ export default function MenuPage() {
                 <SimDeltaCard result={removeResult} />
                 {removeResult.affected_items && removeResult.affected_items.length > 0 && (
                   <div className="mt-2 space-y-1">
-                    <p className="text-xs font-semibold text-gray-600">Affected Ingredients</p>
+                    <p className="text-xs font-semibold text-slate-300">Affected Ingredients</p>
                     {removeResult.affected_items.map((ai) => (
                       <div key={ai.menu_item_id} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-700">{ai.name}</span>
+                        <span className="text-slate-200">{ai.name}</span>
                         <StatusBadge variant={ai.shared ? 'info' : 'warning'}>
                           {ai.shared ? 'Shared' : 'Exclusive'}
                         </StatusBadge>
@@ -562,18 +562,18 @@ export default function MenuPage() {
           </div>
 
           {/* Card 3: Ingredient Cost Change */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+          <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-5 space-y-4">
             <div>
-              <h3 className="text-base font-semibold text-gray-800">Ingredient Cost Change</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Model the margin impact of a supplier price change.</p>
+              <h3 className="text-base font-semibold text-white">Ingredient Cost Change</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Model the margin impact of a supplier price change.</p>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Ingredient</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Ingredient</label>
                 <select
                   value={costIngredientId}
                   onChange={(e) => setCostIngredientId(e.target.value)}
-                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                  className="w-full text-sm border border-white/20 rounded-md px-3 py-1.5 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                 >
                   <option value="">Select ingredient…</option>
                   {allDeps.map((d) => (
@@ -582,7 +582,7 @@ export default function MenuPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">New Cost per Unit ($)</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">New Cost per Unit ($)</label>
                 <input
                   type="number"
                   min="0"
@@ -590,7 +590,7 @@ export default function MenuPage() {
                   value={newCost}
                   onChange={(e) => setNewCost(e.target.value)}
                   placeholder="e.g. 2.50"
-                  className="w-full text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                  className="w-full text-sm border border-white/20 rounded-md px-3 py-1.5 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                 />
               </div>
               <button
@@ -616,10 +616,10 @@ export default function MenuPage() {
                 <SimDeltaCard result={costResult} />
                 {costResult.affected_items && costResult.affected_items.length > 0 && (
                   <div className="mt-2 space-y-1">
-                    <p className="text-xs font-semibold text-gray-600">Affected Items</p>
+                    <p className="text-xs font-semibold text-slate-300">Affected Items</p>
                     {costResult.affected_items.map((ai) => (
                       <div key={ai.menu_item_id} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-700">{ai.name}</span>
+                        <span className="text-slate-200">{ai.name}</span>
                         {ai.margin_delta !== undefined && (
                           <span className={deltaCls(ai.margin_delta)}>
                             {deltaLabel(ai.margin_delta)}
@@ -644,7 +644,7 @@ export default function MenuPage() {
             />
           )}
           <div className="flex items-center gap-3">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-400">
               Ingredients sorted by menu item usage. Items highlighted in red are single points of failure (SPOF).
             </p>
           </div>
@@ -670,7 +670,7 @@ export default function MenuPage() {
               message={crossError instanceof Error ? crossError.message : 'Failed to load cross-sell data'}
             />
           )}
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-400">
             Top item pairs most frequently ordered together. Affinity bar is normalized to the highest pair.
           </p>
           {crossLoading ? (

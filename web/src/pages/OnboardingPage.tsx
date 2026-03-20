@@ -162,15 +162,15 @@ function ProgressBar({ currentIndex }: { currentIndex: number }) {
               i < currentIndex
                 ? 'bg-orange-500 text-white'
                 : i === currentIndex
-                ? 'bg-orange-500 text-white ring-4 ring-orange-200'
-                : 'bg-gray-100 text-gray-400'
+                ? 'bg-orange-500 text-white ring-4 ring-orange-500/30'
+                : 'bg-white/10 text-slate-500'
             }`}
             title={STEP_LABELS[step]}
           >
             {i < currentIndex ? <CheckCircle className="w-4 h-4" /> : i + 1}
           </div>
           {i < STEPS.length - 1 && (
-            <div className={`h-0.5 w-8 ${i < currentIndex ? 'bg-orange-500' : 'bg-gray-200'}`} />
+            <div className={`h-0.5 w-8 ${i < currentIndex ? 'bg-orange-500' : 'bg-white/15'}`} />
           )}
         </div>
       ))}
@@ -181,8 +181,8 @@ function ProgressBar({ currentIndex }: { currentIndex: number }) {
 function StepTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="text-center mb-8">
-      <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-      {subtitle && <p className="mt-2 text-gray-500">{subtitle}</p>}
+      <h1 className="text-2xl font-bold text-white">{title}</h1>
+      {subtitle && <p className="mt-2 text-slate-400">{subtitle}</p>}
     </div>
   );
 }
@@ -205,7 +205,7 @@ function NavButtons({
       {onBack ? (
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-slate-300 hover:text-white transition-colors"
         >
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
@@ -250,29 +250,29 @@ function ProfileStep({
       <StepTitle title="Tell us about your restaurant" subtitle="We'll personalize your experience based on your operation." />
       <div className="grid grid-cols-1 gap-4 max-w-lg mx-auto">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Restaurant Name *</label>
+          <label className="block text-sm font-medium text-slate-200 mb-1">Restaurant Name *</label>
           <input
             value={form.restaurant_name}
             onChange={set('restaurant_name')}
             placeholder="e.g. The Rustic Fork"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+          <label className="block text-sm font-medium text-slate-200 mb-1">Address</label>
           <input
             value={form.address}
             onChange={set('address')}
             placeholder="123 Main St, Chicago, IL 60601"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+          <label className="block text-sm font-medium text-slate-200 mb-1">Timezone</label>
           <select
             value={form.timezone}
             onChange={set('timezone')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
           >
             <option value="America/New_York">Eastern (ET)</option>
             <option value="America/Chicago">Central (CT)</option>
@@ -283,11 +283,11 @@ function ProfileStep({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Cuisine Type *</label>
+          <label className="block text-sm font-medium text-slate-200 mb-1">Cuisine Type *</label>
           <select
             value={form.cuisine_type}
             onChange={set('cuisine_type')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
           >
             <option value="">Select a cuisine…</option>
             <option value="american">American</option>
@@ -305,14 +305,14 @@ function ProfileStep({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Seating Capacity</label>
+          <label className="block text-sm font-medium text-slate-200 mb-1">Seating Capacity</label>
           <input
             type="number"
             min={1}
             value={form.seating_capacity}
             onChange={set('seating_capacity')}
             placeholder="e.g. 80"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
           />
         </div>
       </div>
@@ -348,20 +348,20 @@ function POSConnectStep({ onBack, onNext }: { onBack: () => void; onNext: () => 
             onClick={() => { setSelected(pos.id); setConnected(false); }}
             className={`p-5 rounded-xl border-2 flex flex-col items-center gap-3 transition-all ${
               selected === pos.id
-                ? 'border-orange-500 bg-orange-50'
-                : 'border-gray-200 hover:border-gray-300 bg-white'
+                ? 'border-orange-500 bg-orange-500/10'
+                : 'border-white/10 hover:border-white/15 bg-white/5'
             }`}
           >
             <div className={`w-12 h-12 rounded-xl ${pos.color} flex items-center justify-center text-white text-xl font-bold`}>
               {pos.letter}
             </div>
-            <span className="text-sm font-medium text-gray-800">{pos.name}</span>
+            <span className="text-sm font-medium text-white">{pos.name}</span>
           </button>
         ))}
       </div>
 
       {connected ? (
-        <div className="text-center py-3 px-6 bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium max-w-md mx-auto mb-4 flex items-center justify-center gap-2">
+        <div className="text-center py-3 px-6 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 font-medium max-w-md mx-auto mb-4 flex items-center justify-center gap-2">
           <CheckCircle className="w-5 h-5" /> Connected successfully!
         </div>
       ) : (
@@ -369,7 +369,7 @@ function POSConnectStep({ onBack, onNext }: { onBack: () => void; onNext: () => 
           <button
             onClick={handleConnect}
             disabled={!selected || connecting}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gray-800 hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+            className="flex items-center gap-2 px-6 py-2.5 bg-gray-800 hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
           >
             {connecting && <Loader2 className="w-4 h-4 animate-spin" />}
             {connecting ? 'Connecting…' : 'Connect'}
@@ -417,11 +417,11 @@ function ImportingStep({ onNext }: { onNext: () => void }) {
             }`}
           >
             <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <span className="text-gray-700">{item}</span>
+            <span className="text-slate-200">{item}</span>
           </div>
         ))}
         {!done && (
-          <div className="flex items-center gap-3 text-gray-400">
+          <div className="flex items-center gap-3 text-slate-500">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span>Processing…</span>
           </div>
@@ -429,7 +429,7 @@ function ImportingStep({ onNext }: { onNext: () => void }) {
       </div>
       {done && (
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-50 border border-green-200 text-green-700 rounded-lg font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500/10 border border-green-500/30 text-green-400 rounded-lg font-medium mb-6">
             <CheckCircle className="w-5 h-5" /> All data imported!
           </div>
           <div>
@@ -471,7 +471,7 @@ function FirstInsightsStep({
     { label: 'Peak Hour', value: formatHour(demo.peak_hour), icon: Clock, color: 'text-orange-600' },
     { label: 'Void Rate', value: `${demo.void_rate.toFixed(1)}%`, icon: BarChart3, color: 'text-red-500' },
     { label: 'Staff Count', value: String(demo.staff_count), icon: Users, color: 'text-purple-600' },
-    { label: 'Checks Synced', value: String(demo.check_count), icon: CheckCircle, color: 'text-gray-600' },
+    { label: 'Checks Synced', value: String(demo.check_count), icon: CheckCircle, color: 'text-slate-300' },
   ];
 
   return (
@@ -479,21 +479,21 @@ function FirstInsightsStep({
       <StepTitle title="Your first insights" subtitle="Based on your imported data, here's a snapshot of your operation." />
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-6">
         {kpis.map((k) => (
-          <div key={k.label} className="bg-white border border-gray-200 rounded-xl p-4">
+          <div key={k.label} className="bg-white/5 border border-white/10 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-1">
               <k.icon className={`w-4 h-4 ${k.color}`} />
-              <span className="text-xs text-gray-500 uppercase tracking-wide">{k.label}</span>
+              <span className="text-xs text-slate-400 uppercase tracking-wide">{k.label}</span>
             </div>
-            <div className="text-xl font-bold text-gray-900">{k.value}</div>
+            <div className="text-xl font-bold text-white">{k.value}</div>
           </div>
         ))}
       </div>
       {demo.top_sellers.length > 0 && (
-        <div className="max-w-2xl mx-auto bg-white border border-gray-200 rounded-xl p-4 mb-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Top Sellers</p>
+        <div className="max-w-2xl mx-auto bg-white/5 border border-white/10 rounded-xl p-4 mb-4">
+          <p className="text-xs text-slate-400 uppercase tracking-wide mb-2">Top Sellers</p>
           <div className="flex flex-wrap gap-2">
             {demo.top_sellers.map((s) => (
-              <span key={s} className="px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm font-medium">
+              <span key={s} className="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-sm font-medium">
                 {s}
               </span>
             ))}
@@ -522,12 +522,12 @@ function ConceptTypeStep({
     <div>
       <StepTitle title="Your restaurant concept" subtitle="We inferred your concept from your average check size. Is this right?" />
       <div className="max-w-sm mx-auto mb-6">
-        <div className="p-6 bg-orange-50 border-2 border-orange-300 rounded-xl text-center mb-4">
+        <div className="p-6 bg-orange-500/10 border-2 border-orange-500/40 rounded-xl text-center mb-4">
           <Icon className="w-10 h-10 text-orange-500 mx-auto mb-2" />
-          <div className="text-lg font-bold text-gray-900">{info.label}</div>
-          <p className="text-sm text-gray-600 mt-1">{info.desc}</p>
+          <div className="text-lg font-bold text-white">{info.label}</div>
+          <p className="text-sm text-slate-300 mt-1">{info.desc}</p>
         </div>
-        <p className="text-sm text-gray-500 text-center mb-3">Not quite right? Choose below:</p>
+        <p className="text-sm text-slate-400 text-center mb-3">Not quite right? Choose below:</p>
         <div className="grid grid-cols-1 gap-2">
           {Object.entries(CONCEPT_TYPES).map(([key, ct]) => {
             const Ic = ct.icon;
@@ -537,8 +537,8 @@ function ConceptTypeStep({
                 onClick={() => setSelected(key)}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border transition-all text-left ${
                   selected === key
-                    ? 'border-orange-500 bg-orange-50 text-orange-700'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                    ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                    : 'border-white/10 hover:border-white/15 text-slate-200'
                 }`}
               >
                 <Ic className="w-4 h-4 flex-shrink-0" />
@@ -588,25 +588,25 @@ function PrioritiesStep({
               disabled={maxed}
               className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
                 active
-                  ? 'border-orange-500 bg-orange-50'
+                  ? 'border-orange-500 bg-orange-500/10'
                   : maxed
-                  ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                  ? 'border-white/5 bg-white/5 opacity-50 cursor-not-allowed'
+                  : 'border-white/10 hover:border-white/15 bg-white/5'
               }`}
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-orange-100' : 'bg-gray-100'}`}>
-                <Icon className={`w-5 h-5 ${active ? 'text-orange-600' : 'text-gray-500'}`} />
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-orange-500/20' : 'bg-white/10'}`}>
+                <Icon className={`w-5 h-5 ${active ? 'text-orange-400' : 'text-slate-400'}`} />
               </div>
               <div>
-                <div className="font-semibold text-sm text-gray-900">{p.label}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{p.desc}</div>
+                <div className="font-semibold text-sm text-white">{p.label}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{p.desc}</div>
               </div>
               {active && <CheckCircle className="w-5 h-5 text-orange-500 ml-auto flex-shrink-0" />}
             </button>
           );
         })}
       </div>
-      <p className="text-center text-sm text-gray-400 mb-2">{selected.length}/3 selected</p>
+      <p className="text-center text-sm text-slate-500 mb-2">{selected.length}/3 selected</p>
       <NavButtons onBack={onBack} onNext={() => onNext(selected)} nextDisabled={selected.length === 0} />
     </div>
   );
@@ -648,25 +648,25 @@ function ModulesStep({
               onClick={() => toggle(id)}
               className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
                 isActive
-                  ? 'border-orange-500 bg-orange-50'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                  ? 'border-orange-500 bg-orange-500/10'
+                  : 'border-white/10 hover:border-white/15 bg-white/5'
               }`}
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-orange-100' : 'bg-gray-100'}`}>
-                <Icon className={`w-5 h-5 ${isActive ? 'text-orange-600' : 'text-gray-500'}`} />
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-orange-500/20' : 'bg-white/10'}`}>
+                <Icon className={`w-5 h-5 ${isActive ? 'text-orange-400' : 'text-slate-400'}`} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm text-gray-900">{m.label}</span>
+                  <span className="font-semibold text-sm text-white">{m.label}</span>
                   {isRecommended && (
-                    <span className="text-xs px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded font-medium">
+                    <span className="text-xs px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded font-medium">
                       Recommended
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">{m.desc}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{m.desc}</div>
               </div>
-              <div className={`w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center ${isActive ? 'bg-orange-500 border-orange-500' : 'border-gray-300'}`}>
+              <div className={`w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center ${isActive ? 'bg-orange-500 border-orange-500' : 'border-white/15'}`}>
                 {isActive && <CheckCircle className="w-3 h-3 text-white" />}
               </div>
             </button>
@@ -706,11 +706,11 @@ function ChecklistStep({
         subtitle="Complete these steps to get the most out of FireLine."
       />
       <div className="max-w-xl mx-auto mb-6">
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+        <div className="flex items-center justify-between text-sm text-slate-300 mb-2">
           <span>{completed} of {total} complete</span>
           <span className="font-semibold text-orange-600">{pct}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+        <div className="w-full bg-white/10 rounded-full h-2.5 mb-6">
           <div
             className="bg-orange-500 h-2.5 rounded-full transition-all"
             style={{ width: `${pct}%` }}
@@ -719,7 +719,7 @@ function ChecklistStep({
 
         {Object.entries(byCategory).map(([category, catItems]) => (
           <div key={category} className="mb-5">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2 capitalize">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2 capitalize">
               {category.replace(/_/g, ' ')}
             </h3>
             <div className="space-y-2">
@@ -727,7 +727,7 @@ function ChecklistStep({
                 <div
                   key={item.item_id}
                   className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
-                    item.completed ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-white border-gray-200'
+                    item.completed ? 'bg-white/5 border-white/10 opacity-70' : 'bg-white/5 border-white/10'
                   }`}
                 >
                   <button
@@ -738,15 +738,15 @@ function ChecklistStep({
                     {item.completed ? (
                       <CheckCircle className="w-5 h-5 text-green-500" />
                     ) : (
-                      <Circle className="w-5 h-5 text-gray-300 hover:text-orange-400 transition-colors" />
+                      <Circle className="w-5 h-5 text-slate-500 hover:text-orange-400 transition-colors" />
                     )}
                   </button>
                   <div>
-                    <div className={`text-sm font-medium ${item.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                    <div className={`text-sm font-medium ${item.completed ? 'line-through text-slate-500' : 'text-white'}`}>
                       {item.title}
                     </div>
                     {item.description && (
-                      <div className="text-xs text-gray-500 mt-0.5">{item.description}</div>
+                      <div className="text-xs text-slate-400 mt-0.5">{item.description}</div>
                     )}
                   </div>
                 </div>
@@ -759,7 +759,7 @@ function ChecklistStep({
       <div className="flex justify-between max-w-xl mx-auto">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-slate-300 hover:text-white transition-colors"
         >
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
@@ -885,14 +885,14 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-slate-900 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-white/5 border-b border-white/10 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-2">
           <div className="w-7 h-7 bg-orange-500 rounded-md" />
-          <span className="font-bold text-gray-900 text-lg">FireLine</span>
-          <span className="text-gray-300 mx-2">|</span>
-          <span className="text-gray-500 text-sm">Setup Wizard</span>
+          <span className="font-bold text-white text-lg">FireLine</span>
+          <span className="text-slate-500 mx-2">|</span>
+          <span className="text-slate-400 text-sm">Setup Wizard</span>
         </div>
       </header>
 

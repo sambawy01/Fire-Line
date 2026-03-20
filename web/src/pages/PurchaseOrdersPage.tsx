@@ -72,7 +72,7 @@ const lineColumns: Column<POLine>[] = [
     header: 'Variance',
     align: 'center',
     render: (r) => {
-      if (!r.variance_flag) return <span className="text-gray-400">—</span>;
+      if (!r.variance_flag) return <span className="text-slate-500">—</span>;
       const variant =
         r.variance_flag === 'over' ? 'critical' : r.variance_flag === 'under' ? 'warning' : 'neutral';
       return <StatusBadge variant={variant}>{r.variance_flag}</StatusBadge>;
@@ -81,7 +81,7 @@ const lineColumns: Column<POLine>[] = [
   {
     key: 'note',
     header: 'Note',
-    render: (r) => <span className="text-gray-500 text-xs">{r.note || '—'}</span>,
+    render: (r) => <span className="text-slate-400 text-xs">{r.note || '—'}</span>,
   },
 ];
 
@@ -90,15 +90,15 @@ function PODetailModal({ poId, onClose }: { poId: string; onClose: () => void })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+      <div className="bg-white/5 rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div>
-            <h2 className="text-lg font-bold text-gray-800">
+            <h2 className="text-lg font-bold text-white">
               {isLoading ? 'Loading PO…' : data ? `PO — ${data.vendor_name}` : 'Purchase Order'}
             </h2>
             {data && (
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 {data.line_count ?? 0} line{(data.line_count ?? 0) !== 1 ? 's' : ''} · Est. {dollars(data.total_estimated ?? 0)}
                 {data.total_actual ? ` · Actual ${dollars(data.total_actual)}` : ''}
               </p>
@@ -106,7 +106,7 @@ function PODetailModal({ poId, onClose }: { poId: string; onClose: () => void })
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/10 transition-colors"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -128,25 +128,25 @@ function PODetailModal({ poId, onClose }: { poId: string; onClose: () => void })
               {/* Meta row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Status</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Status</p>
                   <StatusBadge variant={poStatusVariant(data.status)}>{data.status}</StatusBadge>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Source</p>
-                  <span className="text-gray-700 capitalize">{(data.source ?? 'manual').replace('_', ' ')}</span>
+                  <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Source</p>
+                  <span className="text-slate-200 capitalize">{(data.source ?? 'manual').replace('_', ' ')}</span>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Suggested</p>
-                  <span className="text-gray-700">{formatDate(data.suggested_at)}</span>
+                  <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Suggested</p>
+                  <span className="text-slate-200">{formatDate(data.suggested_at)}</span>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Approved</p>
-                  <span className="text-gray-700">{formatDate(data.approved_at)}</span>
+                  <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Approved</p>
+                  <span className="text-slate-200">{formatDate(data.approved_at)}</span>
                 </div>
               </div>
 
               {data.notes && (
-                <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-700">
+                <div className="bg-white/5 rounded-lg px-4 py-3 text-sm text-slate-200">
                   <span className="font-medium">Notes: </span>
                   {data.notes}
                 </div>
@@ -164,10 +164,10 @@ function PODetailModal({ poId, onClose }: { poId: string; onClose: () => void })
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+        <div className="px-6 py-4 border-t border-white/10 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 rounded-lg bg-white/10 text-slate-200 text-sm font-medium hover:bg-white/15 transition-colors"
           >
             Close
           </button>
@@ -193,8 +193,8 @@ function SuggestedPOs({
   return (
     <section>
       <div className="mb-3">
-        <h2 className="text-lg font-semibold text-gray-800">Suggested Purchase Orders</h2>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <h2 className="text-lg font-semibold text-white">Suggested Purchase Orders</h2>
+        <p className="text-xs text-slate-400 mt-0.5">
           AI-recommended orders based on PAR levels and usage trends
         </p>
       </div>
@@ -202,12 +202,12 @@ function SuggestedPOs({
         {pos.map((po) => (
           <div
             key={po.purchase_order_id}
-            className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col gap-4"
+            className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-5 flex flex-col gap-4"
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-semibold text-gray-800">{po.vendor_name}</p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="font-semibold text-white">{po.vendor_name}</p>
+                <p className="text-xs text-slate-400 mt-0.5">
                   {po.line_count ?? 0} item{(po.line_count ?? 0) !== 1 ? 's' : ''} · Est. {dollars(po.total_estimated ?? 0)}
                 </p>
               </div>
@@ -215,7 +215,7 @@ function SuggestedPOs({
             </div>
 
             {po.notes && (
-              <p className="text-xs text-gray-500 line-clamp-2">{po.notes}</p>
+              <p className="text-xs text-slate-400 line-clamp-2">{po.notes}</p>
             )}
 
             <div className="flex gap-2 mt-auto">
@@ -229,7 +229,7 @@ function SuggestedPOs({
               </button>
               <button
                 onClick={() => onReview(po.purchase_order_id)}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-white/15 text-slate-200 text-sm font-medium hover:bg-white/5 transition-colors"
               >
                 <Eye className="h-4 w-4" />
                 Review
@@ -270,7 +270,7 @@ const activeColumns = (onReview: (id: string) => void): Column<PurchaseOrder>[] 
     align: 'right',
     render: (r) => {
       const days = daysSince(r.approved_at);
-      const color = days >= 5 ? 'text-red-600 font-semibold' : days >= 3 ? 'text-amber-600' : 'text-gray-700';
+      const color = days >= 5 ? 'text-red-600 font-semibold' : days >= 3 ? 'text-amber-600' : 'text-slate-200';
       return <span className={color}>{days}d</span>;
     },
   },
@@ -286,7 +286,7 @@ const activeColumns = (onReview: (id: string) => void): Column<PurchaseOrder>[] 
     render: (r) => (
       <button
         onClick={() => onReview(r.purchase_order_id)}
-        className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+        className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 transition-colors"
       >
         <Eye className="h-3.5 w-3.5" />
         View
@@ -317,10 +317,10 @@ const historyColumns = (onReview: (id: string) => void): Column<PurchaseOrder>[]
     header: 'Variance $',
     align: 'right',
     render: (r) => {
-      if (!r.total_actual) return <span className="text-gray-400">—</span>;
+      if (!r.total_actual) return <span className="text-slate-500">—</span>;
       const diff = r.total_actual - r.total_estimated;
       const formatted = `${diff > 0 ? '+' : ''}${dollars(Math.abs(diff))}`;
-      const color = diff < 0 ? 'text-emerald-600 font-medium' : diff > 0 ? 'text-red-600 font-medium' : 'text-gray-600';
+      const color = diff < 0 ? 'text-emerald-600 font-medium' : diff > 0 ? 'text-red-600 font-medium' : 'text-slate-300';
       return <span className={color}>{diff > 0 ? `+${dollars(diff)}` : diff < 0 ? `-${dollars(Math.abs(diff))}` : '$0.00'}</span>;
     },
   },
@@ -341,7 +341,7 @@ const historyColumns = (onReview: (id: string) => void): Column<PurchaseOrder>[]
     render: (r) => (
       <button
         onClick={() => onReview(r.purchase_order_id)}
-        className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+        className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 transition-colors"
       >
         <Eye className="h-3.5 w-3.5" />
         View
@@ -377,8 +377,8 @@ export default function PurchaseOrdersPage() {
       <div className="flex items-center gap-3">
         <ShoppingCart className="h-7 w-7 text-orange-500" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Purchase Orders</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-white">Purchase Orders</h1>
+          <p className="text-sm text-slate-400 mt-0.5">
             AI-suggested orders, active deliveries, and receiving history
           </p>
         </div>
@@ -405,8 +405,8 @@ export default function PurchaseOrdersPage() {
           {/* Section 2 — Active */}
           <section>
             <div className="mb-3">
-              <h2 className="text-lg font-semibold text-gray-800">Active Orders</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Approved orders awaiting delivery</p>
+              <h2 className="text-lg font-semibold text-white">Active Orders</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Approved orders awaiting delivery</p>
             </div>
             <DataTable
               columns={activeColumns(setSelectedPoId)}
@@ -420,8 +420,8 @@ export default function PurchaseOrdersPage() {
           {/* Section 3 — History */}
           <section>
             <div className="mb-3">
-              <h2 className="text-lg font-semibold text-gray-800">Order History</h2>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <h2 className="text-lg font-semibold text-white">Order History</h2>
+              <p className="text-xs text-slate-400 mt-0.5">
                 Received and cancelled orders — green variance = savings, red = overage
               </p>
             </div>

@@ -34,7 +34,7 @@ export default function DataTable<T>({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 flex justify-center">
+      <div className="bg-white/5 rounded-xl border border-white/10 p-12 flex justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -70,15 +70,15 @@ export default function DataTable<T>({
     align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left';
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs">
+            <tr className="bg-white/5 text-slate-400 uppercase tracking-wider text-xs">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-6 py-3 font-medium ${alignClass(col.align)} ${col.sortable ? 'cursor-pointer select-none hover:text-gray-700' : ''}`}
+                  className={`px-6 py-3 font-medium ${alignClass(col.align)} ${col.sortable ? 'cursor-pointer select-none hover:text-slate-200' : ''}`}
                   onClick={col.sortable ? () => handleSort(col.key) : undefined}
                 >
                   {col.header}
@@ -89,15 +89,15 @@ export default function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/5">
             {sorted.map((row) => (
               <tr
                 key={keyExtractor(row)}
-                className={`hover:bg-gray-50 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
+                className={`hover:bg-white/5 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
               >
                 {columns.map((col) => (
-                  <td key={col.key} className={`px-6 py-3 ${alignClass(col.align)} text-gray-700`}>
+                  <td key={col.key} className={`px-6 py-3 ${alignClass(col.align)} text-slate-300`}>
                     {col.render
                       ? col.render(row)
                       : String((row as Record<string, unknown>)[col.key] ?? '')}

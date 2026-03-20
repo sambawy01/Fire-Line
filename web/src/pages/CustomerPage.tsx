@@ -131,7 +131,7 @@ function GuestListTab({ locationId }: { locationId: string }) {
       header: 'Name',
       sortable: true,
       render: (r) => (
-        <span className="font-semibold text-gray-800">{guestDisplayName(r, r._index)}</span>
+        <span className="font-semibold text-white">{guestDisplayName(r, r._index)}</span>
       ),
     },
     {
@@ -150,7 +150,7 @@ function GuestListTab({ locationId }: { locationId: string }) {
       align: 'right',
       sortable: true,
       render: (r) => (
-        <span className="font-medium text-gray-800">{dollars(r.clv_score)}</span>
+        <span className="font-medium text-white">{dollars(r.clv_score)}</span>
       ),
     },
     {
@@ -213,37 +213,37 @@ function GuestListTab({ locationId }: { locationId: string }) {
         const guest = indexedGuests.find((g) => g.guest_id === expandedId);
         if (!guest) return null;
         return (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-3">
+          <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-gray-800">
+              <h3 className="text-base font-semibold text-white">
                 {guestDisplayName(guest, guest._index)} — Profile Detail
               </h3>
               <button
                 onClick={() => setExpandedId(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-slate-500 hover:text-slate-300 transition-colors"
               >
                 <ChevronUp className="h-5 w-5" />
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-gray-500">CLV Score</p>
-                <p className="font-semibold text-gray-800">{dollars(guest.clv_score)}</p>
+                <p className="text-slate-400">CLV Score</p>
+                <p className="font-semibold text-white">{dollars(guest.clv_score)}</p>
               </div>
               <div>
-                <p className="text-gray-500">Total Spend</p>
-                <p className="font-semibold text-gray-800">{dollars(guest.total_spend)}</p>
+                <p className="text-slate-400">Total Spend</p>
+                <p className="font-semibold text-white">{dollars(guest.total_spend)}</p>
               </div>
               <div>
-                <p className="text-gray-500">Churn Probability</p>
-                <p className="font-semibold text-gray-800">{(guest.churn_probability * 100).toFixed(1)}%</p>
+                <p className="text-slate-400">Churn Probability</p>
+                <p className="font-semibold text-white">{(guest.churn_probability * 100).toFixed(1)}%</p>
               </div>
               <div>
-                <p className="text-gray-500">Privacy Tier</p>
-                <p className="font-semibold text-gray-800 capitalize">{guest.privacy_tier}</p>
+                <p className="text-slate-400">Privacy Tier</p>
+                <p className="font-semibold text-white capitalize">{guest.privacy_tier}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-400 italic">Visit history detail coming soon.</p>
+            <p className="text-xs text-slate-500 italic">Visit history detail coming soon.</p>
           </div>
         );
       })()}
@@ -309,29 +309,29 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
             label="Total Guests"
             value={String(totalGuests)}
             icon={UserCheck}
-            iconColor="text-gray-600"
-            bgTint="bg-gray-100"
+            iconColor="text-slate-300"
+            bgTint="bg-white/10"
           />
           <KPICard
             label="Avg CLV"
             value={dollars(avgCLV)}
             icon={DollarSign}
-            iconColor="text-blue-600"
-            bgTint="bg-blue-50"
+            iconColor="text-blue-400"
+            bgTint="bg-blue-500/10"
           />
           <KPICard
             label="Avg Visits"
             value={avgVisits.toFixed(1)}
             icon={TrendingUp}
-            iconColor="text-emerald-600"
-            bgTint="bg-emerald-50"
+            iconColor="text-emerald-400"
+            bgTint="bg-emerald-500/10"
           />
           <KPICard
             label="Avg Check"
             value={dollars(avgCheck)}
             icon={ShoppingCart}
-            iconColor="text-purple-600"
-            bgTint="bg-purple-50"
+            iconColor="text-purple-400"
+            bgTint="bg-purple-500/10"
           />
         </div>
       )}
@@ -342,10 +342,10 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
           {/* Segment pie + CLV bar */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Segment distribution pie */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-              <h3 className="text-base font-semibold text-gray-800 mb-4">Segment Distribution</h3>
+            <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
+              <h3 className="text-base font-semibold text-white mb-4">Segment Distribution</h3>
               {pieData.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-8">No segment data</p>
+                <p className="text-sm text-slate-500 text-center py-8">No segment data</p>
               ) : (
                 <div className="flex items-center gap-4">
                   <ResponsiveContainer width="60%" height={200}>
@@ -372,8 +372,8 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
                           className="inline-block w-3 h-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: entry.color }}
                         />
-                        <span className="text-gray-600 truncate">{entry.name}</span>
-                        <span className="ml-auto font-semibold text-gray-800">{entry.value}</span>
+                        <span className="text-slate-300 truncate">{entry.name}</span>
+                        <span className="ml-auto font-semibold text-white">{entry.value}</span>
                       </div>
                     ))}
                   </div>
@@ -382,16 +382,16 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
             </div>
 
             {/* CLV distribution bar */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-              <h3 className="text-base font-semibold text-gray-800 mb-4">CLV Distribution</h3>
+            <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
+              <h3 className="text-base font-semibold text-white mb-4">CLV Distribution</h3>
               {clvBuckets.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-8">No CLV data</p>
+                <p className="text-sm text-slate-500 text-center py-8">No CLV data</p>
               ) : (
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={clvBuckets} margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
-                    <XAxis dataKey="range" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                    <Tooltip />
+                    <XAxis dataKey="range" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                    <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} allowDecimals={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', color: '#e2e8f0' }} />
                     <Bar dataKey="count" name="Guests" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -400,10 +400,10 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
           </div>
 
           {/* Churn risk breakdown */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-base font-semibold text-gray-800 mb-4">Churn Risk Breakdown</h3>
+          <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
+            <h3 className="text-base font-semibold text-white mb-4">Churn Risk Breakdown</h3>
             {churnDist.length === 0 ? (
-              <p className="text-sm text-gray-400">No churn data</p>
+              <p className="text-sm text-slate-500">No churn data</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {orderedChurn.map(({ risk, count }) => {
@@ -417,8 +417,8 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
                       style={{ borderColor: color + '40', backgroundColor: color + '0d' }}
                     >
                       <p className="text-sm font-medium" style={{ color }}>{label}</p>
-                      <p className="text-2xl font-bold text-gray-800 mt-1">{count}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{pct}% of total</p>
+                      <p className="text-2xl font-bold text-white mt-1">{count}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{pct}% of total</p>
                     </div>
                   );
                 })}
@@ -450,7 +450,7 @@ function AtRiskTab({ locationId }: { locationId: string }) {
       header: 'Name',
       sortable: true,
       render: (r) => (
-        <span className="font-semibold text-gray-800">
+        <span className="font-semibold text-white">
           {guestDisplayName(r, guestIndexMap.get(r.guest_id) ?? 0)}
         </span>
       ),
@@ -460,7 +460,7 @@ function AtRiskTab({ locationId }: { locationId: string }) {
       header: 'CLV',
       align: 'right',
       sortable: true,
-      render: (r) => <span className="font-medium text-gray-800">{dollars(r.clv_score)}</span>,
+      render: (r) => <span className="font-medium text-white">{dollars(r.clv_score)}</span>,
     },
     {
       key: 'segment',
@@ -480,7 +480,7 @@ function AtRiskTab({ locationId }: { locationId: string }) {
       render: (r) => {
         const d = daysSince(r.last_visit_at);
         return d !== null ? (
-          <span className={d > 60 ? 'text-red-600 font-semibold' : 'text-gray-700'}>{d}d</span>
+          <span className={d > 60 ? 'text-red-600 font-semibold' : 'text-slate-200'}>{d}d</span>
         ) : '—';
       },
     },
@@ -516,7 +516,7 @@ function AtRiskTab({ locationId }: { locationId: string }) {
     <div className="space-y-4">
       {/* Red banner */}
       {!isLoading && atRisk.length > 0 && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3">
+        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg px-4 py-3">
           <AlertTriangle className="h-5 w-5 flex-shrink-0" />
           <span className="text-sm font-semibold">
             {atRisk.length} high-value guest{atRisk.length !== 1 ? 's' : ''} at risk of churning
@@ -548,14 +548,14 @@ export default function CustomerPage() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Customer Intelligence</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-white">Customer Intelligence</h1>
+        <p className="text-sm text-slate-400 mt-1">
           Guest profiles, CLV analytics, segmentation, and churn risk management
         </p>
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-white/10">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -563,7 +563,7 @@ export default function CustomerPage() {
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.id
                 ? 'border-[#F97316] text-[#F97316]'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-white/15'
             }`}
           >
             {tab.label}

@@ -67,9 +67,9 @@ function healthScoreColor(score: number): string {
 }
 
 function healthScoreBg(score: number): string {
-  if (score >= 70) return 'bg-emerald-50 border-emerald-200';
-  if (score >= 40) return 'bg-amber-50 border-amber-200';
-  return 'bg-red-50 border-red-200';
+  if (score >= 70) return 'bg-emerald-500/10 border-emerald-500/30';
+  if (score >= 40) return 'bg-amber-500/10 border-amber-500/30';
+  return 'bg-red-500/10 border-red-500/30';
 }
 
 const channelColumns: Column<ReportChannel>[] = [
@@ -261,12 +261,12 @@ export default function ReportsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Daily Report</h1>
+          <h1 className="text-2xl font-bold text-white">Daily Report</h1>
           {locationName && (
-            <p className="text-sm text-gray-500 mt-0.5">{locationName}</p>
+            <p className="text-sm text-slate-400 mt-0.5">{locationName}</p>
           )}
           {report?.report_date && (
-            <p className="text-sm text-gray-400 mt-0.5">{formatDate(report.report_date)}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{formatDate(report.report_date)}</p>
           )}
         </div>
         <div className="flex items-center gap-3 shrink-0">
@@ -281,7 +281,7 @@ export default function ReportsPage() {
           <button
             onClick={handleExportJson}
             disabled={!report}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/15 bg-white/10 text-slate-200 text-sm font-medium hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Download className="h-4 w-4" />
             Export JSON
@@ -301,29 +301,29 @@ export default function ReportsPage() {
         <>
           {/* Health Score Banner */}
           <div className={`rounded-xl border p-8 flex flex-col items-center text-center ${healthScoreBg(score)}`}>
-            <p className="text-sm font-medium text-gray-500 mb-1">Operational Health Score</p>
+            <p className="text-sm font-medium text-slate-400 mb-1">Operational Health Score</p>
             <span className={`text-5xl font-bold ${healthScoreColor(score)}`}>
               {score}
             </span>
-            <p className="text-xs text-gray-400 mt-2">out of 100</p>
+            <p className="text-xs text-slate-500 mt-2">out of 100</p>
           </div>
 
           {/* Critical Issues */}
           {(report.critical_count ?? 0) > 0 && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
               <div className="flex items-center gap-2 mb-4">
-                <AlertCircle className="h-5 w-5 text-red-600" />
-                <h2 className="text-base font-semibold text-red-800">
+                <AlertCircle className="h-5 w-5 text-red-400" />
+                <h2 className="text-base font-semibold text-red-400">
                   Critical Issues ({report.critical_count ?? 0})
                 </h2>
               </div>
               <ul className="space-y-3">
                 {(report.critical_issues ?? []).map((issue: CriticalIssue, i: number) => (
                   <li key={i} className="flex items-start justify-between gap-4 text-sm">
-                    <span className="text-red-700 font-medium">{issue.title}</span>
+                    <span className="text-red-400 font-medium">{issue.title}</span>
                     <div className="flex items-center gap-2 shrink-0">
                       <StatusBadge variant="neutral">{issue.module}</StatusBadge>
-                      <span className="text-gray-400 text-xs">{formatTimestamp(issue.created_at)}</span>
+                      <span className="text-slate-500 text-xs">{formatTimestamp(issue.created_at)}</span>
                     </div>
                   </li>
                 ))}
@@ -337,56 +337,56 @@ export default function ReportsPage() {
               label="Net Revenue"
               value={cents(report.net_revenue)}
               icon={DollarSign}
-              iconColor="text-emerald-600"
-              bgTint="bg-emerald-50"
+              iconColor="text-emerald-400"
+              bgTint="bg-emerald-500/10"
             />
             <KPICard
               label="Gross Margin"
               value={`${(report.gross_margin_pct ?? 0).toFixed(1)}%`}
               icon={Percent}
-              iconColor="text-blue-600"
-              bgTint="bg-blue-50"
+              iconColor="text-blue-400"
+              bgTint="bg-blue-500/10"
             />
             <KPICard
               label="Labor Cost"
               value={`${(report.labor_cost_pct ?? 0).toFixed(1)}%`}
               icon={Percent}
-              iconColor="text-red-600"
-              bgTint="bg-red-50"
+              iconColor="text-red-400"
+              bgTint="bg-red-500/10"
             />
             <KPICard
               label="Orders Today"
               value={String(report.orders_today)}
               icon={ShoppingBag}
-              iconColor="text-blue-600"
-              bgTint="bg-blue-50"
+              iconColor="text-blue-400"
+              bgTint="bg-blue-500/10"
             />
             <KPICard
               label="Avg Ticket Time"
               value={`${(report.avg_ticket_time ?? 0).toFixed(1)} min`}
               icon={Clock}
-              iconColor="text-purple-600"
-              bgTint="bg-purple-50"
+              iconColor="text-purple-400"
+              bgTint="bg-purple-500/10"
             />
             <KPICard
               label="Active Alerts"
               value={String(report.active_alerts)}
               icon={Bell}
-              iconColor="text-orange-600"
-              bgTint="bg-orange-50"
+              iconColor="text-orange-400"
+              bgTint="bg-orange-500/10"
             />
             <KPICard
               label="Critical Issues"
               value={String(report.critical_count)}
               icon={AlertCircle}
-              iconColor="text-red-600"
-              bgTint="bg-red-50"
+              iconColor="text-red-400"
+              bgTint="bg-red-500/10"
             />
           </div>
 
           {/* Channel Breakdown */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">Channel Breakdown</h2>
+            <h2 className="text-lg font-semibold text-white mb-3">Channel Breakdown</h2>
             <DataTable
               columns={channelColumns}
               data={report.channels ?? []}
@@ -398,12 +398,12 @@ export default function ReportsPage() {
 
           {/* Menu Performance */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-800">Menu Performance</h2>
+            <h2 className="text-lg font-semibold text-white">Menu Performance</h2>
 
             {/* Top Performers */}
             {(report.top_items ?? []).length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-2">
                   Top Performers
                 </h3>
                 <DataTable
@@ -417,30 +417,30 @@ export default function ReportsPage() {
 
             {/* Underperformer */}
             {report.worst_item && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-                <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-wider mb-2">
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
+                <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-2">
                   Underperformer
                 </h3>
                 <div className="flex flex-wrap items-center gap-6 text-sm">
                   <div>
-                    <span className="text-gray-500">Item: </span>
-                    <span className="font-medium text-gray-800">{report.worst_item.name}</span>
+                    <span className="text-slate-400">Item: </span>
+                    <span className="font-medium text-white">{report.worst_item.name}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Category: </span>
-                    <span className="text-gray-700">{report.worst_item.category}</span>
+                    <span className="text-slate-400">Category: </span>
+                    <span className="text-slate-200">{report.worst_item.category}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Units Sold: </span>
-                    <span className="text-gray-700">{report.worst_item.units_sold}</span>
+                    <span className="text-slate-400">Units Sold: </span>
+                    <span className="text-slate-200">{report.worst_item.units_sold}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Revenue: </span>
-                    <span className="text-gray-700">{cents(report.worst_item.revenue)}</span>
+                    <span className="text-slate-400">Revenue: </span>
+                    <span className="text-slate-200">{cents(report.worst_item.revenue)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Margin: </span>
-                    <span className="text-amber-700 font-medium">{(report.worst_item.margin_pct ?? 0).toFixed(1)}%</span>
+                    <span className="text-slate-400">Margin: </span>
+                    <span className="text-amber-400 font-medium">{(report.worst_item.margin_pct ?? 0).toFixed(1)}%</span>
                   </div>
                 </div>
               </div>
@@ -448,8 +448,8 @@ export default function ReportsPage() {
 
             {/* Zero Sales Items */}
             {(report.zero_sales_items ?? []).length > 0 && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-                <h3 className="text-sm font-semibold text-amber-700 uppercase tracking-wider mb-3">
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
+                <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">
                   Zero Sales Items ({(report.zero_sales_items ?? []).length})
                 </h3>
                 <ul className="flex flex-wrap gap-2">
@@ -465,7 +465,7 @@ export default function ReportsPage() {
 
           {/* Category Revenue */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">Category Revenue</h2>
+            <h2 className="text-lg font-semibold text-white mb-3">Category Revenue</h2>
             <DataTable
               columns={categoryColumns}
               data={report.category_revenue ?? []}
@@ -477,7 +477,7 @@ export default function ReportsPage() {
 
           {/* Staff Summary */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">Staff Summary</h2>
+            <h2 className="text-lg font-semibold text-white mb-3">Staff Summary</h2>
             <DataTable
               columns={staffColumns}
               data={report.staff_summary ?? []}
@@ -486,16 +486,16 @@ export default function ReportsPage() {
               emptyDescription="No staff data is available for this report."
             />
             {(report.staff_summary ?? []).length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-6 text-sm text-gray-600 px-1">
+              <div className="mt-3 flex flex-wrap gap-6 text-sm text-slate-300 px-1">
                 <span>
                   Total Hours:{' '}
-                  <span className="font-semibold text-gray-800">
+                  <span className="font-semibold text-white">
                     {(report.total_hours_worked ?? 0).toFixed(1)} hrs
                   </span>
                 </span>
                 <span>
                   Total Labor Cost:{' '}
-                  <span className="font-semibold text-gray-800">{cents(report.total_labor_cost)}</span>
+                  <span className="font-semibold text-white">{cents(report.total_labor_cost)}</span>
                 </span>
                 {(report.overtime_flags ?? []).length > 0 && (
                   <span className="text-amber-600">
@@ -511,7 +511,7 @@ export default function ReportsPage() {
           {(report.reorder_needed ?? []).length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <h2 className="text-lg font-semibold text-gray-800">Inventory Alerts</h2>
+                <h2 className="text-lg font-semibold text-white">Inventory Alerts</h2>
                 <StatusBadge variant="warning">
                   {(report.reorder_needed ?? []).length} items need reorder
                 </StatusBadge>
@@ -526,7 +526,7 @@ export default function ReportsPage() {
           )}
 
           {/* Footer metadata */}
-          <div className="flex items-center gap-2 text-xs text-gray-400 pt-2 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs text-slate-500 pt-2 border-t border-white/5">
             <FileText className="h-3.5 w-3.5" />
             <span>Report generated for {report.report_date} — {locationName}</span>
           </div>

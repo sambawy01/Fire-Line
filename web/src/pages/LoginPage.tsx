@@ -19,27 +19,27 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4">
       <div className="w-full max-w-md">
         {/* Branding */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-gray-900">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-slate-900">
             <Flame className="h-8 w-8 text-orange-500" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold tracking-tight text-white">
             FireLine
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-400">
             Sign in to your restaurant operations dashboard
           </p>
         </div>
 
         {/* Card */}
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Error banner */}
             {error && (
-              <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
                 <button
@@ -57,12 +57,12 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="mb-1.5 block text-sm font-medium text-gray-700"
+                className="mb-1.5 block text-sm font-medium text-slate-200"
               >
                 Email
               </label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
                   id="email"
                   type="email"
@@ -71,7 +71,7 @@ export default function LoginPage() {
                   placeholder="you@restaurant.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full rounded-lg border border-white/15 bg-white/10 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
             </div>
@@ -80,12 +80,12 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="mb-1.5 block text-sm font-medium text-gray-700"
+                className="mb-1.5 block text-sm font-medium text-slate-200"
               >
                 Password
               </label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
                   id="password"
                   type="password"
@@ -94,7 +94,7 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full rounded-lg border border-white/15 bg-white/10 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               </div>
             </div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
           </form>
 
           {/* Footer link */}
-          <p className="mt-6 text-center text-sm text-gray-500">
+          <p className="mt-6 text-center text-sm text-slate-400">
             Don&apos;t have an account?{' '}
             <Link
               to="/signup"

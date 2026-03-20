@@ -17,7 +17,7 @@ function cents(v: number): string {
 
 function varianceDollars(v: number): JSX.Element {
   const formatted = `${v < 0 ? '-' : '+'}$${Math.abs(v / 100).toFixed(2)}`;
-  const color = v > 0 ? 'text-red-600' : v < 0 ? 'text-green-600' : 'text-gray-600';
+  const color = v > 0 ? 'text-red-600' : v < 0 ? 'text-green-600' : 'text-slate-300';
   return <span className={color}>{formatted}</span>;
 }
 
@@ -38,7 +38,7 @@ function causeLabel(key: string): string {
 
 function CauseProbabilityBar({ probs }: { probs: Record<string, number> }) {
   const entries = Object.entries(probs).filter(([, v]) => v > 0);
-  if (entries.length === 0) return <span className="text-gray-400 text-xs">—</span>;
+  if (entries.length === 0) return <span className="text-slate-500 text-xs">—</span>;
 
   return (
     <div className="flex h-4 w-full min-w-[100px] rounded overflow-hidden">
@@ -112,7 +112,7 @@ const varianceColumns: Column<CountVariance>[] = [
     align: 'right',
     sortable: true,
     render: (r) => {
-      const color = r.variance_pct > 10 ? 'text-red-600' : r.variance_pct > 5 ? 'text-amber-600' : 'text-gray-700';
+      const color = r.variance_pct > 10 ? 'text-red-600' : r.variance_pct > 5 ? 'text-amber-600' : 'text-slate-200';
       return <span className={color}>{r.variance_pct.toFixed(1)}%</span>;
     },
   },
@@ -176,12 +176,12 @@ export default function InventoryPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Inventory Intelligence</h1>
-        <p className="text-sm text-gray-500 mt-1">Theoretical usage, PAR status, and variance analysis</p>
+        <h1 className="text-2xl font-bold text-white">Inventory Intelligence</h1>
+        <p className="text-sm text-slate-400 mt-1">Theoretical usage, PAR status, and variance analysis</p>
       </div>
 
       {/* Tab bar */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-white/10">
         <nav className="-mb-px flex gap-6" aria-label="Inventory tabs">
           {TABS.map((tab) => (
             <button
@@ -191,7 +191,7 @@ export default function InventoryPage() {
                 'pb-3 text-sm font-medium border-b-2 transition-colors',
                 activeTab === tab.id
                   ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-white/15',
               ].join(' ')}
             >
               {tab.label}
@@ -210,8 +210,8 @@ export default function InventoryPage() {
             />
           )}
           <div className="mb-3">
-            <h2 className="text-lg font-semibold text-gray-800">Theoretical Usage</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Based on today's sales mix</p>
+            <h2 className="text-lg font-semibold text-white">Theoretical Usage</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Based on today's sales mix</p>
           </div>
           <DataTable
             columns={usageColumns}
@@ -242,8 +242,8 @@ export default function InventoryPage() {
             </div>
           )}
           <div className="mb-3">
-            <h2 className="text-lg font-semibold text-gray-800">PAR Status</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Current stock vs. target levels</p>
+            <h2 className="text-lg font-semibold text-white">PAR Status</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Current stock vs. target levels</p>
           </div>
           <DataTable
             columns={parColumns}
@@ -266,8 +266,8 @@ export default function InventoryPage() {
             />
           )}
           <div className="mb-3">
-            <h2 className="text-lg font-semibold text-gray-800">Inventory Variances</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <h2 className="text-lg font-semibold text-white">Inventory Variances</h2>
+            <p className="text-xs text-slate-400 mt-0.5">
               Theoretical vs. actual usage — sorted by highest dollar impact. Hover the cause bar for details.
             </p>
           </div>

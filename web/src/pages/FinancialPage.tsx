@@ -142,7 +142,7 @@ function TxIcon({ type }: { type: string }) {
   if (t.includes('comp')) return <Tag className="h-5 w-5 text-amber-500" />;
   if (t.includes('off') || t.includes('hour')) return <Clock className="h-5 w-5 text-blue-500" />;
   if (t.includes('discount')) return <Percent className="h-5 w-5 text-purple-500" />;
-  return <AlertTriangle className="h-5 w-5 text-gray-500" />;
+  return <AlertTriangle className="h-5 w-5 text-slate-400" />;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -196,17 +196,17 @@ function PnLTab({ locationId }: { locationId: string }) {
 
       {/* Channel Revenue Chart */}
       {chartData.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Revenue by Channel</h2>
+        <div className="bg-white/5 rounded-xl border border-white/10 p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-white mb-4">Revenue by Channel</h2>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis dataKey="channel" tick={{ fontSize: 13 }} />
                 <YAxis tick={{ fontSize: 13 }} tickFormatter={(v: number) => `$${v.toLocaleString()}`} />
                 <Tooltip
                   formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Revenue']}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '13px' }}
+                  contentStyle={{ borderRadius: '8px', border: "1px solid #334155", fontSize: '13px' }}
                 />
                 <Bar dataKey="revenue" fill="#F97316" radius={[6, 6, 0, 0]} />
               </BarChart>
@@ -217,7 +217,7 @@ function PnLTab({ locationId }: { locationId: string }) {
 
       {/* Channel Breakdown Table */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Channel Breakdown</h2>
+        <h2 className="text-lg font-semibold text-white mb-3">Channel Breakdown</h2>
         <DataTable
           columns={channelColumns}
           data={pnl?.by_channel ?? []}
@@ -230,16 +230,16 @@ function PnLTab({ locationId }: { locationId: string }) {
       {/* Z-score Anomalies */}
       {!anomLoading && anomalyData?.anomalies && anomalyData.anomalies.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Statistical Anomalies</h2>
+          <h2 className="text-lg font-semibold text-white mb-3">Statistical Anomalies</h2>
           <div className="space-y-3">
             {anomalyData.anomalies.map((a: Anomaly, i: number) => (
-              <div key={i} className="bg-white rounded-lg border border-gray-200 p-4 flex items-start gap-3 shadow-sm">
+              <div key={i} className="bg-white/5 rounded-lg border border-white/10 p-4 flex items-start gap-3 shadow-sm">
                 <StatusBadge variant={a.severity === 'critical' ? 'critical' : 'warning'}>
                   {a.severity} (z={a.z_score.toFixed(1)})
                 </StatusBadge>
                 <div>
-                  <p className="font-medium text-gray-800">{a.metric_name.replace(/_/g, ' ')}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium text-white">{a.metric_name.replace(/_/g, ' ')}</p>
+                  <p className="text-sm text-slate-400">
                     Expected ~{a.mean.toFixed(0)} ± {a.std_dev.toFixed(0)}, got {a.current_value.toFixed(0)}
                   </p>
                 </div>
@@ -273,7 +273,7 @@ function CostCentersTab({ locationId }: { locationId: string }) {
       header: 'Category',
       render: (r) => (
         <button
-          className="flex items-center gap-1 text-left font-medium text-gray-800 hover:text-orange-600"
+          className="flex items-center gap-1 text-left font-medium text-white hover:text-orange-600"
           onClick={() => setExpanded(expanded === r.category ? null : r.category)}
         >
           {expanded === r.category ? (
@@ -308,8 +308,8 @@ function CostCentersTab({ locationId }: { locationId: string }) {
         <>
           {/* Pie chart */}
           {pieData.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">COGS by Category</h2>
+            <div className="bg-white/5 rounded-xl border border-white/10 p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-white mb-4">COGS by Category</h2>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -330,7 +330,7 @@ function CostCentersTab({ locationId }: { locationId: string }) {
                     </Pie>
                     <Tooltip
                       formatter={(value) => [cents(Number(value)), 'COGS']}
-                      contentStyle={{ borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '13px' }}
+                      contentStyle={{ borderRadius: '8px', border: "1px solid #334155", fontSize: '13px' }}
                     />
                     <Legend />
                   </PieChart>
@@ -341,7 +341,7 @@ function CostCentersTab({ locationId }: { locationId: string }) {
 
           {/* Cost center table with expandable rows */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">Category Breakdown</h2>
+            <h2 className="text-lg font-semibold text-white mb-3">Category Breakdown</h2>
             <DataTable
               columns={costCenterColumns}
               data={centers}
@@ -356,17 +356,17 @@ function CostCentersTab({ locationId }: { locationId: string }) {
               if (!center || center.top_ingredients.length === 0) return null;
               return (
                 <div className="mt-2 ml-4 border-l-2 border-orange-200 pl-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                  <p className="text-xs font-semibold text-slate-400 uppercase mb-2">
                     Top Ingredients — {expanded}
                   </p>
                   <div className="space-y-2">
                     {center.top_ingredients.slice(0, 5).map((ing) => (
                       <div
                         key={ing.ingredient_id}
-                        className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2 text-sm"
+                        className="flex items-center justify-between bg-white/5 rounded-lg px-4 py-2 text-sm"
                       >
-                        <span className="font-medium text-gray-700">{ing.ingredient_name}</span>
-                        <div className="flex items-center gap-6 text-gray-500">
+                        <span className="font-medium text-slate-200">{ing.ingredient_name}</span>
+                        <div className="flex items-center gap-6 text-slate-400">
                           <span>{cents(ing.total_cost)}</span>
                           <span>{ing.cost_pct.toFixed(1)}% of cat.</span>
                           <span>
@@ -406,7 +406,7 @@ function AnomaliesTab({ locationId }: { locationId: string }) {
     <div className="space-y-8">
       {/* Z-score anomalies */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Statistical Anomalies (Z-score)</h2>
+        <h2 className="text-lg font-semibold text-white mb-3">Statistical Anomalies (Z-score)</h2>
         {zsLoading ? (
           <div className="flex justify-center py-4">
             <LoadingSpinner />
@@ -416,14 +416,14 @@ function AnomaliesTab({ locationId }: { locationId: string }) {
             {zsData.anomalies.map((a: Anomaly, i: number) => (
               <div
                 key={i}
-                className="bg-white rounded-lg border border-gray-200 p-4 flex items-start gap-3 shadow-sm"
+                className="bg-white/5 rounded-lg border border-white/10 p-4 flex items-start gap-3 shadow-sm"
               >
                 <StatusBadge variant={a.severity === 'critical' ? 'critical' : 'warning'}>
                   {a.severity} (z={a.z_score.toFixed(1)})
                 </StatusBadge>
                 <div>
-                  <p className="font-medium text-gray-800">{a.metric_name.replace(/_/g, ' ')}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium text-white">{a.metric_name.replace(/_/g, ' ')}</p>
+                  <p className="text-sm text-slate-400">
                     Expected ~{a.mean.toFixed(0)} ± {a.std_dev.toFixed(0)}, got{' '}
                     {a.current_value.toFixed(0)}
                   </p>
@@ -432,13 +432,13 @@ function AnomaliesTab({ locationId }: { locationId: string }) {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400">No statistical anomalies detected.</p>
+          <p className="text-sm text-slate-500">No statistical anomalies detected.</p>
         )}
       </div>
 
       {/* Transaction anomalies */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Transaction Anomalies</h2>
+        <h2 className="text-lg font-semibold text-white mb-3">Transaction Anomalies</h2>
         {txError && (
           <ErrorBanner
             message={txError instanceof Error ? txError.message : 'Failed to load transaction anomalies'}
@@ -454,35 +454,35 @@ function AnomaliesTab({ locationId }: { locationId: string }) {
             {txAnomalies.map((a, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm flex gap-4"
+                className="bg-white/5 rounded-xl border border-white/10 p-5 shadow-sm flex gap-4"
               >
                 <div className="flex-shrink-0 mt-0.5">
                   <TxIcon type={a.type} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="font-semibold text-gray-800 capitalize text-sm">
+                    <p className="font-semibold text-white capitalize text-sm">
                       {a.type.replace(/_/g, ' ')}
                     </p>
                     <StatusBadge variant={severityVariant(a.severity)}>
                       {a.severity}
                     </StatusBadge>
                   </div>
-                  <p className="text-sm text-gray-500 mb-2">{a.description}</p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                  <p className="text-sm text-slate-400 mb-2">{a.description}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
                     <span>
                       Current:{' '}
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-slate-200">
                         {a.current_value.toFixed(2)}
                       </span>
                     </span>
                     <span>
                       Baseline:{' '}
-                      <span className="font-medium text-gray-700">{a.baseline.toFixed(2)}</span>
+                      <span className="font-medium text-slate-200">{a.baseline.toFixed(2)}</span>
                     </span>
                     <span>
                       Z-score:{' '}
-                      <span className="font-medium text-gray-700">{a.z_score.toFixed(2)}</span>
+                      <span className="font-medium text-slate-200">{a.z_score.toFixed(2)}</span>
                     </span>
                   </div>
                 </div>
@@ -490,7 +490,7 @@ function AnomaliesTab({ locationId }: { locationId: string }) {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400">No transaction anomalies detected.</p>
+          <p className="text-sm text-slate-500">No transaction anomalies detected.</p>
         )}
       </div>
     </div>
@@ -540,13 +540,13 @@ function BudgetTab({ locationId }: { locationId: string }) {
   return (
     <div className="space-y-8">
       {/* Budget form */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm max-w-lg">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Budget</h2>
+      <div className="bg-white/5 rounded-xl border border-white/10 p-6 shadow-sm max-w-lg">
+        <h2 className="text-lg font-semibold text-white mb-4">Create Budget</h2>
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Period Type</label>
+            <label className="block text-sm font-medium text-slate-200 mb-1">Period Type</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
               value={periodType}
               onChange={(e) => setPeriodType(e.target.value as typeof periodType)}
             >
@@ -556,40 +556,40 @@ function BudgetTab({ locationId }: { locationId: string }) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Revenue Target ($)</label>
+            <label className="block text-sm font-medium text-slate-200 mb-1">Revenue Target ($)</label>
             <input
               type="number"
               min="0"
               step="0.01"
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
               placeholder="e.g. 15000.00"
               value={revenueTarget}
               onChange={(e) => setRevenueTarget(e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Food Cost % Target</label>
+            <label className="block text-sm font-medium text-slate-200 mb-1">Food Cost % Target</label>
             <input
               type="number"
               min="0"
               max="100"
               step="0.1"
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
               placeholder="e.g. 28.5"
               value={foodCostPct}
               onChange={(e) => setFoodCostPct(e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">COGS Target ($)</label>
+            <label className="block text-sm font-medium text-slate-200 mb-1">COGS Target ($)</label>
             <input
               type="number"
               min="0"
               step="0.01"
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
               placeholder="e.g. 4275.00"
               value={cogsTarget}
               onChange={(e) => setCogsTarget(e.target.value)}
@@ -619,9 +619,9 @@ function BudgetTab({ locationId }: { locationId: string }) {
           <LoadingSpinner />
         </div>
       ) : v ? (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">Budget vs Actual</h2>
+        <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-white">Budget vs Actual</h2>
             <StatusBadge
               variant={
                 v.status === 'on_track' ? 'success' : v.status === 'over' ? 'critical' : 'info'
@@ -631,7 +631,7 @@ function BudgetTab({ locationId }: { locationId: string }) {
             </StatusBadge>
           </div>
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+            <thead className="bg-white/5 text-xs font-semibold text-slate-400 uppercase">
               <tr>
                 <th className="px-6 py-3 text-left">Metric</th>
                 <th className="px-6 py-3 text-right">Target</th>
@@ -639,7 +639,7 @@ function BudgetTab({ locationId }: { locationId: string }) {
                 <th className="px-6 py-3 text-right">Variance</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-white/5">
               <tr className={varianceRowClass(v.status)}>
                 <td className="px-6 py-3 font-medium">Revenue</td>
                 <td className="px-6 py-3 text-right">{cents(v.budget.revenue_target)}</td>
@@ -681,10 +681,10 @@ function BudgetTab({ locationId }: { locationId: string }) {
       {/* Budget history */}
       {!bLoading && budgets.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Budget History</h2>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <h2 className="text-lg font-semibold text-white mb-3">Budget History</h2>
+          <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+              <thead className="bg-white/5 text-xs font-semibold text-slate-400 uppercase">
                 <tr>
                   <th className="px-6 py-3 text-left">Period</th>
                   <th className="px-6 py-3 text-left">Type</th>
@@ -693,10 +693,10 @@ function BudgetTab({ locationId }: { locationId: string }) {
                   <th className="px-6 py-3 text-right">COGS Target</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-white/5">
                 {budgets.map((b) => (
-                  <tr key={b.budget_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-3 text-gray-600">
+                  <tr key={b.budget_id} className="hover:bg-white/5 text-slate-300">
+                    <td className="px-6 py-3 text-slate-300">
                       {new Date(b.period_start).toLocaleDateString()} –{' '}
                       {new Date(b.period_end).toLocaleDateString()}
                     </td>
@@ -729,20 +729,20 @@ export default function FinancialPage() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Financial Intelligence</h1>
-        <p className="text-sm text-gray-500 mt-1">P&L, cost centers, anomalies, and budget tracking</p>
+        <h1 className="text-2xl font-bold text-white">Financial Intelligence</h1>
+        <p className="text-sm text-slate-400 mt-1">P&L, cost centers, anomalies, and budget tracking</p>
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-white/5 rounded-xl p-1 w-fit">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === tab.id
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-[#F97316] text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             {tab.label}

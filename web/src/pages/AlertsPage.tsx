@@ -63,12 +63,12 @@ export default function AlertsPage() {
   if (!locationId) return <LoadingSpinner fullPage />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
-          <Shield className="h-7 w-7 text-gray-900" />
-          <h1 className="text-2xl font-bold text-gray-900">Priority Action Queue</h1>
+          <Shield className="h-7 w-7 text-white" />
+          <h1 className="text-2xl font-bold text-white">Priority Action Queue</h1>
           <span className="inline-flex items-center rounded-full bg-[#F97316] px-3 py-0.5 text-sm font-semibold text-white">
             {activeCount} active
           </span>
@@ -85,15 +85,15 @@ export default function AlertsPage() {
 
         {/* Filters */}
         <div className="mb-6 flex flex-wrap items-center gap-2">
-          <Filter className="h-4 w-4 text-gray-500" />
+          <Filter className="h-4 w-4 text-slate-400" />
           {filters.map((f) => (
             <button
               key={f.key}
               onClick={() => setActiveFilter(f.key)}
               className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
                 activeFilter === f.key
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-100'
+                  ? 'bg-[#F97316] text-white'
+                  : 'bg-white/5 text-slate-300 ring-1 ring-white/10 hover:bg-white/10'
               }`}
             >
               {f.label}
@@ -105,10 +105,10 @@ export default function AlertsPage() {
         {isLoading ? (
           <LoadingSpinner fullPage />
         ) : filteredAlerts.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center">
+          <div className="rounded-xl border border-dashed border-white/15 bg-white/5 py-16 text-center">
             <CheckCircle className="mx-auto mb-3 h-10 w-10 text-green-400" />
-            <p className="text-lg font-medium text-gray-700">No alerts match this filter</p>
-            <p className="mt-1 text-sm text-gray-500">All clear — nothing needs your attention right now.</p>
+            <p className="text-lg font-medium text-slate-200">No alerts match this filter</p>
+            <p className="mt-1 text-sm text-slate-400">All clear — nothing needs your attention right now.</p>
           </div>
         ) : (
           <ul className="space-y-4">
@@ -121,7 +121,7 @@ export default function AlertsPage() {
               return (
                 <li
                   key={alert.alert_id}
-                  className={`rounded-xl border bg-white shadow-sm transition-opacity ${isResolved ? 'opacity-50' : ''}`}
+                  className={`rounded-xl border border-white/10 bg-white/5 transition-opacity ${isResolved ? 'opacity-50' : ''}`}
                 >
                   <div className="p-5">
                     <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -132,14 +132,14 @@ export default function AlertsPage() {
                       <StatusBadge variant="neutral">
                         {MODULE_LABELS[alert.module] ?? alert.module}
                       </StatusBadge>
-                      <span className="ml-auto flex items-center gap-1 text-xs text-gray-400">
+                      <span className="ml-auto flex items-center gap-1 text-xs text-slate-500">
                         <Clock className="h-3.5 w-3.5" />
                         {formatTimestamp(alert.created_at)}
                       </span>
                     </div>
 
-                    <h3 className="text-base font-semibold text-gray-900">{alert.title}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-gray-600">{alert.description}</p>
+                    <h3 className="text-base font-semibold text-white">{alert.title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-300">{alert.description}</p>
 
                     <div className="mt-4 flex items-center gap-3">
                       <button
@@ -147,7 +147,7 @@ export default function AlertsPage() {
                         onClick={() => ackMutation.mutate(alert.alert_id)}
                         className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
                           isAcked
-                            ? 'cursor-default bg-gray-100 text-gray-400'
+                            ? 'cursor-default bg-white/5 text-slate-500'
                             : 'bg-[#F97316] text-white hover:bg-[#EA580C]'
                         }`}
                       >
@@ -158,8 +158,8 @@ export default function AlertsPage() {
                         onClick={() => resolveMutation.mutate(alert.alert_id)}
                         className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
                           isResolved
-                            ? 'cursor-default bg-gray-100 text-gray-400'
-                            : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50'
+                            ? 'cursor-default bg-white/5 text-slate-500'
+                            : 'bg-white/10 text-slate-200 ring-1 ring-white/10 hover:bg-white/15'
                         }`}
                       >
                         {isResolved ? 'Resolved' : 'Resolve'}

@@ -27,15 +27,15 @@ export default function Modal({ open, onClose, title, children, footer }: ModalP
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+      <div className="bg-slate-800 rounded-xl shadow-xl w-full max-w-lg mx-4 border border-white/10">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-200 transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
         <div className="px-6 py-4">{children}</div>
-        {footer && <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">{footer}</div>}
+        {footer && <div className="px-6 py-4 border-t border-white/10 flex justify-end gap-3">{footer}</div>}
       </div>
     </div>
   );

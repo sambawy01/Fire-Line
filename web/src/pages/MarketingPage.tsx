@@ -64,12 +64,12 @@ function statusVariant(status: Campaign['status']): BadgeVariant {
 }
 
 const TYPE_COLORS: Record<Campaign['type'], string> = {
-  discount: 'bg-emerald-100 text-emerald-700',
-  bogo: 'bg-violet-100 text-violet-700',
-  happy_hour: 'bg-amber-100 text-amber-700',
-  bundle: 'bg-blue-100 text-blue-700',
-  loyalty_reward: 'bg-pink-100 text-pink-700',
-  custom: 'bg-gray-100 text-gray-700',
+  discount: 'bg-emerald-500/20 text-emerald-400',
+  bogo: 'bg-violet-500/20 text-violet-400',
+  happy_hour: 'bg-amber-500/20 text-amber-400',
+  bundle: 'bg-blue-500/20 text-blue-400',
+  loyalty_reward: 'bg-pink-500/20 text-pink-400',
+  custom: 'bg-white/10 text-slate-300',
 };
 
 const TYPE_LABELS: Record<Campaign['type'], string> = {
@@ -83,7 +83,7 @@ const TYPE_LABELS: Record<Campaign['type'], string> = {
 
 function TypeBadge({ type }: { type: Campaign['type'] }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${TYPE_COLORS[type] ?? 'bg-gray-100 text-gray-700'}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${TYPE_COLORS[type] ?? 'bg-white/10 text-slate-300'}`}>
       {TYPE_LABELS[type] ?? type}
     </span>
   );
@@ -167,8 +167,8 @@ function CreateCampaignModal({ open, onClose, locationId }: CreateCampaignModalP
   }
 
   const inputClass =
-    'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#F97316]';
-  const labelClass = 'block text-xs font-medium text-gray-600 mb-1';
+    'w-full bg-white/10 text-white border border-white/15 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#F97316] placeholder:text-slate-500';
+  const labelClass = 'block text-xs font-medium text-slate-300 mb-1';
 
   return (
     <Modal
@@ -180,7 +180,7 @@ function CreateCampaignModal({ open, onClose, locationId }: CreateCampaignModalP
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium text-slate-300 border border-white/15 rounded-md hover:bg-white/5"
           >
             Cancel
           </button>
@@ -310,10 +310,10 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
   const canPause = campaign.status === 'active';
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
+    <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-5 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1 min-w-0">
-          <h3 className="text-base font-semibold text-gray-800 truncate">{campaign.name}</h3>
+          <h3 className="text-base font-semibold text-white truncate">{campaign.name}</h3>
           <div className="flex items-center gap-2 flex-wrap">
             <TypeBadge type={campaign.type} />
             <StatusBadge variant={statusVariant(campaign.status)}>
@@ -349,24 +349,24 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
         <div>
-          <p className="text-xs text-gray-500">Target Segment</p>
-          <p className="font-medium text-gray-800 capitalize">{campaign.target_segment || '—'}</p>
+          <p className="text-xs text-slate-400">Target Segment</p>
+          <p className="font-medium text-white capitalize">{campaign.target_segment || '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Channel</p>
-          <p className="font-medium text-gray-800 capitalize">{campaign.channel || '—'}</p>
+          <p className="text-xs text-slate-400">Channel</p>
+          <p className="font-medium text-white capitalize">{campaign.channel || '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Redemptions</p>
-          <p className="font-medium text-gray-800">{campaign.redemptions?.toLocaleString() ?? 0}</p>
+          <p className="text-xs text-slate-400">Redemptions</p>
+          <p className="font-medium text-white">{campaign.redemptions?.toLocaleString() ?? 0}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Revenue Attributed</p>
-          <p className="font-medium text-gray-800">{dollars(campaign.revenue_attributed ?? 0)}</p>
+          <p className="text-xs text-slate-400">Revenue Attributed</p>
+          <p className="font-medium text-white">{dollars(campaign.revenue_attributed ?? 0)}</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-1 text-xs text-gray-400">
+      <div className="flex items-center gap-1 text-xs text-slate-500">
         <span>{fmtDate(campaign.start_date)}</span>
         <span>→</span>
         <span>{fmtDate(campaign.end_date)}</span>
@@ -393,11 +393,11 @@ function CampaignsTab({ locationId }: { locationId: string }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Status:</label>
+          <label className="text-sm text-slate-300">Status:</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#F97316]"
+            className="bg-white/10 text-white border border-white/15 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#F97316]"
           >
             <option value="">All</option>
             <option value="draft">Draft</option>
@@ -420,10 +420,10 @@ function CampaignsTab({ locationId }: { locationId: string }) {
       {isLoading ? (
         <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
       ) : campaigns.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
-          <Megaphone className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">No campaigns found</p>
-          <p className="text-sm text-gray-400 mt-1">Create your first campaign to get started.</p>
+        <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-12 text-center">
+          <Megaphone className="h-10 w-10 text-slate-500 mx-auto mb-3" />
+          <p className="text-slate-400 font-medium">No campaigns found</p>
+          <p className="text-sm text-slate-500 mt-1">Create your first campaign to get started.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -464,14 +464,14 @@ function LoyaltyTab() {
       key: 'guest_name',
       header: 'Name',
       sortable: true,
-      render: (r) => <span className="font-semibold text-gray-800">{r.guest_name || '—'}</span>,
+      render: (r) => <span className="font-semibold text-white">{r.guest_name || '—'}</span>,
     },
     {
       key: 'points_balance',
       header: 'Points Balance',
       align: 'right',
       sortable: true,
-      render: (r) => <span className="font-medium text-gray-800">{(r.points_balance ?? 0).toLocaleString()}</span>,
+      render: (r) => <span className="font-medium text-white">{(r.points_balance ?? 0).toLocaleString()}</span>,
     },
     {
       key: 'lifetime_points',
@@ -518,28 +518,28 @@ function LoyaltyTab() {
             value={String(metrics?.total_members ?? 0)}
             icon={Users}
             iconColor="text-blue-600"
-            bgTint="bg-blue-50"
+            bgTint="bg-blue-500/10"
           />
           <KPICard
             label="Avg Points Balance"
             value={(metrics?.avg_balance ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
             icon={Star}
-            iconColor="text-amber-500"
-            bgTint="bg-amber-50"
+            iconColor="text-amber-400"
+            bgTint="bg-amber-500/10"
           />
           <KPICard
             label="Total Issued"
             value={(metrics?.total_issued ?? 0).toLocaleString()}
             icon={Award}
-            iconColor="text-emerald-600"
-            bgTint="bg-emerald-50"
+            iconColor="text-emerald-400"
+            bgTint="bg-emerald-500/10"
           />
           <KPICard
             label="Total Redeemed"
             value={(metrics?.total_redeemed ?? 0).toLocaleString()}
             icon={Tag}
-            iconColor="text-purple-600"
-            bgTint="bg-purple-50"
+            iconColor="text-purple-400"
+            bgTint="bg-purple-500/10"
           />
         </div>
       )}
@@ -555,8 +555,8 @@ function LoyaltyTab() {
               onClick={() => setTierFilter(tierFilter === label.toLowerCase() ? '' : label.toLowerCase())}
             >
               <p className="text-sm font-semibold" style={{ color }}>{label}</p>
-              <p className="text-3xl font-bold text-gray-800 mt-1">{count}</p>
-              <p className="text-xs text-gray-500 mt-0.5">members</p>
+              <p className="text-3xl font-bold text-white mt-1">{count}</p>
+              <p className="text-xs text-slate-400 mt-0.5">members</p>
             </div>
           ))}
         </div>
@@ -564,7 +564,7 @@ function LoyaltyTab() {
 
       {/* Filter indicator */}
       {tierFilter && (
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-slate-300">
           <span>Filtered by tier:</span>
           <span
             className="font-semibold capitalize"
@@ -574,7 +574,7 @@ function LoyaltyTab() {
           </span>
           <button
             onClick={() => setTierFilter('')}
-            className="text-xs underline text-gray-400 hover:text-gray-600"
+            className="text-xs underline text-slate-500 hover:text-slate-300"
           >
             clear
           </button>
@@ -655,28 +655,28 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
             value={String(campaignMetrics?.active_campaigns ?? 0)}
             icon={Megaphone}
             iconColor="text-orange-500"
-            bgTint="bg-orange-50"
+            bgTint="bg-orange-500/10"
           />
           <KPICard
             label="Total Redemptions"
             value={(campaignMetrics?.total_redemptions ?? 0).toLocaleString()}
             icon={Tag}
-            iconColor="text-blue-600"
-            bgTint="bg-blue-50"
+            iconColor="text-blue-400"
+            bgTint="bg-blue-500/10"
           />
           <KPICard
             label="Revenue Attributed"
             value={dollars(campaignMetrics?.revenue_attributed ?? 0)}
             icon={DollarSign}
-            iconColor="text-emerald-600"
-            bgTint="bg-emerald-50"
+            iconColor="text-emerald-400"
+            bgTint="bg-emerald-500/10"
           />
           <KPICard
             label="Avg Redemption Rate"
             value={`${((campaignMetrics?.avg_redemption_rate ?? 0) * 100).toFixed(1)}%`}
             icon={TrendingUp}
-            iconColor="text-purple-600"
-            bgTint="bg-purple-50"
+            iconColor="text-purple-400"
+            bgTint="bg-purple-500/10"
           />
         </div>
       )}
@@ -685,13 +685,13 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
       {!anyLoading && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Campaign type distribution */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <BarChart2 className="h-5 w-5 text-gray-400" />
+          <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
+            <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+              <BarChart2 className="h-5 w-5 text-slate-500" />
               Campaign Type Distribution
             </h3>
             {typePieData.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">No campaign data</p>
+              <p className="text-sm text-slate-500 text-center py-8">No campaign data</p>
             ) : (
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="55%" height={200}>
@@ -718,8 +718,8 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
                         className="inline-block w-3 h-3 rounded-full shrink-0"
                         style={{ backgroundColor: entry.color }}
                       />
-                      <span className="text-gray-600 truncate">{entry.name}</span>
-                      <span className="ml-auto font-semibold text-gray-800">{entry.value}</span>
+                      <span className="text-slate-300 truncate">{entry.name}</span>
+                      <span className="ml-auto font-semibold text-white">{entry.value}</span>
                     </div>
                   ))}
                 </div>
@@ -728,15 +728,15 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
           </div>
 
           {/* Loyalty tier distribution */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <Award className="h-5 w-5 text-gray-400" />
+          <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
+            <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+              <Award className="h-5 w-5 text-slate-500" />
               Loyalty Tier Distribution
             </h3>
             {lmLoading ? (
               <div className="flex justify-center py-8"><LoadingSpinner /></div>
             ) : tierPieData.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">No loyalty data</p>
+              <p className="text-sm text-slate-500 text-center py-8">No loyalty data</p>
             ) : (
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="55%" height={200}>
@@ -763,8 +763,8 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
                         className="inline-block w-3 h-3 rounded-full shrink-0"
                         style={{ backgroundColor: entry.color }}
                       />
-                      <span className="text-gray-600">{entry.name}</span>
-                      <span className="ml-auto font-semibold text-gray-800">{entry.value}</span>
+                      <span className="text-slate-300">{entry.name}</span>
+                      <span className="ml-auto font-semibold text-white">{entry.value}</span>
                     </div>
                   ))}
                 </div>
@@ -789,14 +789,14 @@ export default function MarketingPage() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Marketing</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-white">Marketing</h1>
+        <p className="text-sm text-slate-400 mt-1">
           Campaigns, loyalty program management, and marketing analytics
         </p>
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-white/10">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -804,7 +804,7 @@ export default function MarketingPage() {
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.id
                 ? 'border-[#F97316] text-[#F97316]'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-white/15'
             }`}
           >
             {tab.label}
