@@ -1,4 +1,4 @@
-h1:oGHjBsw4ihEp3VKKozo60AfEsNRwsdZRcuKiSBM7LIM=
+h1:En8FAb2Z9MMwdSpmc3vArKRVMJq7e+peIPXlZ6/RExQ=
 001_core_schema.sql h1:0L5Dn77TMjG31gEMMlatEZdW3UDpGW9ZcU6Tp1LfbqM=
 002_auth_tokens.sql h1:W+lLGgn8rVCikp1K4ZnJ6rz9fgeYpuc0Q6v7MsGoQ0E=
 003_menu_recipe_schema.sql h1:v5KjHNW8mg3W5zYecP+NEGcOxGNmRu8WLS9kxu86IiM=
@@ -11,3 +11,4 @@ h1:oGHjBsw4ihEp3VKKozo60AfEsNRwsdZRcuKiSBM7LIM=
 010_scheduling.sql h1:8ZCEGEWJo0pxP/JMq2m5z2MSCZFeaJMSAFdJr6XmOrM=
 011_kitchen_operations.sql h1:zyUy5ArxT33Akr4QKMYchEgd5Fd+JY1lPpuJUeRY5Ac=
 012_guest_profiles.sql h1:ZffCi3zV9nsmzymybfUrWqqHc1fSRzP72y4O91knuVI=
+013_menu_scoring.sql h1:BJR9IKBcy0FK5Xf6J1R3X7VMC71xAAusptA/GV+ul8s=
