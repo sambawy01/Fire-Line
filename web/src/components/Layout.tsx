@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
+  Building2,
   LayoutDashboard,
   Package,
   DollarSign,
@@ -26,6 +27,7 @@ import { useLocationStore } from '../stores/location';
 import { useAlertCount } from '../hooks/useAlerts';
 
 const navItems = [
+  { to: '/portfolio', label: 'Portfolio', icon: Building2 },
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/inventory', label: 'Inventory', icon: Package },
   { to: '/purchase-orders', label: 'Purchase Orders', icon: ShoppingCart },

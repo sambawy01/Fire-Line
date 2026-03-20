@@ -1189,4 +1189,148 @@ export const marketingApi = {
     request<LoyaltyMetrics>('/marketing/analytics/loyalty'),
 };
 
+// Portfolio (SP20)
+export interface PortfolioNode {
+  node_id: string;
+  org_id: string;
+  parent_node_id: string | null;
+  name: string;
+  node_type: 'org' | 'region' | 'district' | 'location';
+  location_id: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AggregatedKPIs {
+  node_id: string;
+  org_id: string;
+  period_start: string;
+  period_end: string;
+  revenue: number;
+  food_cost_pct: number;
+  labor_cost_pct: number;
+  avg_check_cents: number;
+  check_count: number;
+  location_count: number;
+}
+
+export interface LocationMetrics {
+  location_id: string;
+  location_name: string;
+  revenue: number;
+  food_cost_pct: number;
+  labor_cost_pct: number;
+  avg_check_cents: number;
+  check_count: number;
+}
+
+export interface LocationBenchmark {
+  benchmark_id: string;
+  org_id: string;
+  location_id: string;
+  location_name: string;
+  period_start: string;
+  period_end: string;
+  revenue: number;
+  food_cost_pct: number;
+  labor_cost_pct: number;
+  avg_check_cents: number;
+  check_count: number;
+  revenue_percentile: number;
+  food_cost_percentile: number;
+  labor_cost_percentile: number;
+  avg_check_percentile: number;
+  computed_at: string;
+}
+
+export interface BestPractice {
+  practice_id: string;
+  org_id: string;
+  title: string;
+  description: string;
+  metric: string;
+  source_location_id: string | null;
+  source_name: string;
+  impact_pct: number;
+  status: 'suggested' | 'adopted' | 'dismissed';
+  detected_at: string;
+  updated_at: string;
+}
+
+export interface Outlier {
+  location_id: string;
+  location_name: string;
+  metric: string;
+  value: number;
+  median: number;
+  iqr: number;
+  direction: 'above' | 'below';
+}
+
+export const portfolioApi = {
+  // Hierarchy
+  createNode(data: { parent_node_id?: string | null; name: string; node_type: string; location_id?: string | null }) {
+    return request<PortfolioNode>('/portfolio/nodes', { method: 'POST', body: JSON.stringify(data) });
+  },
+  getHierarchy() {
+    return request<{ nodes: PortfolioNode[] }>('/portfolio/nodes');
+  },
+  updateNode(nodeId: string, name: string) {
+    return request<{ status: string }>(`/portfolio/nodes/${nodeId}`, { method: 'PUT', body: JSON.stringify({ name }) });
+  },
+  deleteNode(nodeId: string) {
+    return request<{ status: string }>(`/portfolio/nodes/${nodeId}`, { method: 'DELETE' });
+  },
+
+  // Aggregation
+  aggregateKPIs(nodeId: string, from?: string, to?: string) {
+    const params = new URLSearchParams({ node_id: nodeId });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<AggregatedKPIs>(`/portfolio/kpis?${params}`);
+  },
+  compareLocations(locationIds: string[], from?: string, to?: string) {
+    const params = new URLSearchParams({ location_ids: locationIds.join(',') });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<{ locations: LocationMetrics[] }>(`/portfolio/compare?${params}`);
+  },
+
+  // Benchmarking
+  calculateBenchmarks(from?: string, to?: string) {
+    const params = new URLSearchParams();
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<{ status: string }>(`/portfolio/benchmarks/calculate?${params}`, { method: 'POST' });
+  },
+  getBenchmarks(from?: string, to?: string) {
+    const params = new URLSearchParams();
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<{ benchmarks: LocationBenchmark[] }>(`/portfolio/benchmarks?${params}`);
+  },
+  getOutliers(from?: string, to?: string) {
+    const params = new URLSearchParams();
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return request<{ outliers: Outlier[] }>(`/portfolio/outliers?${params}`);
+  },
+
+  // Best practices
+  detectBestPractices() {
+    return request<{ best_practices: BestPractice[] }>('/portfolio/best-practices/detect', { method: 'POST' });
+  },
+  listBestPractices(status?: string) {
+    const params = status ? `?status=${status}` : '';
+    return request<{ best_practices: BestPractice[] }>(`/portfolio/best-practices${params}`);
+  },
+  adoptPractice(id: string) {
+    return request<{ status: string }>(`/portfolio/best-practices/${id}/adopt`, { method: 'POST' });
+  },
+  dismissPractice(id: string) {
+    return request<{ status: string }>(`/portfolio/best-practices/${id}/dismiss`, { method: 'POST' });
+  },
+};
+
 export { ApiError };
