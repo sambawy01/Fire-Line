@@ -37,6 +37,9 @@ func (h *LaborHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.Handl
 
 	// Leaderboard
 	mux.Handle("GET /api/v1/labor/leaderboard", authMW(http.HandlerFunc(h.GetLeaderboard)))
+
+	// Scheduling, forecasting, and swaps (SP13)
+	h.RegisterSchedulingRoutes(mux, authMW)
 }
 
 // GetSummary returns location-wide labor cost KPIs for the requested date range.
