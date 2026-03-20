@@ -297,7 +297,7 @@ export default function DashboardPage() {
   const revenue = pnl?.net_revenue ?? 0;
   const orderCount = pnl?.check_count ?? 0;
   const avgCheck = pnl?.avg_check_size ?? 0;
-  const healthScore = health?.overall_score ?? 0;
+  const healthScore = Math.round(health?.overall_score ?? 0);
   const healthStatus = health?.status ?? 'unknown';
   const totalAlerts = alertCountData?.count ?? 0;
 
