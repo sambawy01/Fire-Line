@@ -23,6 +23,7 @@ import (
 	"github.com/opsnerve/fireline/internal/financial"
 	"github.com/opsnerve/fireline/internal/inventory"
 	"github.com/opsnerve/fireline/internal/labor"
+	"github.com/opsnerve/fireline/internal/maintenance"
 	"github.com/opsnerve/fireline/internal/marketing"
 	"github.com/opsnerve/fireline/internal/menu"
 	"github.com/opsnerve/fireline/internal/onboarding"
@@ -142,6 +143,9 @@ func main() {
 	// ─── Onboarding ───
 	onboardingSvc := onboarding.New(pool.Raw(), bus)
 
+	// ─── Maintenance ───
+	maintSvc := maintenance.New(pool.Raw(), bus)
+
 	slog.Info("all modules initialized",
 		"event_bus", "ready",
 		"pipeline", "ready",
@@ -157,6 +161,7 @@ func main() {
 		"marketing", "ready",
 		"portfolio", "ready",
 		"onboarding", "ready",
+		"maintenance", "ready",
 	)
 
 	// ─── Auth ───
@@ -242,6 +247,9 @@ func main() {
 
 	onboardingHandler := api.NewOnboardingHandler(onboardingSvc)
 	onboardingHandler.RegisterRoutes(mux, authMW)
+
+	maintHandler := api.NewMaintenanceHandler(maintSvc)
+	maintHandler.RegisterRoutes(mux, authMW)
 
 	// CORS for frontend dev
 	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
