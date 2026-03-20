@@ -214,8 +214,15 @@ func (s *Service) GetLeaderboard(ctx context.Context, orgID, locationID string, 
 				return fmt.Errorf("scan leaderboard row: %w", err)
 			}
 			entry.StaffPoints = staffPoints
+			entries = append(entries, entry)
+		}
+		if err := rows.Err(); err != nil {
+			return err
+		}
+		rows.Close()
 
-			// Compute trend from within the same transaction
+		// Compute trends in a second pass (avoids conn busy)
+		for i, entry := range entries {
 			var sevenDaysAgo float64
 			if err := tx.QueryRow(tenantCtx,
 				`SELECT COALESCE(SUM(points), 0)
@@ -224,12 +231,12 @@ func (s *Service) GetLeaderboard(ctx context.Context, orgID, locationID string, 
 				   AND created_at < now() - INTERVAL '7 days'`,
 				entry.EmployeeID,
 			).Scan(&sevenDaysAgo); err != nil {
-				return fmt.Errorf("query trend for %s: %w", entry.EmployeeID, err)
+				entries[i].PointsTrend = "stable"
+				continue
 			}
-			entry.PointsTrend = computePointsTrend(staffPoints, sevenDaysAgo)
-			entries = append(entries, entry)
+			entries[i].PointsTrend = computePointsTrend(entry.StaffPoints, sevenDaysAgo)
 		}
-		return rows.Err()
+		return nil
 	})
 	if err != nil {
 		return nil, err

@@ -433,22 +433,14 @@ export default function VendorPage() {
   const locationId = useLocationStore((s) => s.selectedLocationId);
   const [activeTab, setActiveTab] = useState<Tab>('scorecards');
 
-  const {
-    data: summary,
-    isLoading: summaryLoading,
-    error: summaryError,
-    refetch: refetchSummary,
-  } = useVendorSummary(locationId);
-
-  const {
-    error: vendorsError,
-    refetch: refetchVendors,
-  } = useVendors(locationId);
+  const { data: scoresData, isLoading: scoresLoading, error: scoresError, refetch: refetchScores } = useVendorScores(locationId);
 
   if (!locationId) return <LoadingSpinner fullPage />;
 
-  const error = summaryError ?? vendorsError;
-  const errorMessage = error instanceof Error ? error.message : 'Failed to load vendor data';
+  const vendors = scoresData?.vendor_scores ?? [];
+  const topVendor = vendors.length > 0 ? vendors.reduce((a, b) => a.overall_score > b.overall_score ? a : b) : null;
+  const avgScore = vendors.length > 0 ? (vendors.reduce((s, v) => s + v.overall_score, 0) / vendors.length) : 0;
+  const avgOTIF = vendors.length > 0 ? (vendors.reduce((s, v) => s + (v.otif_rate ?? 0), 0) / vendors.length) : 0;
 
   return (
     <div className="space-y-8">
@@ -460,18 +452,15 @@ export default function VendorPage() {
         </p>
       </div>
 
-      {error && (
+      {scoresError && (
         <ErrorBanner
-          message={errorMessage}
-          retry={() => {
-            void refetchSummary();
-            void refetchVendors();
-          }}
+          message={scoresError instanceof Error ? scoresError.message : 'Failed to load vendor data'}
+          retry={() => refetchScores()}
         />
       )}
 
       {/* KPI Cards */}
-      {summaryLoading ? (
+      {scoresLoading ? (
         <div className="flex justify-center py-8">
           <LoadingSpinner />
         </div>
@@ -479,29 +468,29 @@ export default function VendorPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <KPICard
             label="Total Vendors"
-            value={summary ? String(summary.total_vendors) : '—'}
+            value={String(vendors.length)}
             icon={Truck}
             iconColor="text-gray-600"
             bgTint="bg-gray-100"
           />
           <KPICard
-            label="Total Spend"
-            value={summary ? cents(summary.total_spend) : '$—'}
-            icon={DollarSign}
-            iconColor="text-red-600"
-            bgTint="bg-red-50"
-          />
-          <KPICard
-            label="Top Vendor"
-            value={summary ? `${summary.top_vendor_name} (${summary.top_vendor_pct.toFixed(1)}%)` : '—'}
+            label="Avg Reliability"
+            value={`${avgScore.toFixed(0)}/100`}
             icon={Star}
             iconColor="text-blue-600"
             bgTint="bg-blue-50"
           />
           <KPICard
-            label="Avg Items/Vendor"
-            value={summary ? summary.avg_items_per_vendor.toFixed(1) : '—'}
-            icon={Package}
+            label="Top Vendor"
+            value={topVendor ? `${topVendor.vendor_name} (${topVendor.overall_score.toFixed(0)})` : '—'}
+            icon={CheckCircle}
+            iconColor="text-emerald-600"
+            bgTint="bg-emerald-50"
+          />
+          <KPICard
+            label="Avg OTIF Rate"
+            value={`${avgOTIF.toFixed(0)}%`}
+            icon={TrendingUp}
             iconColor="text-purple-600"
             bgTint="bg-purple-50"
           />

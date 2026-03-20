@@ -100,6 +100,8 @@ export default function SchedulingPage() {
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(today));
   const weekStartStr = formatDate(weekStart);
 
+  if (!selectedLocationId) return <LoadingSpinner fullPage />;
+
   // Selected day for forecast (defaults to Monday)
   const [selectedDayIdx, setSelectedDayIdx] = useState(0);
   const selectedDayDate = formatDate(addDays(weekStart, selectedDayIdx));
