@@ -46,7 +46,7 @@ const lineColumns: Column<POLine>[] = [
     key: 'ordered_qty',
     header: 'Ordered',
     align: 'right',
-    render: (r) => `${r.ordered_qty.toFixed(2)} ${r.ordered_unit}`,
+    render: (r) => `${(r.ordered_qty ?? 0).toFixed(2)} ${r.ordered_unit ?? ''}`,
   },
   {
     key: 'estimated_unit_cost',
@@ -99,7 +99,7 @@ function PODetailModal({ poId, onClose }: { poId: string; onClose: () => void })
             </h2>
             {data && (
               <p className="text-xs text-gray-500 mt-0.5">
-                {data.line_count} line{data.line_count !== 1 ? 's' : ''} · Est. {dollars(data.total_estimated)}
+                {data.line_count ?? 0} line{(data.line_count ?? 0) !== 1 ? 's' : ''} · Est. {dollars(data.total_estimated ?? 0)}
                 {data.total_actual ? ` · Actual ${dollars(data.total_actual)}` : ''}
               </p>
             )}
@@ -133,7 +133,7 @@ function PODetailModal({ poId, onClose }: { poId: string; onClose: () => void })
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Source</p>
-                  <span className="text-gray-700 capitalize">{data.source.replace('_', ' ')}</span>
+                  <span className="text-gray-700 capitalize">{(data.source ?? 'manual').replace('_', ' ')}</span>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Suggested</p>
@@ -208,7 +208,7 @@ function SuggestedPOs({
               <div>
                 <p className="font-semibold text-gray-800">{po.vendor_name}</p>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {po.line_count} item{po.line_count !== 1 ? 's' : ''} · Est. {dollars(po.total_estimated)}
+                  {po.line_count ?? 0} item{(po.line_count ?? 0) !== 1 ? 's' : ''} · Est. {dollars(po.total_estimated ?? 0)}
                 </p>
               </div>
               <StatusBadge variant="info">Suggested</StatusBadge>
@@ -250,14 +250,14 @@ const activeColumns = (onReview: (id: string) => void): Column<PurchaseOrder>[] 
     key: 'line_count',
     header: 'Items',
     align: 'right',
-    render: (r) => String(r.line_count),
+    render: (r) => String(r.line_count ?? 0),
   },
   {
     key: 'total_estimated',
     header: 'Est. Total',
     align: 'right',
     sortable: true,
-    render: (r) => dollars(r.total_estimated),
+    render: (r) => dollars(r.total_estimated ?? 0),
   },
   {
     key: 'approved_at',
