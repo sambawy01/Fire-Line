@@ -38,7 +38,7 @@ function causeLabel(key: string): string {
 
 function CauseProbabilityBar({ probs }: { probs: Record<string, number> }) {
   const entries = Object.entries(probs).filter(([, v]) => v > 0);
-  if (entries.length === 0) return <span className="text-slate-500 text-xs">—</span>;
+  if (entries.length === 0) return <span className="text-slate-300 text-xs">—</span>;
 
   return (
     <div className="flex h-4 w-full min-w-[100px] rounded overflow-hidden">

@@ -240,7 +240,7 @@ export default function SchedulingPage() {
             <LoadingSpinner />
           </div>
         ) : scheduleError && !hasSchedule ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-2 text-slate-500">
+          <div className="flex flex-col items-center justify-center h-40 gap-2 text-slate-300">
             <Users className="h-8 w-8" />
             <p className="text-sm">No schedule for this week. Generate a draft to get started.</p>
           </div>
@@ -280,7 +280,7 @@ export default function SchedulingPage() {
               <tbody>
                 {(employees as { id: string; name: string }[]).length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-10 text-slate-500 text-sm">
+                    <td colSpan={8} className="text-center py-10 text-slate-300 text-sm">
                       No shifts scheduled for this week.
                     </td>
                   </tr>
@@ -296,7 +296,7 @@ export default function SchedulingPage() {
                         return (
                           <td key={idx} className="px-2 py-2 align-top min-w-[110px]">
                             {dayShifts.length === 0 ? (
-                              <span className="text-slate-500 text-xs">—</span>
+                              <span className="text-slate-300 text-xs">—</span>
                             ) : (
                               <div className="space-y-1">
                                 {dayShifts.map((shift) => {
@@ -346,9 +346,9 @@ export default function SchedulingPage() {
             </p>
           </div>
           {forecastOpen ? (
-            <ChevronUp className="h-5 w-5 text-slate-500" />
+            <ChevronUp className="h-5 w-5 text-slate-300" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-slate-500" />
+            <ChevronDown className="h-5 w-5 text-slate-300" />
           )}
         </button>
 
@@ -359,7 +359,7 @@ export default function SchedulingPage() {
                 <LoadingSpinner />
               </div>
             ) : !forecastData?.forecast?.length ? (
-              <p className="text-sm text-slate-500 text-center py-6">No forecast data available for this day.</p>
+              <p className="text-sm text-slate-300 text-center py-6">No forecast data available for this day.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -450,7 +450,7 @@ export default function SchedulingPage() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-500">Cost projection not available.</p>
+            <p className="text-sm text-slate-300">Cost projection not available.</p>
           )}
         </div>
       )}
@@ -465,7 +465,7 @@ export default function SchedulingPage() {
           </div>
           <div className="px-5 py-4 space-y-3">
             {!overtimeData?.risks?.length ? (
-              <p className="text-sm text-slate-500 text-center py-4">No overtime risks for this week.</p>
+              <p className="text-sm text-slate-300 text-center py-4">No overtime risks for this week.</p>
             ) : (
               overtimeData.risks.map((risk) => (
                 <div
@@ -493,7 +493,7 @@ export default function SchedulingPage() {
           </div>
           <div className="px-5 py-4 space-y-3">
             {!swapsData?.swap_requests?.length ? (
-              <p className="text-sm text-slate-500 text-center py-4">No pending swap requests.</p>
+              <p className="text-sm text-slate-300 text-center py-4">No pending swap requests.</p>
             ) : (
               swapsData.swap_requests.map((swap) => (
                 <div
@@ -509,7 +509,7 @@ export default function SchedulingPage() {
                       {swap.reason && (
                         <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{swap.reason}</p>
                       )}
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-xs text-slate-300 mt-1">
                         {new Date(swap.created_at).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',

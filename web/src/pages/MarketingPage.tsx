@@ -167,7 +167,7 @@ function CreateCampaignModal({ open, onClose, locationId }: CreateCampaignModalP
   }
 
   const inputClass =
-    'w-full bg-white/10 text-white border border-white/15 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#F97316] placeholder:text-slate-500';
+    'w-full bg-white/10 text-white border border-white/15 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#F97316] placeholder:text-slate-300';
   const labelClass = 'block text-xs font-medium text-slate-300 mb-1';
 
   return (
@@ -366,7 +366,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-1 text-xs text-slate-500">
+      <div className="flex items-center gap-1 text-xs text-slate-300">
         <span>{fmtDate(campaign.start_date)}</span>
         <span>→</span>
         <span>{fmtDate(campaign.end_date)}</span>
@@ -421,9 +421,9 @@ function CampaignsTab({ locationId }: { locationId: string }) {
         <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
       ) : campaigns.length === 0 ? (
         <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-12 text-center">
-          <Megaphone className="h-10 w-10 text-slate-500 mx-auto mb-3" />
+          <Megaphone className="h-10 w-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-medium">No campaigns found</p>
-          <p className="text-sm text-slate-500 mt-1">Create your first campaign to get started.</p>
+          <p className="text-sm text-slate-300 mt-1">Create your first campaign to get started.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -574,7 +574,7 @@ function LoyaltyTab() {
           </span>
           <button
             onClick={() => setTierFilter('')}
-            className="text-xs underline text-slate-500 hover:text-slate-300"
+            className="text-xs underline text-slate-300 hover:text-slate-300"
           >
             clear
           </button>
@@ -687,11 +687,11 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
           {/* Campaign type distribution */}
           <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
             <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-              <BarChart2 className="h-5 w-5 text-slate-500" />
+              <BarChart2 className="h-5 w-5 text-slate-300" />
               Campaign Type Distribution
             </h3>
             {typePieData.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-8">No campaign data</p>
+              <p className="text-sm text-slate-300 text-center py-8">No campaign data</p>
             ) : (
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="55%" height={200}>
@@ -730,13 +730,13 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
           {/* Loyalty tier distribution */}
           <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
             <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-              <Award className="h-5 w-5 text-slate-500" />
+              <Award className="h-5 w-5 text-slate-300" />
               Loyalty Tier Distribution
             </h3>
             {lmLoading ? (
               <div className="flex justify-center py-8"><LoadingSpinner /></div>
             ) : tierPieData.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-8">No loyalty data</p>
+              <p className="text-sm text-slate-300 text-center py-8">No loyalty data</p>
             ) : (
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="55%" height={200}>

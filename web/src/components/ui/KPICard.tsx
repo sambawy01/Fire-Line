@@ -12,7 +12,7 @@ export default function KPICard({
   label,
   value,
   icon: Icon,
-  iconColor = 'text-gray-600',
+  iconColor = 'text-slate-300',
   bgTint = 'bg-gray-50',
 }: KPICardProps) {
   return (

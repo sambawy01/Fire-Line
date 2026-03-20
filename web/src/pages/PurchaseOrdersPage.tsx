@@ -72,7 +72,7 @@ const lineColumns: Column<POLine>[] = [
     header: 'Variance',
     align: 'center',
     render: (r) => {
-      if (!r.variance_flag) return <span className="text-slate-500">—</span>;
+      if (!r.variance_flag) return <span className="text-slate-300">—</span>;
       const variant =
         r.variance_flag === 'over' ? 'critical' : r.variance_flag === 'under' ? 'warning' : 'neutral';
       return <StatusBadge variant={variant}>{r.variance_flag}</StatusBadge>;
@@ -106,7 +106,7 @@ function PODetailModal({ poId, onClose }: { poId: string; onClose: () => void })
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/10 transition-colors"
+            className="p-2 rounded-lg text-slate-300 hover:text-slate-300 hover:bg-white/10 transition-colors"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -317,7 +317,7 @@ const historyColumns = (onReview: (id: string) => void): Column<PurchaseOrder>[]
     header: 'Variance $',
     align: 'right',
     render: (r) => {
-      if (!r.total_actual) return <span className="text-slate-500">—</span>;
+      if (!r.total_actual) return <span className="text-slate-300">—</span>;
       const diff = r.total_actual - r.total_estimated;
       const formatted = `${diff > 0 ? '+' : ''}${dollars(Math.abs(diff))}`;
       const color = diff < 0 ? 'text-emerald-600 font-medium' : diff > 0 ? 'text-red-600 font-medium' : 'text-slate-300';

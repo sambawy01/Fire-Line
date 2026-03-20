@@ -352,7 +352,7 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
               </span>
             )}
             {totalAlerts === 0 && (
-              <span className="text-xs text-slate-500">No alerts</span>
+              <span className="text-xs text-slate-300">No alerts</span>
             )}
           </div>
           {staffOnShift > 0 && (
@@ -434,7 +434,7 @@ function ChainKPIBar({ kpi }: { kpi: ChainKPI }) {
             {item.icon}
           </div>
           <p className={`text-2xl font-bold ${item.color}`}>{item.value}</p>
-          <p className="text-xs text-slate-500 mt-1">{item.label}</p>
+          <p className="text-xs text-slate-300 mt-1">{item.label}</p>
         </div>
       ))}
     </div>
@@ -460,7 +460,7 @@ function HealthPulse({ score }: { score: number }) {
         <span className={`relative inline-flex rounded-full h-4 w-4 ${color}`} />
       </span>
       <span className="text-sm font-medium text-slate-300">{label}</span>
-      <span className="text-sm text-slate-500">— Chain Health {score}/100</span>
+      <span className="text-sm text-slate-300">— Chain Health {score}/100</span>
     </div>
   );
 }
@@ -525,7 +525,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
         <div className="min-w-[640px]">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-px flex-1 bg-white/5" />
-            <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-widest text-slate-300">
               Chain KPI Comparison
             </span>
             <div className="h-px flex-1 bg-white/5" />
@@ -537,7 +537,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
               style={{ gridTemplateColumns: `160px repeat(${cols.length}, 1fr)` }}
             >
               <div className="bg-white/5 px-4 py-3 text-left">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Metric</span>
+                <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Metric</span>
               </div>
               {cols.map((b, i) => (
                 <div
@@ -630,7 +630,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
                     key={b.name}
                     className={`px-3 py-3 ${i === cols.length - 1 ? 'bg-white/5 border-l border-white/8' : 'bg-white/3'}`}
                   >
-                    <span className={`text-sm font-bold ${count > 0 ? (i === cols.length - 1 ? 'text-slate-300' : 'text-red-400') : 'text-slate-500'}`}>
+                    <span className={`text-sm font-bold ${count > 0 ? (i === cols.length - 1 ? 'text-slate-300' : 'text-red-400') : 'text-slate-300'}`}>
                       {count}
                     </span>
                   </div>
@@ -643,7 +643,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
 
       {/* Feature 3: Chain-Wide Comparison Bar Chart */}
       <div className="bg-white/3 border border-white/8 rounded-xl p-5">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4 text-center">
+        <p className="text-xs font-semibold uppercase tracking-widest text-slate-300 mb-4 text-center">
           Branch Performance Chart
         </p>
         <ResponsiveContainer width="100%" height={200}>
@@ -1215,12 +1215,12 @@ function BriefingDetailModal({ item, itemKey, isAttention, state, onUpdate, onCl
             <p className="text-sm text-slate-300 leading-relaxed">{item.impact}</p>
             {item.metric && (
               <div className="bg-white/5 rounded-lg px-4 py-3 border border-white/8">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Key Metric</p>
+                <p className="text-[10px] text-slate-300 uppercase tracking-wider mb-1">Key Metric</p>
                 <p className="text-xl font-black text-white">{item.metric}</p>
               </div>
             )}
             {item.timeframe && (
-              <p className="text-xs text-slate-500 flex items-center gap-1.5">
+              <p className="text-xs text-slate-300 flex items-center gap-1.5">
                 <span>🕐</span> {item.timeframe}
               </p>
             )}
@@ -1302,7 +1302,7 @@ function BriefingDetailModal({ item, itemKey, isAttention, state, onUpdate, onCl
 
             {/* Priority selector */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] text-slate-500 mr-1">Priority:</span>
+              <span className="text-[11px] text-slate-300 mr-1">Priority:</span>
               {(['critical', 'high', 'medium', 'low'] as const).map((p) => (
                 <button
                   key={p}
@@ -1310,7 +1310,7 @@ function BriefingDetailModal({ item, itemKey, isAttention, state, onUpdate, onCl
                   className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border transition-all ${
                     state.priority === p
                       ? priorityColors[p] + ' ring-1 ring-offset-0'
-                      : 'bg-white/5 text-slate-500 border-white/10 hover:bg-white/10'
+                      : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10'
                   }`}
                 >
                   {p}
@@ -1431,7 +1431,7 @@ function BriefingDetailModal({ item, itemKey, isAttention, state, onUpdate, onCl
                     <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-slate-500 mt-1.5" />
                     <div className="flex-1">
                       <span className="text-slate-400">{entry.text}</span>
-                      <span className="text-slate-600 ml-2">{entry.time}</span>
+                      <span className="text-slate-400 ml-2">{entry.time}</span>
                     </div>
                   </div>
                 ))}
@@ -1439,7 +1439,7 @@ function BriefingDetailModal({ item, itemKey, isAttention, state, onUpdate, onCl
                   <div key={`comment-${i}`} className="bg-white/5 rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[10px] font-semibold text-blue-400">{c.author}</span>
-                      <span className="text-[10px] text-slate-600">{c.time}</span>
+                      <span className="text-[10px] text-slate-400">{c.time}</span>
                     </div>
                     <p className="text-xs text-slate-300">{c.text}</p>
                   </div>
@@ -1507,10 +1507,10 @@ function BriefingCard({
                         </span>
                       )}
                     </div>
-                    <span className="shrink-0 text-slate-600 group-hover:text-slate-400 transition-colors text-xs mt-0.5">↗</span>
+                    <span className="shrink-0 text-slate-400 group-hover:text-slate-400 transition-colors text-xs mt-0.5">↗</span>
                   </div>
                   <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.impact}</p>
-                  <p className="text-[10px] text-slate-600 mt-1 font-medium uppercase tracking-wide">{item.branch}</p>
+                  <p className="text-[10px] text-slate-400 mt-1 font-medium uppercase tracking-wide">{item.branch}</p>
                   {item.metric && (
                     <span className="inline-block mt-1.5 text-[10px] font-bold bg-white/5 text-slate-300 px-2 py-0.5 rounded-full border border-white/8">
                       {item.metric}
@@ -1917,7 +1917,7 @@ function AIRecommendations() {
                     </span>
                   )}
                 </div>
-                <span className="text-slate-600 group-hover:text-slate-400 text-xs transition-colors">↗</span>
+                <span className="text-slate-400 group-hover:text-slate-400 text-xs transition-colors">↗</span>
               </div>
               <h4 className="text-sm font-bold text-white mb-1">{rec.title}</h4>
               <p className="text-xs text-slate-400 leading-relaxed">{rec.desc}</p>
@@ -1938,7 +1938,7 @@ function AIRecommendations() {
         const s = recStates[i];
         return s && (s.status === 'approved' || s.status === 'dismissed');
       }) && (
-        <div className="text-center py-8 text-slate-500 text-sm">
+        <div className="text-center py-8 text-slate-300 text-sm">
           <span className="text-2xl block mb-2">✨</span>
           All recommendations acted on. New AI insights will appear as patterns are detected.
         </div>
@@ -2021,7 +2021,7 @@ function CEOBriefing() {
         <div className="flex items-center gap-2.5">
           <Zap className="h-4 w-4 text-amber-400" />
           <span className="text-sm font-bold text-white uppercase tracking-widest">Executive Briefing</span>
-          <span className="text-xs text-slate-500 font-medium">· Updated just now</span>
+          <span className="text-xs text-slate-300 font-medium">· Updated just now</span>
         </div>
         <div className="h-px flex-1 bg-white/5" />
       </div>
@@ -2199,7 +2199,7 @@ export default function PortfolioPage() {
         {/* Section label */}
         <div className="flex items-center gap-4">
           <div className="h-px flex-1 bg-white/5" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-300">
             {locations.length} Branch{locations.length !== 1 ? 'es' : ''} — Select to Open Dashboard
           </span>
           <div className="h-px flex-1 bg-white/5" />
@@ -2222,7 +2222,7 @@ export default function PortfolioPage() {
         ) : (
           <div className="text-center py-20">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/5 mb-4">
-              <Activity className="h-6 w-6 text-slate-500" />
+              <Activity className="h-6 w-6 text-slate-300" />
             </div>
             <p className="text-slate-400">Loading branch data...</p>
           </div>
@@ -2248,7 +2248,7 @@ export default function PortfolioPage() {
 
         {/* Footer */}
         <div className="text-center pb-6">
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-slate-400">
             FireLine by OpsNerve · Real-time AI operations intelligence · Data refreshes every 30s
           </p>
         </div>

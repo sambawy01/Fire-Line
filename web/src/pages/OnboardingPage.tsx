@@ -163,7 +163,7 @@ function ProgressBar({ currentIndex }: { currentIndex: number }) {
                 ? 'bg-orange-500 text-white'
                 : i === currentIndex
                 ? 'bg-orange-500 text-white ring-4 ring-orange-500/30'
-                : 'bg-white/10 text-slate-500'
+                : 'bg-white/10 text-slate-300'
             }`}
             title={STEP_LABELS[step]}
           >
@@ -255,7 +255,7 @@ function ProfileStep({
             value={form.restaurant_name}
             onChange={set('restaurant_name')}
             placeholder="e.g. The Rustic Fork"
-            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-300"
           />
         </div>
         <div>
@@ -264,7 +264,7 @@ function ProfileStep({
             value={form.address}
             onChange={set('address')}
             placeholder="123 Main St, Chicago, IL 60601"
-            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-300"
           />
         </div>
         <div>
@@ -272,7 +272,7 @@ function ProfileStep({
           <select
             value={form.timezone}
             onChange={set('timezone')}
-            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-300"
           >
             <option value="America/New_York">Eastern (ET)</option>
             <option value="America/Chicago">Central (CT)</option>
@@ -287,7 +287,7 @@ function ProfileStep({
           <select
             value={form.cuisine_type}
             onChange={set('cuisine_type')}
-            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-300"
           >
             <option value="">Select a cuisine…</option>
             <option value="american">American</option>
@@ -312,7 +312,7 @@ function ProfileStep({
             value={form.seating_capacity}
             onChange={set('seating_capacity')}
             placeholder="e.g. 80"
-            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-500"
+            className="w-full px-3 py-2 bg-white/10 text-white border border-white/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-slate-300"
           />
         </div>
       </div>
@@ -421,7 +421,7 @@ function ImportingStep({ onNext }: { onNext: () => void }) {
           </div>
         ))}
         {!done && (
-          <div className="flex items-center gap-3 text-slate-500">
+          <div className="flex items-center gap-3 text-slate-300">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span>Processing…</span>
           </div>
@@ -606,7 +606,7 @@ function PrioritiesStep({
           );
         })}
       </div>
-      <p className="text-center text-sm text-slate-500 mb-2">{selected.length}/3 selected</p>
+      <p className="text-center text-sm text-slate-300 mb-2">{selected.length}/3 selected</p>
       <NavButtons onBack={onBack} onNext={() => onNext(selected)} nextDisabled={selected.length === 0} />
     </div>
   );
@@ -719,7 +719,7 @@ function ChecklistStep({
 
         {Object.entries(byCategory).map(([category, catItems]) => (
           <div key={category} className="mb-5">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2 capitalize">
+            <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-widest mb-2 capitalize">
               {category.replace(/_/g, ' ')}
             </h3>
             <div className="space-y-2">
@@ -738,11 +738,11 @@ function ChecklistStep({
                     {item.completed ? (
                       <CheckCircle className="w-5 h-5 text-green-500" />
                     ) : (
-                      <Circle className="w-5 h-5 text-slate-500 hover:text-orange-400 transition-colors" />
+                      <Circle className="w-5 h-5 text-slate-300 hover:text-orange-400 transition-colors" />
                     )}
                   </button>
                   <div>
-                    <div className={`text-sm font-medium ${item.completed ? 'line-through text-slate-500' : 'text-white'}`}>
+                    <div className={`text-sm font-medium ${item.completed ? 'line-through text-slate-300' : 'text-white'}`}>
                       {item.title}
                     </div>
                     {item.description && (
@@ -891,7 +891,7 @@ export default function OnboardingPage() {
         <div className="max-w-3xl mx-auto flex items-center gap-2">
           <div className="w-7 h-7 bg-orange-500 rounded-md" />
           <span className="font-bold text-white text-lg">FireLine</span>
-          <span className="text-slate-500 mx-2">|</span>
+          <span className="text-slate-300 mx-2">|</span>
           <span className="text-slate-400 text-sm">Setup Wizard</span>
         </div>
       </header>

@@ -432,7 +432,7 @@ function AnomaliesTab({ locationId }: { locationId: string }) {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">No statistical anomalies detected.</p>
+          <p className="text-sm text-slate-300">No statistical anomalies detected.</p>
         )}
       </div>
 
@@ -490,7 +490,7 @@ function AnomaliesTab({ locationId }: { locationId: string }) {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">No transaction anomalies detected.</p>
+          <p className="text-sm text-slate-300">No transaction anomalies detected.</p>
         )}
       </div>
     </div>

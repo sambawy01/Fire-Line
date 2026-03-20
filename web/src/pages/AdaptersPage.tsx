@@ -176,7 +176,7 @@ export default function AdaptersPage() {
                   </div>
 
                   {/* Last sync */}
-                  <p className="mb-4 flex items-center gap-1 text-xs text-slate-500">
+                  <p className="mb-4 flex items-center gap-1 text-xs text-slate-300">
                     <Clock className="h-3.5 w-3.5" />
                     Last sync: {formatTimestamp(adapter.lastSync)}
                   </p>

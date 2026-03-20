@@ -68,7 +68,7 @@ function StationCard({ station }: { station: KitchenStation }) {
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="font-semibold text-white">{station.name}</p>
-          <p className="text-xs text-slate-500 capitalize">{station.station_type}</p>
+          <p className="text-xs text-slate-300 capitalize">{station.station_type}</p>
         </div>
         <span
           className={`text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -137,7 +137,7 @@ function TicketCard({
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <Clock className="h-3.5 w-3.5 text-slate-500" />
+          <Clock className="h-3.5 w-3.5 text-slate-300" />
           <ElapsedTimer baseSecs={ticket.elapsed_secs} />
         </div>
       </div>
@@ -277,7 +277,7 @@ export default function KitchenPage() {
         </div>
 
         {stations.length === 0 ? (
-          <div className="text-center py-10 text-slate-500">No stations configured.</div>
+          <div className="text-center py-10 text-slate-300">No stations configured.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {stations.map((s) => (
@@ -305,7 +305,7 @@ export default function KitchenPage() {
         </div>
 
         {tickets.length === 0 ? (
-          <div className="text-center py-16 text-slate-500">
+          <div className="text-center py-16 text-slate-300">
             <ChefHat className="h-12 w-12 mx-auto mb-3 opacity-30" />
             <p className="text-lg font-medium">No active tickets</p>
             <p className="text-sm">Kitchen is clear</p>

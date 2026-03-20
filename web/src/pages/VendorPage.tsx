@@ -121,7 +121,7 @@ function ScorecardsTab({ locationId }: { locationId: string }) {
           <LoadingSpinner />
         </div>
       ) : scores.length === 0 ? (
-        <div className="text-center py-12 text-slate-500 text-sm">
+        <div className="text-center py-12 text-slate-300 text-sm">
           No scores available. Click Recalculate to generate scores.
         </div>
       ) : (
@@ -150,15 +150,15 @@ function ScorecardsTab({ locationId }: { locationId: string }) {
               {/* Stats row */}
               <div className="grid grid-cols-3 gap-2 pt-1 border-t border-white/10 text-center">
                 <div>
-                  <p className="text-xs text-slate-500">OTIF</p>
+                  <p className="text-xs text-slate-300">OTIF</p>
                   <p className="text-sm font-semibold text-slate-200">{pct(vs.otif_rate)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">Orders</p>
+                  <p className="text-xs text-slate-300">Orders</p>
                   <p className="text-sm font-semibold text-slate-200">{vs.total_orders}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">Avg Lead</p>
+                  <p className="text-xs text-slate-300">Avg Lead</p>
                   <p className="text-sm font-semibold text-slate-200">{vs.avg_lead_days.toFixed(1)}d</p>
                 </div>
               </div>
@@ -242,11 +242,11 @@ function PriceIntelligenceTab({ locationId }: { locationId: string }) {
         {trendLoading ? (
           <div className="flex justify-center py-10"><LoadingSpinner /></div>
         ) : !selectedIngredientId || !selectedVendor ? (
-          <div className="flex items-center justify-center h-40 text-slate-500 text-sm">
+          <div className="flex items-center justify-center h-40 text-slate-300 text-sm">
             Select an ingredient and vendor to view the price trend.
           </div>
         ) : chartData.length === 0 ? (
-          <div className="flex items-center justify-center h-40 text-slate-500 text-sm">
+          <div className="flex items-center justify-center h-40 text-slate-300 text-sm">
             No price history available for this selection.
           </div>
         ) : (
@@ -298,7 +298,7 @@ function PriceIntelligenceTab({ locationId }: { locationId: string }) {
         {anomalyLoading ? (
           <div className="flex justify-center py-6"><LoadingSpinner /></div>
         ) : anomalies.length === 0 ? (
-          <div className="text-sm text-slate-500 py-4">No price anomalies detected.</div>
+          <div className="text-sm text-slate-300 py-4">No price anomalies detected.</div>
         ) : (
           <div className="space-y-3">
             {anomalies.map((a, i) => (
@@ -359,13 +359,13 @@ function ComparisonTab({ locationId }: { locationId: string }) {
       </div>
 
       {!selectedIngredientId ? (
-        <div className="text-center py-16 text-slate-500 text-sm">
+        <div className="text-center py-16 text-slate-300 text-sm">
           Select an ingredient to compare vendors side by side.
         </div>
       ) : isLoading ? (
         <div className="flex justify-center py-12"><LoadingSpinner /></div>
       ) : vendors.length === 0 ? (
-        <div className="text-center py-12 text-slate-500 text-sm">
+        <div className="text-center py-12 text-slate-300 text-sm">
           No vendor comparison data available for this ingredient.
         </div>
       ) : (
@@ -399,21 +399,21 @@ function ComparisonTab({ locationId }: { locationId: string }) {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-white/5 rounded-lg p-3 text-center">
-                      <p className="text-xs text-slate-500">Score</p>
+                      <p className="text-xs text-slate-300">Score</p>
                       <p className={`text-xl font-bold tabular-nums ${scoreColor(v.overall_score)}`}>
                         {v.overall_score.toFixed(0)}
                       </p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-3 text-center">
-                      <p className="text-xs text-slate-500">Unit Cost</p>
+                      <p className="text-xs text-slate-300">Unit Cost</p>
                       <p className="text-xl font-bold text-white">{cents(v.unit_cost)}</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-3 text-center">
-                      <p className="text-xs text-slate-500">OTIF</p>
+                      <p className="text-xs text-slate-300">OTIF</p>
                       <p className="text-lg font-semibold text-slate-200">{pct(v.otif_rate)}</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-3 text-center">
-                      <p className="text-xs text-slate-500">Lead Time</p>
+                      <p className="text-xs text-slate-300">Lead Time</p>
                       <p className="text-lg font-semibold text-slate-200">{v.avg_lead_days.toFixed(1)}d</p>
                     </div>
                   </div>

@@ -57,7 +57,7 @@ type Trend = 'up' | 'down' | 'stable';
 function TrendArrow({ trend }: { trend: Trend }) {
   if (trend === 'up') return <span className="text-green-500 font-bold">↑</span>;
   if (trend === 'down') return <span className="text-red-500 font-bold">↓</span>;
-  return <span className="text-slate-500 font-bold">→</span>;
+  return <span className="text-slate-300 font-bold">→</span>;
 }
 
 // ─── Overview Tab ────────────────────────────────────────────────────────────
@@ -128,7 +128,7 @@ function ExpandedProfile({ profile }: { profile: EmployeeProfile }) {
       <div>
         <h4 className="text-sm font-semibold text-slate-200 mb-3">ELU Station Ratings</h4>
         {Object.keys(profile.elu_ratings).length === 0 ? (
-          <p className="text-sm text-slate-500 italic">No ELU ratings recorded</p>
+          <p className="text-sm text-slate-300 italic">No ELU ratings recorded</p>
         ) : (
           <div className="space-y-2">
             {Object.entries(profile.elu_ratings).map(([station, score]) => (
@@ -157,7 +157,7 @@ function ExpandedProfile({ profile }: { profile: EmployeeProfile }) {
         {isLoading ? (
           <LoadingSpinner />
         ) : events.length === 0 ? (
-          <p className="text-sm text-slate-500 italic">No point history</p>
+          <p className="text-sm text-slate-300 italic">No point history</p>
         ) : (
           <ul className="space-y-2">
             {events.map((ev) => (
@@ -165,7 +165,7 @@ function ExpandedProfile({ profile }: { profile: EmployeeProfile }) {
                 <div>
                   <span className="font-medium text-slate-200 capitalize">{ev.reason}</span>
                   {ev.description && (
-                    <p className="text-slate-500 text-xs">{ev.description}</p>
+                    <p className="text-slate-300 text-xs">{ev.description}</p>
                   )}
                 </div>
                 <span
@@ -265,7 +265,7 @@ function StaffProfilesTab({ locationId }: { locationId: string }) {
               <span className="font-semibold text-white">{profile.display_name}</span>
               <button
                 onClick={() => setExpandedId(null)}
-                className="text-slate-500 hover:text-slate-300 text-lg leading-none"
+                className="text-slate-300 hover:text-slate-300 text-lg leading-none"
               >
                 ×
               </button>
@@ -305,7 +305,7 @@ function LeaderboardTab({ locationId }: { locationId: string }) {
 
   if (!entries.length) {
     return (
-      <p className="text-center text-slate-500 py-12">No leaderboard data available.</p>
+      <p className="text-center text-slate-300 py-12">No leaderboard data available.</p>
     );
   }
 
@@ -469,7 +469,7 @@ function ELUManagementTab({ locationId }: { locationId: string }) {
                 onChange={(e) => handleSliderChange(station, parseFloat(e.target.value))}
                 className="w-full accent-red-500"
               />
-              <div className="flex justify-between text-xs text-slate-500">
+              <div className="flex justify-between text-xs text-slate-300">
                 <span>0.0</span>
                 <span>1.0</span>
                 <span>2.0</span>

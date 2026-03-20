@@ -8,7 +8,7 @@ interface LoadingSpinnerProps {
 }
 
 export default function LoadingSpinner({ size = 'md', fullPage = false }: LoadingSpinnerProps) {
-  const spinner = <Loader2 className={`${sizes[size]} animate-spin text-gray-400`} />;
+  const spinner = <Loader2 className={`${sizes[size]} animate-spin text-slate-300`} />;
 
   if (fullPage) {
     return (

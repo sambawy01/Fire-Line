@@ -220,7 +220,7 @@ function GuestListTab({ locationId }: { locationId: string }) {
               </h3>
               <button
                 onClick={() => setExpandedId(null)}
-                className="text-slate-500 hover:text-slate-300 transition-colors"
+                className="text-slate-300 hover:text-slate-300 transition-colors"
               >
                 <ChevronUp className="h-5 w-5" />
               </button>
@@ -243,7 +243,7 @@ function GuestListTab({ locationId }: { locationId: string }) {
                 <p className="font-semibold text-white capitalize">{guest.privacy_tier}</p>
               </div>
             </div>
-            <p className="text-xs text-slate-500 italic">Visit history detail coming soon.</p>
+            <p className="text-xs text-slate-300 italic">Visit history detail coming soon.</p>
           </div>
         );
       })()}
@@ -345,7 +345,7 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
             <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
               <h3 className="text-base font-semibold text-white mb-4">Segment Distribution</h3>
               {pieData.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-8">No segment data</p>
+                <p className="text-sm text-slate-300 text-center py-8">No segment data</p>
               ) : (
                 <div className="flex items-center gap-4">
                   <ResponsiveContainer width="60%" height={200}>
@@ -385,7 +385,7 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
             <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
               <h3 className="text-base font-semibold text-white mb-4">CLV Distribution</h3>
               {clvBuckets.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-8">No CLV data</p>
+                <p className="text-sm text-slate-300 text-center py-8">No CLV data</p>
               ) : (
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={clvBuckets} margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
@@ -403,7 +403,7 @@ function AnalyticsTab({ locationId }: { locationId: string }) {
           <div className="bg-white/5 rounded-xl border border-white/10 shadow-sm p-6">
             <h3 className="text-base font-semibold text-white mb-4">Churn Risk Breakdown</h3>
             {churnDist.length === 0 ? (
-              <p className="text-sm text-slate-500">No churn data</p>
+              <p className="text-sm text-slate-300">No churn data</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {orderedChurn.map(({ risk, count }) => {

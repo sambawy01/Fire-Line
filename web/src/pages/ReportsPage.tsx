@@ -266,7 +266,7 @@ export default function ReportsPage() {
             <p className="text-sm text-slate-400 mt-0.5">{locationName}</p>
           )}
           {report?.report_date && (
-            <p className="text-sm text-slate-500 mt-0.5">{formatDate(report.report_date)}</p>
+            <p className="text-sm text-slate-300 mt-0.5">{formatDate(report.report_date)}</p>
           )}
         </div>
         <div className="flex items-center gap-3 shrink-0">
@@ -305,7 +305,7 @@ export default function ReportsPage() {
             <span className={`text-5xl font-bold ${healthScoreColor(score)}`}>
               {score}
             </span>
-            <p className="text-xs text-slate-500 mt-2">out of 100</p>
+            <p className="text-xs text-slate-300 mt-2">out of 100</p>
           </div>
 
           {/* Critical Issues */}
@@ -323,7 +323,7 @@ export default function ReportsPage() {
                     <span className="text-red-400 font-medium">{issue.title}</span>
                     <div className="flex items-center gap-2 shrink-0">
                       <StatusBadge variant="neutral">{issue.module}</StatusBadge>
-                      <span className="text-slate-500 text-xs">{formatTimestamp(issue.created_at)}</span>
+                      <span className="text-slate-300 text-xs">{formatTimestamp(issue.created_at)}</span>
                     </div>
                   </li>
                 ))}
@@ -526,7 +526,7 @@ export default function ReportsPage() {
           )}
 
           {/* Footer metadata */}
-          <div className="flex items-center gap-2 text-xs text-slate-500 pt-2 border-t border-white/5">
+          <div className="flex items-center gap-2 text-xs text-slate-300 pt-2 border-t border-white/5">
             <FileText className="h-3.5 w-3.5" />
             <span>Report generated for {report.report_date} — {locationName}</span>
           </div>

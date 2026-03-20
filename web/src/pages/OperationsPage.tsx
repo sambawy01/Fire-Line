@@ -103,11 +103,11 @@ function HealthGauge({ score, status }: { score: number; status: string }) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-bold text-white">{score}</span>
-          <span className="text-xs text-slate-500">/ 100</span>
+          <span className="text-xs text-slate-300">/ 100</span>
         </div>
       </div>
       <span className="text-sm font-semibold" style={{ color }}>{healthLabel(status)}</span>
-      <span className="text-xs text-slate-500 uppercase tracking-wide">Ops Health</span>
+      <span className="text-xs text-slate-300 uppercase tracking-wide">Ops Health</span>
     </div>
   );
 }
@@ -287,7 +287,7 @@ export default function OperationsPage() {
                     {(overload.capacity_pct ?? 0).toFixed(0)}%
                   </StatusBadge>
                 </div>
-                <span className="text-xs text-slate-500 ml-5">
+                <span className="text-xs text-slate-300 ml-5">
                   {overload.severity.charAt(0).toUpperCase() + overload.severity.slice(1)} severity
                 </span>
               </div>
@@ -396,9 +396,9 @@ export default function OperationsPage() {
         >
           <h2 className="text-lg font-semibold text-white">Planning Horizons</h2>
           {horizonsOpen ? (
-            <ChevronUp className="h-5 w-5 text-slate-500" />
+            <ChevronUp className="h-5 w-5 text-slate-300" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-slate-500" />
+            <ChevronDown className="h-5 w-5 text-slate-300" />
           )}
         </button>
 
@@ -484,7 +484,7 @@ export default function OperationsPage() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center text-slate-500 py-8 text-sm">No shift data available</p>
+                  <p className="text-center text-slate-300 py-8 text-sm">No shift data available</p>
                 )
               )}
 
@@ -524,7 +524,7 @@ export default function OperationsPage() {
                     />
                   </div>
                 ) : (
-                  <p className="text-center text-slate-500 py-8 text-sm">No daily data available</p>
+                  <p className="text-center text-slate-300 py-8 text-sm">No daily data available</p>
                 )
               )}
 
@@ -564,7 +564,7 @@ export default function OperationsPage() {
                     />
                   </div>
                 ) : (
-                  <p className="text-center text-slate-500 py-8 text-sm">No weekly data available</p>
+                  <p className="text-center text-slate-300 py-8 text-sm">No weekly data available</p>
                 )
               )}
 
@@ -614,7 +614,7 @@ export default function OperationsPage() {
                           {(strategic.labor_cost_pct ?? 0).toFixed(1)}%
                         </p>
                         {strategic.labor_trend && (
-                          <span className="text-xs text-slate-500 mt-1 inline-block capitalize">
+                          <span className="text-xs text-slate-300 mt-1 inline-block capitalize">
                             Trend: {strategic.labor_trend}
                           </span>
                         )}
@@ -622,7 +622,7 @@ export default function OperationsPage() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center text-slate-500 py-8 text-sm">No strategic data available</p>
+                  <p className="text-center text-slate-300 py-8 text-sm">No strategic data available</p>
                 )
               )}
             </div>

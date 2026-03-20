@@ -132,7 +132,7 @@ export default function AlertsPage() {
                       <StatusBadge variant="neutral">
                         {MODULE_LABELS[alert.module] ?? alert.module}
                       </StatusBadge>
-                      <span className="ml-auto flex items-center gap-1 text-xs text-slate-500">
+                      <span className="ml-auto flex items-center gap-1 text-xs text-slate-300">
                         <Clock className="h-3.5 w-3.5" />
                         {formatTimestamp(alert.created_at)}
                       </span>
@@ -147,7 +147,7 @@ export default function AlertsPage() {
                         onClick={() => ackMutation.mutate(alert.alert_id)}
                         className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
                           isAcked
-                            ? 'cursor-default bg-white/5 text-slate-500'
+                            ? 'cursor-default bg-white/5 text-slate-300'
                             : 'bg-[#F97316] text-white hover:bg-[#EA580C]'
                         }`}
                       >
@@ -158,7 +158,7 @@ export default function AlertsPage() {
                         onClick={() => resolveMutation.mutate(alert.alert_id)}
                         className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
                           isResolved
-                            ? 'cursor-default bg-white/5 text-slate-500'
+                            ? 'cursor-default bg-white/5 text-slate-300'
                             : 'bg-white/10 text-slate-200 ring-1 ring-white/10 hover:bg-white/15'
                         }`}
                       >

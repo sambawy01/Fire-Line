@@ -75,7 +75,7 @@ export default function Layout() {
           <Flame className="h-8 w-8 text-[#F97316]" />
           <div>
             <h1 className="text-lg font-bold tracking-tight">FireLine</h1>
-            <p className="text-xs text-gray-400">by OpsNerve</p>
+            <p className="text-xs text-slate-300">by OpsNerve</p>
           </div>
         </div>
 
@@ -83,8 +83,8 @@ export default function Layout() {
         {locations.length > 1 && (
           <div className="px-3 py-3 border-b border-white/10">
             <div className="flex items-center gap-2 px-3 mb-1.5">
-              <MapPin className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-xs text-gray-400 uppercase tracking-wider">Location</span>
+              <MapPin className="h-3.5 w-3.5 text-slate-300" />
+              <span className="text-xs text-slate-300 uppercase tracking-wider">Location</span>
             </div>
             <select
               value={selectedLocationId ?? ''}

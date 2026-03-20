@@ -234,7 +234,7 @@ function DeltaBadge({ delta }: { delta: number }) {
       }`}
     >
       {positive ? '↑' : '↓'} {Math.abs(delta)}%
-      <span className="text-slate-500 font-normal ml-1">vs yday</span>
+      <span className="text-slate-300 font-normal ml-1">vs yday</span>
     </span>
   );
 }
@@ -251,7 +251,7 @@ function Card({ children, className = '' }: { children: React.ReactNode; classNa
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+    <p className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
       {children}
     </p>
   );
@@ -342,7 +342,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-white">
             {selectedLocation?.name ?? 'Branch Dashboard'}
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-300 mt-0.5">
             Live command center · {new Date().toLocaleDateString('en-US', {
               weekday: 'long', month: 'long', day: 'numeric',
             })}
@@ -410,7 +410,7 @@ export default function DashboardPage() {
           <SectionLabel>Health Score</SectionLabel>
           <p className="text-3xl font-bold text-white leading-none">
             {healthScore}
-            <span className="text-lg text-slate-500 font-normal">/100</span>
+            <span className="text-lg text-slate-300 font-normal">/100</span>
           </p>
           <p className="text-xs text-slate-400 mt-1 capitalize">{healthStatus}</p>
         </Card>
@@ -513,7 +513,7 @@ export default function DashboardPage() {
                 {/* Center label via absolute positioning trick */}
               </div>
               <div className="shrink-0 space-y-3 pr-2">
-                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Breakdown</p>
+                <p className="text-xs text-slate-300 uppercase tracking-wider mb-1">Breakdown</p>
                 {channelData.map((d) => {
                   const pct = totalChannelOrders > 0
                     ? ((d.value / totalChannelOrders) * 100).toFixed(1)
@@ -532,13 +532,13 @@ export default function DashboardPage() {
                   );
                 })}
                 <div className="pt-2 border-t border-white/10">
-                  <p className="text-xs text-slate-500">Total Orders</p>
+                  <p className="text-xs text-slate-300">Total Orders</p>
                   <p className="text-lg font-bold text-white">{totalChannelOrders}</p>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-40 text-slate-600 text-sm">
+            <div className="flex items-center justify-center h-40 text-slate-400 text-sm">
               No channel data yet
             </div>
           )}
@@ -577,7 +577,7 @@ export default function DashboardPage() {
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-white truncate">{alert.title}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="text-xs text-slate-300 mt-0.5">
                       {timeAgo(alert.created_at ?? new Date().toISOString())}
                     </p>
                   </div>
@@ -593,14 +593,14 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : (
-              <div className="flex items-center justify-center py-8 text-slate-600 text-sm">
+              <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
                 All clear — no alerts
               </div>
             )}
           </div>
 
           {totalAlerts > 5 && (
-            <p className="mt-3 text-xs text-slate-500 text-right">
+            <p className="mt-3 text-xs text-slate-300 text-right">
               View all {totalAlerts} alerts →
             </p>
           )}
@@ -657,7 +657,7 @@ export default function DashboardPage() {
               )}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-8 text-slate-600 text-sm">
+            <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
               No station data available
             </div>
           )}
@@ -677,7 +677,7 @@ export default function DashboardPage() {
                 const cls = item.classification ?? 'workhorse';
                 return (
                   <div key={item.menu_item_id ?? i} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-slate-600 w-4 shrink-0">
+                    <span className="text-xs font-bold text-slate-400 w-4 shrink-0">
                       #{i + 1}
                     </span>
                     <div className="flex-1 min-w-0">
@@ -704,7 +704,7 @@ export default function DashboardPage() {
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-8 text-slate-600 text-sm">
+            <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
               No menu score data yet
             </div>
           )}
@@ -765,7 +765,7 @@ export default function DashboardPage() {
                 })}
               </div>
               {staffProfiles.length > 8 && (
-                <p className="text-xs text-slate-500 text-right mt-3">
+                <p className="text-xs text-slate-300 text-right mt-3">
                   +{staffProfiles.length - 8} more on shift
                 </p>
               )}
@@ -773,7 +773,7 @@ export default function DashboardPage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-8 gap-2">
               <Users className="w-8 h-8 text-slate-700" />
-              <p className="text-slate-500 text-sm">
+              <p className="text-slate-300 text-sm">
                 {(labor?.employee_count ?? 0) > 0
                   ? `${labor?.employee_count} employees on shift today`
                   : 'No shift data available'}
@@ -802,7 +802,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-xs font-medium text-white">Food Cost %</p>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">Target 32%</span>
+                      <span className="text-xs text-slate-300">Target 32%</span>
                       <span className={`text-xs font-bold ${good ? 'text-emerald-400' : 'text-red-400'}`}>
                         {actual.toFixed(1)}%
                         <span className="ml-1 font-normal">
@@ -837,7 +837,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-xs font-medium text-white">Labor Cost %</p>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">Target 28%</span>
+                      <span className="text-xs text-slate-300">Target 28%</span>
                       <span className={`text-xs font-bold ${good ? 'text-emerald-400' : 'text-red-400'}`}>
                         {actual.toFixed(1)}%
                         <span className="ml-1 font-normal">
@@ -872,7 +872,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-xs font-medium text-white">Prime Cost %</p>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">Target 60%</span>
+                      <span className="text-xs text-slate-300">Target 60%</span>
                       <span className={`text-xs font-bold ${good ? 'text-emerald-400' : 'text-red-400'}`}>
                         {actual.toFixed(1)}%
                         <span className="ml-1 font-normal">
@@ -898,15 +898,15 @@ export default function DashboardPage() {
             {/* Summary row */}
             <div className="pt-3 border-t border-white/10 grid grid-cols-3 gap-2">
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider">COGS</p>
+                <p className="text-xs text-slate-300 uppercase tracking-wider">COGS</p>
                 <p className="text-sm font-bold text-white mt-0.5">{fmtEGPShort(pnl?.cogs ?? 0)}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider">Gross Profit</p>
+                <p className="text-xs text-slate-300 uppercase tracking-wider">Gross Profit</p>
                 <p className="text-sm font-bold text-white mt-0.5">{fmtEGPShort(pnl?.gross_profit ?? 0)}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider">GM%</p>
+                <p className="text-xs text-slate-300 uppercase tracking-wider">GM%</p>
                 <p className="text-sm font-bold text-emerald-400 mt-0.5">
                   {(pnl?.gross_margin ?? 0).toFixed(1)}%
                 </p>
@@ -936,7 +936,7 @@ export default function DashboardPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-slate-300 leading-relaxed">{event.text}</p>
               </div>
-              <span className="text-xs text-slate-600 shrink-0 whitespace-nowrap">{timeAgo(event.ts)}</span>
+              <span className="text-xs text-slate-400 shrink-0 whitespace-nowrap">{timeAgo(event.ts)}</span>
             </div>
           ))}
         </div>
