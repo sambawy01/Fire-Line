@@ -18,6 +18,7 @@ interface DataTableProps<T> {
   emptyTitle?: string;
   emptyDescription?: string;
   onRowClick?: (row: T) => void;
+  rowClassName?: (row: T) => string;
 }
 
 export default function DataTable<T>({
@@ -28,6 +29,7 @@ export default function DataTable<T>({
   emptyTitle = 'No data',
   emptyDescription,
   onRowClick,
+  rowClassName,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
@@ -93,7 +95,7 @@ export default function DataTable<T>({
             {sorted.map((row) => (
               <tr
                 key={keyExtractor(row)}
-                className={`hover:bg-white/5 transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
+                className={`hover:bg-white/5 transition-colors ${onRowClick ? 'cursor-pointer' : ''} ${rowClassName ? rowClassName(row) : ''}`}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
               >
                 {columns.map((col) => (

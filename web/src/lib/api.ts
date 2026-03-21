@@ -270,6 +270,17 @@ export interface WasteLogEntry {
   note: string;
 }
 
+export interface ExpiryItem {
+  ingredient_id: string;
+  name: string;
+  category: string;
+  expiry_date: string | null;
+  batch_number: string | null;
+  days_until_expiry: number;
+  status: 'expired' | 'expires_today' | 'expiring_soon' | 'ok';
+  vendor_name: string;
+}
+
 export const inventoryApi = {
   getUsage(locationId: string, from?: string, to?: string) {
     const params = new URLSearchParams({ location_id: locationId });
@@ -285,6 +296,10 @@ export const inventoryApi = {
   getWasteLogs: (locationId: string) =>
     request<{ waste_logs: WasteLogEntry[] }>(
       `/inventory/waste?location_id=${locationId}&from=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}&to=${new Date().toISOString()}`
+    ),
+  getExpiry: (locationId: string) =>
+    request<{ items: ExpiryItem[]; expired_count: number; expiring_today_count: number; expiring_soon_count: number }>(
+      `/inventory/expiry?location_id=${locationId}`
     ),
 };
 

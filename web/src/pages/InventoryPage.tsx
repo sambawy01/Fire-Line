@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useLocationStore } from '../stores/location';
-import { useUsage, usePARStatus, useVariances } from '../hooks/useInventory';
+import { useUsage, usePARStatus, useVariances, useExpiry } from '../hooks/useInventory';
 import { usePARBreaches } from '../hooks/usePurchaseOrders';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
 import ErrorBanner from '../components/ui/ErrorBanner';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import type { TheoreticalUsage, PARStatus, CountVariance } from '../lib/api';
+import type { TheoreticalUsage, PARStatus, CountVariance, ExpiryItem } from '../lib/api';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -139,14 +139,92 @@ const varianceColumns: Column<CountVariance>[] = [
   },
 ];
 
+// ─── Expiry columns ───────────────────────────────────────────────────────────
+
+function expiryStatusVariant(status: ExpiryItem['status']): 'critical' | 'warning' | 'info' | 'success' {
+  if (status === 'expired') return 'critical';
+  if (status === 'expires_today') return 'warning';
+  if (status === 'expiring_soon') return 'info';
+  return 'success';
+}
+
+function expiryStatusLabel(status: ExpiryItem['status']): string {
+  if (status === 'expired') return 'Expired';
+  if (status === 'expires_today') return 'Today';
+  if (status === 'expiring_soon') return 'Soon';
+  return 'OK';
+}
+
+const expiryColumns: Column<ExpiryItem>[] = [
+  {
+    key: 'name',
+    header: 'Name',
+    sortable: true,
+    render: (r) => {
+      const urgent = r.status === 'expired' || r.status === 'expires_today';
+      return <span className={urgent ? 'font-medium text-white' : ''}>{r.name}</span>;
+    },
+  },
+  {
+    key: 'category',
+    header: 'Category',
+    render: (r) => (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">
+        {r.category}
+      </span>
+    ),
+  },
+  {
+    key: 'batch_number',
+    header: 'Batch #',
+    render: (r) => r.batch_number ? <span className="font-mono text-xs text-slate-300">{r.batch_number}</span> : <span className="text-slate-500">—</span>,
+  },
+  {
+    key: 'expiry_date',
+    header: 'Expiry Date',
+    render: (r) => r.expiry_date ?? <span className="text-slate-500">—</span>,
+  },
+  {
+    key: 'days_until_expiry',
+    header: 'Days Left',
+    align: 'right',
+    sortable: true,
+    render: (r) => {
+      if (r.days_until_expiry < 0) {
+        return <span className="font-bold text-red-500">{r.days_until_expiry}</span>;
+      }
+      if (r.days_until_expiry === 0) {
+        return <span className="font-bold text-amber-400">0</span>;
+      }
+      return <span>{r.days_until_expiry}</span>;
+    },
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    align: 'center',
+    render: (r) => (
+      <StatusBadge variant={expiryStatusVariant(r.status)}>
+        {expiryStatusLabel(r.status)}
+      </StatusBadge>
+    ),
+  },
+  {
+    key: 'vendor_name',
+    header: 'Vendor',
+    render: (r) => <span className="text-slate-300">{r.vendor_name}</span>,
+  },
+];
+
 // ─── Tab types ────────────────────────────────────────────────────────────────
 
-type Tab = 'usage' | 'par' | 'variances';
+type Tab = 'usage' | 'par' | 'variances' | 'expiry';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'usage', label: 'Usage' },
   { id: 'par', label: 'PAR Status' },
   { id: 'variances', label: 'Variances' },
+  { id: 'expiry', label: 'Expiry' },
 ];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -164,6 +242,7 @@ export default function InventoryPage() {
     error: varianceError,
     refetch: refetchVariances,
   } = useVariances(locationId);
+  const { data: expiryData, isLoading: expiryLoading, error: expiryError, refetch: refetchExpiry } = useExpiry(locationId);
 
   if (!locationId) return <LoadingSpinner fullPage />;
 
@@ -171,6 +250,16 @@ export default function InventoryPage() {
   const sortedVariances = varianceData?.variances
     ? [...varianceData.variances].sort((a, b) => b.variance_cents - a.variance_cents)
     : [];
+
+  // Sort expiry items by days_until_expiry ascending (most urgent first)
+  const sortedExpiryItems = expiryData?.items
+    ? [...expiryData.items].sort((a, b) => a.days_until_expiry - b.days_until_expiry)
+    : [];
+
+  const expiredCount = expiryData?.expired_count ?? 0;
+  const expiringTodayCount = expiryData?.expiring_today_count ?? 0;
+  const expiringSoonCount = expiryData?.expiring_soon_count ?? 0;
+  const okCount = sortedExpiryItems.filter((i) => i.status === 'ok').length;
 
   return (
     <div className="space-y-6">
@@ -278,6 +367,67 @@ export default function InventoryPage() {
             isLoading={varianceLoading}
             emptyTitle="No variances found"
             emptyDescription="All ingredient counts are within expected range."
+          />
+        </div>
+      )}
+
+      {/* Expiry tab */}
+      {activeTab === 'expiry' && (
+        <div>
+          {expiryError && (
+            <ErrorBanner
+              message={expiryError instanceof Error ? expiryError.message : 'Failed to load expiry data'}
+              retry={() => refetchExpiry()}
+            />
+          )}
+
+          {/* Alert banner — shown only when there are expired or expiring-today items */}
+          {(expiredCount > 0 || expiringTodayCount > 0) && (
+            <div className="bg-red-950 border border-red-700 rounded-lg px-4 py-3 mb-4 flex items-center gap-2">
+              <span className="text-red-300 text-sm font-medium">
+                ⚠️ {expiredCount} item{expiredCount !== 1 ? 's' : ''} expired,{' '}
+                {expiringTodayCount} expiring today — immediate action required
+              </span>
+            </div>
+          )}
+
+          {/* KPI cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div className="bg-red-950/60 border border-red-800 rounded-lg p-3">
+              <p className="text-xs text-red-400 font-medium uppercase tracking-wide mb-1">Expired</p>
+              <p className="text-2xl font-bold text-red-400">{expiredCount}</p>
+            </div>
+            <div className="bg-amber-950/60 border border-amber-700 rounded-lg p-3">
+              <p className="text-xs text-amber-400 font-medium uppercase tracking-wide mb-1">Expires Today</p>
+              <p className="text-2xl font-bold text-amber-400">{expiringTodayCount}</p>
+            </div>
+            <div className="bg-yellow-950/60 border border-yellow-700 rounded-lg p-3">
+              <p className="text-xs text-yellow-400 font-medium uppercase tracking-wide mb-1">Expiring Soon</p>
+              <p className="text-2xl font-bold text-yellow-400">{expiringSoonCount}</p>
+            </div>
+            <div className="bg-green-950/60 border border-green-800 rounded-lg p-3">
+              <p className="text-xs text-green-400 font-medium uppercase tracking-wide mb-1">OK</p>
+              <p className="text-2xl font-bold text-green-400">{okCount}</p>
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <h2 className="text-lg font-semibold text-white">Expiry Tracking</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Sorted by urgency — most critical items first.</p>
+          </div>
+
+          <DataTable
+            columns={expiryColumns}
+            data={sortedExpiryItems}
+            keyExtractor={(r) => r.ingredient_id}
+            isLoading={expiryLoading}
+            emptyTitle="No expiry data"
+            emptyDescription="No ingredient expiry dates have been recorded for this location."
+            rowClassName={(r) => {
+              if (r.status === 'expired') return 'border-l-2 border-red-600 bg-red-950/20';
+              if (r.status === 'expires_today') return 'border-l-2 border-amber-500 bg-amber-950/20';
+              return '';
+            }}
           />
         </div>
       )}

@@ -36,3 +36,12 @@ export function useWasteLogs(locationId: string | null) {
     staleTime: 30_000,
   });
 }
+
+export function useExpiry(locationId: string | null) {
+  return useQuery({
+    queryKey: ['inventory', 'expiry', locationId],
+    queryFn: () => inventoryApi.getExpiry(locationId!),
+    enabled: !!locationId,
+    staleTime: 30_000,
+  });
+}
