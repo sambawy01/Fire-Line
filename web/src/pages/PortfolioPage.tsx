@@ -1888,8 +1888,8 @@ function AIRecommendations() {
         </div>
         <div className="h-px flex-1 bg-white/5" />
       </div>
-      <div className="overflow-x-auto pb-2 -mx-2 px-2">
-        <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+      <div className="overflow-x-auto pb-2">
+        <div className="flex gap-4">
         {AI_RECOMMENDATIONS.map((rec, i) => {
           const state = recStates[i] ?? defaultRecState();
           if (state.status === 'approved' || state.status === 'dismissed') return null;
@@ -2208,9 +2208,7 @@ export default function PortfolioPage() {
         )}
 
         {/* Feature 2: AI Insights Ticker */}
-        <div className="-mx-4 sm:-mx-6 lg:-mx-8">
-          <AIInsightsTicker />
-        </div>
+        <AIInsightsTicker />
 
         {/* Feature 4: Revenue Race */}
         {branchRows.length > 0 && (
