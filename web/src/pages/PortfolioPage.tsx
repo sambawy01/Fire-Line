@@ -696,7 +696,7 @@ function RevenueRace({ branchRows }: { branchRows: BranchKPIRow[] }) {
           const pct = (b.revenue / maxRevenue) * 100;
           return (
             <div key={b.name} className="flex items-center gap-3">
-              <span className="text-xs text-slate-400 w-24 truncate">{b.shortName}</span>
+              <span className="text-xs text-slate-400 w-36 truncate">{b.shortName}</span>
               <div className="flex-1 h-6 bg-white/5 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ${
@@ -2132,7 +2132,7 @@ export default function PortfolioPage() {
     .slice(0, locations.length)
     .map((d, idx) => ({
       name: locations[idx]?.name ?? '',
-      shortName: locations[idx]?.name?.split(' ')[0] ?? '',
+      shortName: locations[idx]?.name ?? '',
       revenue: d.pnl.data?.net_revenue ?? 0,
       margin: d.pnl.data?.gross_margin ?? 0,
       health: d.health.data?.overall_score ?? 0,
