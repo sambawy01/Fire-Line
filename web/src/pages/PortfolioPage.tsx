@@ -515,7 +515,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
   // Data for bar chart
   const branchChartData = branches.map((b) => ({
     name: b.shortName,
-    revenue: Math.round(b.revenue / 100000),
+    revenue: Math.round(b.revenue / 100),
     health: Math.round(b.health),
   }));
 
@@ -659,7 +659,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
                 color: '#f1f5f9',
               }}
             />
-            <Bar dataKey="revenue" name="Revenue (K EGP)" fill="#22c55e" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="revenue" name="Revenue (EGP)" fill="#22c55e" radius={[4, 4, 0, 0]} />
             <Bar dataKey="health" name="Health Score" fill="#3b82f6" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
