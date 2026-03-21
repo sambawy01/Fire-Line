@@ -22,7 +22,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ErrorBanner from '../components/ui/ErrorBanner';
 
 function cents(v: number): string {
-  return `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `EGP ${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
 function formatDate(iso: string): string {
@@ -39,15 +39,18 @@ function formatDate(iso: string): string {
 }
 
 function formatTimestamp(iso: string): string {
+  if (!iso) return '—';
   try {
-    return new Date(iso).toLocaleString('en-US', {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
     });
   } catch {
-    return iso;
+    return '—';
   }
 }
 
@@ -97,14 +100,20 @@ const channelColumns: Column<ReportChannel>[] = [
     header: '% of Total',
     align: 'right',
     sortable: true,
-    render: (r) => `${(r.pct_of_total ?? 0).toFixed(1)}%`,
+    render: (r) => {
+      const v = r.pct_of_total ?? 0;
+      return v > 0 ? `${v.toFixed(1)}%` : '—';
+    },
   },
   {
     key: 'avg_ticket_time',
     header: 'Avg Ticket',
     align: 'right',
     sortable: true,
-    render: (r) => `${(r.avg_ticket_time ?? 0).toFixed(1)} min`,
+    render: (r) => {
+      const v = r.avg_ticket_time ?? 0;
+      return v > 0 ? `${v.toFixed(1)} min` : '—';
+    },
   },
 ];
 
@@ -332,7 +341,7 @@ export default function ReportsPage() {
           )}
 
           {/* KPI Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <KPICard
               label="Net Revenue"
               value={cents(report.net_revenue)}
