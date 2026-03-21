@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+const API_BASE = import.meta.env.DEV
+  ? '/api/v1'
+  : 'https://fireline-api-production.up.railway.app/api/v1';
 
 class ApiError extends Error {
   status: number;
