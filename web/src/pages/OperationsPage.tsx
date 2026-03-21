@@ -102,7 +102,7 @@ function HealthGauge({ score, status }: { score: number; status: string }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-white">{score}</span>
+          <span className="text-2xl font-bold text-white">{Math.round(score)}</span>
           <span className="text-xs text-slate-300">/ 100</span>
         </div>
       </div>
@@ -119,7 +119,7 @@ function SubScorePill({ label, score }: { label: string; score: number }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
       <span className="text-xs text-slate-400">{label}</span>
-      <span className="text-sm font-bold" style={{ color }}>{score}</span>
+      <span className="text-sm font-bold" style={{ color }}>{Math.round(score)}</span>
     </div>
   );
 }
@@ -259,16 +259,16 @@ export default function OperationsPage() {
         ) : (
           <div className="flex flex-wrap items-center gap-8">
             {/* Circular gauge */}
-            {health && <HealthGauge score={health.overall_score} status={health.status} />}
+            {health && <HealthGauge score={Math.round(health.overall_score ?? 0)} status={health.status ?? 'unknown'} />}
 
             {/* Sub-scores */}
             {health && (
               <div className="flex flex-wrap gap-6">
-                <SubScorePill label="Kitchen" score={health.kitchen_score} />
-                <SubScorePill label="Tickets" score={health.ticket_score} />
-                <SubScorePill label="Staff" score={health.staff_score} />
-                <SubScorePill label="Financial" score={health.financial_score} />
-                <SubScorePill label="Inventory" score={health.inventory_score} />
+                <SubScorePill label="Kitchen" score={Math.round(health.kitchen_score ?? 0)} />
+                <SubScorePill label="Tickets" score={Math.round(health.ticket_score ?? 0)} />
+                <SubScorePill label="Staff" score={Math.round(health.staff_score ?? 0)} />
+                <SubScorePill label="Financial" score={Math.round(health.financial_score ?? 0)} />
+                <SubScorePill label="Inventory" score={Math.round(health.inventory_score ?? 0)} />
               </div>
             )}
 
