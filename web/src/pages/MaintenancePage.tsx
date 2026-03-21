@@ -82,7 +82,7 @@ function healthTextColor(score: number): string {
 }
 
 function fmtCost(cents: number): string {
-  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  return `EGP ${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
 function fmtDate(d: string | null): string {

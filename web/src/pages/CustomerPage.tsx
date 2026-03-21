@@ -39,7 +39,7 @@ import type { GuestProfile } from '../lib/api';
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function dollars(cents: number): string {
-  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `EGP ${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function daysSince(isoDate: string | null): number | null {

@@ -28,7 +28,7 @@ import { Truck, DollarSign, Star, Package, RefreshCw, AlertTriangle, CheckCircle
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function cents(v: number): string {
-  return `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `EGP ${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function scoreColor(score: number): string {
@@ -256,10 +256,10 @@ function PriceIntelligenceTab({ locationId }: { locationId: string }) {
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis
                 tick={{ fontSize: 11 }}
-                tickFormatter={(v) => `$${v}`}
+                tickFormatter={(v) => `EGP v}`}
                 width={52}
               />
-              <Tooltip formatter={(v: number) => [`$${v.toFixed(2)}`, 'Unit Cost']} />
+              <Tooltip formatter={(v: number) => [`EGP v.toFixed(2)}`, 'Unit Cost']} />
               <Line
                 type="monotone"
                 dataKey="cost"

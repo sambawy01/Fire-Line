@@ -21,7 +21,7 @@ import { DollarSign, Percent, Users, Clock } from 'lucide-react';
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function cents(v: number): string {
-  return `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `EGP ${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function capitalize(s: string): string {

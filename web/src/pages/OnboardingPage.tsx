@@ -140,7 +140,7 @@ const MODULE_INFO: Record<string, { label: string; icon: typeof BarChart3; desc:
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function cents(v: number) {
-  return `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `EGP ${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function formatHour(h: number) {

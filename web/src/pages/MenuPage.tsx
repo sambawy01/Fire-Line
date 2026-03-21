@@ -26,7 +26,7 @@ import type { MenuItemScore, IngredientDependency, CrossSellPair, SimulationResu
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function dollars(cents: number): string {
-  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `EGP ${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function deltaCls(v: number) {
@@ -34,7 +34,7 @@ function deltaCls(v: number) {
 }
 
 function deltaLabel(v: number, isCents = true): string {
-  const formatted = isCents ? dollars(Math.abs(v)) : `$${Math.abs(v / 100).toFixed(2)}`;
+  const formatted = isCents ? dollars(Math.abs(v)) : `EGP Math.abs(v / 100).toFixed(2)}`;
   return `${v >= 0 ? '+' : '-'}${formatted}`;
 }
 
@@ -196,7 +196,7 @@ export default function MenuPage() {
       header: 'Price',
       align: 'right',
       sortable: true,
-      render: (r) => `$${(r.price / 100).toFixed(2)}`,
+      render: (r) => `EGP ${(r.price / 100).toFixed(2)}`,
     },
     {
       key: 'classification',

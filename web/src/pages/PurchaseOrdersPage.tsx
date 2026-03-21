@@ -12,7 +12,7 @@ import type { PurchaseOrder, POLine } from '../lib/api';
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function dollars(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
+  return `EGP ${(cents / 100).toFixed(2)}`;
 }
 
 function daysSince(iso: string | null): number {

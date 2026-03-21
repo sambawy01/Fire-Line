@@ -418,7 +418,7 @@ export default function SchedulingPage() {
                 />
                 <KPICard
                   label="Total Cost"
-                  value={`$${costData.total_cost.toLocaleString()}`}
+                  value={`EGP costData.total_cost.toLocaleString()}`}
                   icon={DollarSign}
                   iconColor="text-green-600"
                   bgTint="bg-green-50"

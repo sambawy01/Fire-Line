@@ -53,7 +53,7 @@ import type {
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function cents(v: number): string {
-  return `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `EGP ${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function pctArrow(v: number): string {
@@ -177,7 +177,7 @@ function PnLTab({ locationId }: { locationId: string }) {
         </div>
       ) : pnl ? (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <KPICard label="Gross Revenue" value={cents(pnl.gross_revenue)} icon={DollarSign} iconColor="text-emerald-600" bgTint="bg-emerald-50" />
             <KPICard label="Net Revenue" value={cents(pnl.net_revenue)} icon={TrendingUp} iconColor="text-blue-600" bgTint="bg-blue-50" />
             <KPICard label="COGS" value={cents(pnl.cogs)} icon={TrendingDown} iconColor="text-red-600" bgTint="bg-red-50" />
@@ -203,9 +203,9 @@ function PnLTab({ locationId }: { locationId: string }) {
               <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis dataKey="channel" tick={{ fontSize: 13 }} />
-                <YAxis tick={{ fontSize: 13 }} tickFormatter={(v: number) => `$${v.toLocaleString()}`} />
+                <YAxis tick={{ fontSize: 13 }} tickFormatter={(v: number) => `EGP v.toLocaleString()}`} />
                 <Tooltip
-                  formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Revenue']}
+                  formatter={(value) => [`EGP Number(value).toLocaleString()}`, 'Revenue']}
                   contentStyle={{ borderRadius: '8px', border: "1px solid #334155", fontSize: '13px' }}
                 />
                 <Bar dataKey="revenue" fill="#F97316" radius={[6, 6, 0, 0]} />

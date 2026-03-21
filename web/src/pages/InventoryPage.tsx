@@ -12,11 +12,11 @@ import type { TheoreticalUsage, PARStatus, CountVariance } from '../lib/api';
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function cents(v: number): string {
-  return `$${(v / 100).toFixed(2)}`;
+  return `EGP ${(v / 100).toFixed(2)}`;
 }
 
 function varianceDollars(v: number): JSX.Element {
-  const formatted = `${v < 0 ? '-' : '+'}$${Math.abs(v / 100).toFixed(2)}`;
+  const formatted = `${v < 0 ? '-' : '+'}EGP ${Math.abs(v / 100).toFixed(2)}`;
   const color = v > 0 ? 'text-red-600' : v < 0 ? 'text-green-600' : 'text-slate-300';
   return <span className={color}>{formatted}</span>;
 }
