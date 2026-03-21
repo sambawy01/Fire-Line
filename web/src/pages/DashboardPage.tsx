@@ -417,7 +417,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 2: Charts ─────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
         {/* Revenue by Hour */}
         <Card>
@@ -546,7 +546,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 3: Alerts / Kitchen / Top Sellers ──────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
 
         {/* AI Alerts */}
         <Card>
@@ -712,7 +712,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 4: Staff + Financial ──────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
         {/* Staff On Floor */}
         <Card>

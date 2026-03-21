@@ -5,3 +5,9 @@
     @apply bg-gray-50 text-gray-900 antialiased;
   }
 }
+
+/* Mobile overflow fix */
+html, body, #root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
