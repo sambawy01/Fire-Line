@@ -53,6 +53,7 @@ func (h *MaintenanceHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http
 	// Equipment
 	mux.Handle("GET /api/v1/maintenance/equipment", chain(http.HandlerFunc(h.ListEquipment), authMW, readRoles))
 	mux.Handle("POST /api/v1/maintenance/equipment", chain(http.HandlerFunc(h.CreateEquipment), authMW, writeRoles))
+	mux.Handle("GET /api/v1/maintenance/equipment/{id}/readings", chain(http.HandlerFunc(h.GetEquipmentReadings), authMW, readRoles))
 	mux.Handle("GET /api/v1/maintenance/equipment/{id}", chain(http.HandlerFunc(h.GetEquipment), authMW, readRoles))
 	mux.Handle("PUT /api/v1/maintenance/equipment/{id}", chain(http.HandlerFunc(h.UpdateEquipment), authMW, writeRoles))
 
@@ -294,4 +295,23 @@ func (h *MaintenanceHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	WriteJSON(w, http.StatusOK, stats)
+}
+
+// GetEquipmentReadings returns sensor readings for equipment.
+func (h *MaintenanceHandler) GetEquipmentReadings(w http.ResponseWriter, r *http.Request) {
+	orgID, err := tenant.OrgIDFrom(r.Context())
+	if err != nil {
+		WriteError(w, http.StatusUnauthorized, "AUTH_NO_TENANT", "no tenant context")
+		return
+	}
+	equipmentID := r.PathValue("id")
+	readings, err := h.svc.GetEquipmentReadings(r.Context(), orgID, equipmentID, 50)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, "MAINT_READINGS_ERROR", err.Error())
+		return
+	}
+	if readings == nil {
+		readings = []maintenance.EquipmentReading{}
+	}
+	WriteJSON(w, http.StatusOK, map[string]any{"readings": readings})
 }

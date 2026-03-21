@@ -257,3 +257,49 @@ func (s *Service) GetOverdueMaintenanceEquipment(ctx context.Context, orgID, loc
 	}
 	return results, nil
 }
+
+// EquipmentReading represents a sensor/manual reading for equipment.
+type EquipmentReading struct {
+	ReadingID   string    `json:"reading_id"`
+	MetricName  string    `json:"metric_name"`
+	Value       float64   `json:"value"`
+	Unit        string    `json:"unit"`
+	RecordedBy  string    `json:"recorded_by"`
+	RecordedAt  time.Time `json:"recorded_at"`
+}
+
+// GetEquipmentReadings returns recent readings for an equipment item.
+func (s *Service) GetEquipmentReadings(ctx context.Context, orgID, equipmentID string, limit int) ([]EquipmentReading, error) {
+	tenantCtx := tenant.WithOrgID(ctx, orgID)
+	if limit <= 0 {
+		limit = 50
+	}
+	var readings []EquipmentReading
+	err := database.TenantTx(tenantCtx, s.pool, func(tx pgx.Tx) error {
+		rows, err := tx.Query(tenantCtx,
+			`SELECT reading_id, metric_name, value, unit, COALESCE(recorded_by, ''), recorded_at
+			 FROM equipment_readings
+			 WHERE equipment_id = $1
+			 ORDER BY recorded_at DESC
+			 LIMIT $2`,
+			equipmentID, limit,
+		)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var r EquipmentReading
+			if err := rows.Scan(&r.ReadingID, &r.MetricName, &r.Value, &r.Unit, &r.RecordedBy, &r.RecordedAt); err != nil {
+				return err
+			}
+			readings = append(readings, r)
+		}
+		return rows.Err()
+	})
+	// Reverse to chronological order
+	for i, j := 0, len(readings)-1; i < j; i, j = i+1, j-1 {
+		readings[i], readings[j] = readings[j], readings[i]
+	}
+	return readings, err
+}
