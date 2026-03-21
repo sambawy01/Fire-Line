@@ -118,7 +118,7 @@ func main() {
 	alertSvc.RegisterDefaultRules()
 
 	// Seed demo alerts if the demo org exists
-	if cfg.Env == "development" {
+	{
 		var demoOrgID string
 		err := adminPool.Raw().QueryRow(ctx, "SELECT org_id FROM organizations LIMIT 1").Scan(&demoOrgID)
 		if err == nil && demoOrgID != "" {
