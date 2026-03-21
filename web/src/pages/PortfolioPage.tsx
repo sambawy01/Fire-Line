@@ -2140,7 +2140,7 @@ export default function PortfolioPage() {
     }));
 
   return (
-    <div className="min-h-full relative overflow-x-hidden w-full max-w-full box-border">
+    <div className="min-h-full relative overflow-hidden">
       {/* Inject ticker animation CSS */}
       <style>{tickerStyle}</style>
 
@@ -2167,7 +2167,7 @@ export default function PortfolioPage() {
         }}
       />
 
-      <div className="relative w-full py-6 space-y-8">
+      <div className="relative py-6 space-y-8 overflow-hidden">
         {/* Hero Header */}
         <div className="text-center space-y-4 pt-4">
           <div className="flex items-center justify-center gap-3 mb-2">
