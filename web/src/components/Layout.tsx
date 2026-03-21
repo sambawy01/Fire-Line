@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   Building2,
@@ -68,10 +68,17 @@ export default function Layout() {
     navigate('/login');
   };
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="flex h-screen bg-slate-900 overflow-x-hidden">
-      {/* Sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 bg-[#1E293B] text-white">
+      {/* Mobile overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+      )}
+
+      {/* Sidebar — hidden on mobile unless toggled */}
+      <aside className={`${mobileMenuOpen ? 'fixed inset-y-0 left-0 z-50 flex' : 'hidden'} md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 w-64 flex-col bg-[#1E293B] text-white transition-transform`}>
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
           <Flame className="h-8 w-8 text-[#F97316]" />
@@ -108,6 +115,7 @@ export default function Layout() {
             <NavLink
               key={to}
               to={to}
+              onClick={() => setMobileMenuOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
                   isActive
@@ -142,10 +150,24 @@ export default function Layout() {
       {/* Main content */}
       <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
         {/* Top header */}
-        <header className="sticky top-0 z-10 bg-slate-800 border-b border-white/10 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">
-            {locations.length === 1 ? locations[0].name : 'FireLine'}
-          </h2>
+        <header className="sticky top-0 z-10 bg-slate-800 border-b border-white/10 px-4 md:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-1.5 rounded-lg text-slate-300 hover:bg-white/10 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                {mobileMenuOpen
+                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                }
+              </svg>
+            </button>
+            <h2 className="text-lg md:text-xl font-semibold text-white">
+              {locations.length === 1 ? locations[0].name : 'FireLine'}
+            </h2>
+          </div>
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-slate-200">
