@@ -6,7 +6,6 @@ import {
   useLaborEmployees,
   useProfiles,
   useLeaderboard,
-  usePointHistory,
 } from '../hooks/useLabor';
 import { laborApi } from '../lib/api';
 import KPICard from '../components/ui/KPICard';
@@ -16,7 +15,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ErrorBanner from '../components/ui/ErrorBanner';
 import type { EmployeeDetail, EmployeeProfile, LeaderboardEntry } from '../lib/api';
-import { DollarSign, Percent, Users, Clock } from 'lucide-react';
+import { DollarSign, Percent, Users, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -40,16 +39,17 @@ function eluAvg(ratings: Record<string, number>): number {
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
 
-function eluColor(score: number): string {
-  if (score <= 0.5) return 'bg-red-500';
-  if (score <= 1.0) return 'bg-yellow-400';
+/** Color for ELU bar fill — 0-1.5 red, 1.5-3.0 amber, 3.0-5.0 green (0-5 scale) */
+function eluBarColor(score: number): string {
+  if (score <= 1.5) return 'bg-red-500';
+  if (score <= 3.0) return 'bg-amber-400';
   return 'bg-green-500';
 }
 
 function eluTextColor(score: number): string {
-  if (score <= 0.5) return 'text-red-600';
-  if (score <= 1.0) return 'text-yellow-600';
-  return 'text-green-600';
+  if (score <= 1.5) return 'text-red-400';
+  if (score <= 3.0) return 'text-amber-400';
+  return 'text-green-400';
 }
 
 type Trend = 'up' | 'down' | 'stable';
@@ -60,129 +60,313 @@ function TrendArrow({ trend }: { trend: Trend }) {
   return <span className="text-slate-300 font-bold">→</span>;
 }
 
-// ─── Overview Tab ────────────────────────────────────────────────────────────
+// ─── Demo point history data ─────────────────────────────────────────────────
 
-const employeeColumns: Column<EmployeeDetail>[] = [
-  {
-    key: 'display_name',
-    header: 'Employee',
-    sortable: true,
-    render: (r) => <span className="font-semibold text-white">{r.display_name}</span>,
-  },
-  {
-    key: 'role',
-    header: 'Role',
-    sortable: true,
-    render: (r) => capitalize(r.role),
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    sortable: true,
-    render: (r) => (
-      <StatusBadge variant={statusVariant(r.status)}>
-        {capitalize(r.status)}
-      </StatusBadge>
-    ),
-  },
-  { key: 'shift_count', header: 'Shifts', align: 'right', sortable: true },
-  {
-    key: 'hours_worked',
-    header: 'Hours',
-    align: 'right',
-    sortable: true,
-    render: (r) => r.hours_worked.toFixed(1),
-  },
-  {
-    key: 'labor_cost',
-    header: 'Cost ($)',
-    align: 'right',
-    sortable: true,
-    render: (r) => cents(r.labor_cost),
-  },
-  {
-    key: 'avg_hours_per_shift',
-    header: 'Avg Hrs/Shift',
-    align: 'right',
-    sortable: true,
-    render: (r) => r.avg_hours_per_shift.toFixed(1),
-  },
-  {
-    key: 'hourly_rate',
-    header: 'Rate ($/hr)',
-    align: 'right',
-    sortable: true,
-    render: (r) => cents(r.hourly_rate),
-  },
+const DEMO_POINT_HISTORY = [
+  { id: '1', delta: 5, label: 'Task Completion', detail: 'Prep station cleanup', time: '2 hours ago' },
+  { id: '2', delta: 3, label: 'Speed Bonus', detail: 'Under 10 min ticket time', time: 'Yesterday' },
+  { id: '3', delta: 2, label: 'Attendance', detail: 'On-time clock-in', time: 'Yesterday' },
+  { id: '4', delta: -3, label: 'Late', detail: '8 min late for shift', time: '3 days ago' },
+  { id: '5', delta: 10, label: 'Peer Nominated', detail: 'Team player award', time: 'Last week' },
 ];
 
-// ─── Staff Profiles Tab ──────────────────────────────────────────────────────
+const ELU_STATIONS = ['grill', 'saute', 'prep', 'expo', 'bar', 'fryer', 'dish'];
 
-function ExpandedProfile({ profile }: { profile: EmployeeProfile }) {
-  const { data: histData, isLoading } = usePointHistory(profile.employee_id);
-  const events = histData?.events?.slice(0, 5) ?? [];
+// ─── Expanded Profile Panel ──────────────────────────────────────────────────
+
+interface ExpandedProfilePanelProps {
+  profile: EmployeeProfile;
+  overviewEmployee?: EmployeeDetail;
+  onClose: () => void;
+}
+
+function ExpandedProfilePanel({ profile, overviewEmployee, onClose }: ExpandedProfilePanelProps) {
+  const avg = eluAvg(profile.elu_ratings);
+
+  // Build station map — show all 7 canonical stations, default 0 if missing
+  const stationScores: Record<string, number> = {};
+  ELU_STATIONS.forEach((s) => {
+    stationScores[s] = profile.elu_ratings[s] ?? 0;
+  });
 
   return (
-    <div className="p-4 bg-white/5 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* ELU Bars */}
-      <div>
-        <h4 className="text-sm font-semibold text-slate-200 mb-3">ELU Station Ratings</h4>
-        {Object.keys(profile.elu_ratings).length === 0 ? (
-          <p className="text-sm text-slate-300 italic">No ELU ratings recorded</p>
-        ) : (
-          <div className="space-y-2">
-            {Object.entries(profile.elu_ratings).map(([station, score]) => (
-              <div key={station}>
-                <div className="flex justify-between mb-0.5">
-                  <span className="text-xs text-slate-300 capitalize">{station}</span>
-                  <span className={`text-xs font-semibold ${eluTextColor(score)}`}>
-                    {score.toFixed(1)}
-                  </span>
-                </div>
-                <div className="w-full bg-white/10 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full ${eluColor(score)}`}
-                    style={{ width: `${Math.min((score / 2.0) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+    <div className="bg-white/5 border border-white/10 rounded-xl p-5 mx-2 mb-2 space-y-6">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-xl font-bold text-white leading-tight">{profile.display_name}</h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2 py-0.5 rounded-full bg-white/10 text-slate-200 text-xs font-medium capitalize">
+              {profile.role}
+            </span>
+            <StatusBadge variant={statusVariant(profile.status)}>
+              {capitalize(profile.status)}
+            </StatusBadge>
           </div>
-        )}
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <div className="flex items-center gap-1">
+            <span className="text-2xl font-bold text-white">{profile.staff_points.toLocaleString()}</span>
+            <span className="text-xs text-slate-400 self-end pb-0.5">pts</span>
+          </div>
+          <div className="flex items-center gap-1 text-sm text-slate-400">
+            <TrendArrow trend={profile.points_trend} />
+            <span className="text-xs capitalize">{profile.points_trend}</span>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-slate-400 hover:text-white text-xl leading-none shrink-0 self-start"
+          aria-label="Collapse profile"
+        >
+          ×
+        </button>
       </div>
 
-      {/* Recent Point Events */}
-      <div>
-        <h4 className="text-sm font-semibold text-slate-200 mb-3">Recent Point Events</h4>
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : events.length === 0 ? (
-          <p className="text-sm text-slate-300 italic">No point history</p>
-        ) : (
-          <ul className="space-y-2">
-            {events.map((ev) => (
-              <li key={ev.event_id} className="flex items-start justify-between text-sm">
-                <div>
-                  <span className="font-medium text-slate-200 capitalize">{ev.reason}</span>
-                  {ev.description && (
-                    <p className="text-slate-300 text-xs">{ev.description}</p>
-                  )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* ── Section 1: ELU Ratings ── */}
+        <div>
+          <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wide">
+            ELU Station Ratings
+            <span className={`ml-2 text-xs font-bold ${eluTextColor(avg)}`}>
+              avg {avg.toFixed(2)}
+            </span>
+          </h4>
+          <div className="space-y-2.5">
+            {ELU_STATIONS.map((station) => {
+              const score = stationScores[station];
+              return (
+                <div key={station} className="flex items-center gap-3">
+                  <span className="text-xs text-slate-400 w-16 capitalize">{station}</span>
+                  <div className="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${eluBarColor(score)}`}
+                      style={{ width: `${(score / 5) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-white w-8 text-right">{score.toFixed(1)}</span>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Section 2: Performance Metrics ── */}
+        <div>
+          <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wide">
+            Performance Metrics
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/5 rounded-lg p-3">
+              <p className="text-xs text-slate-400 mb-1">Staff Points</p>
+              <p className="text-lg font-bold text-white">{profile.staff_points.toLocaleString()}</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <TrendArrow trend={profile.points_trend} />
+                <span className="text-xs text-slate-400 capitalize">{profile.points_trend}</span>
+              </div>
+            </div>
+            {overviewEmployee ? (
+              <>
+                <div className="bg-white/5 rounded-lg p-3">
+                  <p className="text-xs text-slate-400 mb-1">Shifts</p>
+                  <p className="text-lg font-bold text-white">{overviewEmployee.shift_count}</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-3">
+                  <p className="text-xs text-slate-400 mb-1">Hours Worked</p>
+                  <p className="text-lg font-bold text-white">{overviewEmployee.hours_worked.toFixed(1)}</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-3">
+                  <p className="text-xs text-slate-400 mb-1">Avg Hrs / Shift</p>
+                  <p className="text-lg font-bold text-white">{overviewEmployee.avg_hours_per_shift.toFixed(1)}</p>
+                </div>
+              </>
+            ) : (
+              <div className="bg-white/5 rounded-lg p-3 col-span-1">
+                <p className="text-xs text-slate-400 mb-1">ELU Average</p>
+                <p className={`text-lg font-bold ${eluTextColor(avg)}`}>{avg.toFixed(2)}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section 3: Point History ── */}
+      <div>
+        <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wide">
+          Recent Point History
+        </h4>
+        <ul className="space-y-2">
+          {DEMO_POINT_HISTORY.map((ev) => (
+            <li key={ev.id} className="flex items-center gap-3 text-sm">
+              <span
+                className={`font-bold w-10 text-right shrink-0 ${
+                  ev.delta >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}
+              >
+                {ev.delta >= 0 ? '+' : ''}{ev.delta}
+              </span>
+              <div className="flex-1 min-w-0">
+                <span className="font-medium text-slate-200">{ev.label}</span>
+                <span className="text-slate-400 mx-1">—</span>
+                <span className="text-slate-400">{ev.detail}</span>
+              </div>
+              <span className="text-xs text-slate-500 shrink-0">{ev.time}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* ── Section 4: Certifications ── */}
+        <div>
+          <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wide">
+            Certifications
+          </h4>
+          {profile.certifications.length === 0 ? (
+            <p className="text-sm text-slate-500 italic">No certifications recorded</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {profile.certifications.map((cert) => (
                 <span
-                  className={`ml-3 font-bold whitespace-nowrap ${
-                    ev.points >= 0 ? 'text-green-600' : 'text-red-500'
-                  }`}
+                  key={cert}
+                  className="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-medium"
                 >
-                  {ev.points >= 0 ? '+' : ''}{ev.points} pts
+                  {cert}
                 </span>
-              </li>
-            ))}
-          </ul>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Section 5: Availability ── */}
+        <div>
+          <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wide">
+            Availability
+          </h4>
+          {!profile.availability || Object.keys(profile.availability).length === 0 ? (
+            <p className="text-sm text-slate-500 italic">Availability not set</p>
+          ) : (
+            <div className="space-y-1.5">
+              {Object.entries(profile.availability).map(([day, times]) => (
+                <div key={day} className="flex items-center gap-3">
+                  <span className="text-xs text-slate-400 w-20 capitalize">{day}</span>
+                  <span className="text-xs text-slate-200">
+                    {Array.isArray(times) ? times.join(', ') : String(times)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
+
+// ─── Overview Tab ────────────────────────────────────────────────────────────
+
+interface OverviewTabProps {
+  employees: EmployeeDetail[];
+  isLoading: boolean;
+  profiles: EmployeeProfile[];
+}
+
+function OverviewEmployeeTable({ employees, isLoading, profiles }: OverviewTabProps) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const employeeColumns: Column<EmployeeDetail>[] = [
+    {
+      key: 'display_name',
+      header: 'Employee',
+      sortable: true,
+      render: (r) => (
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-white">{r.display_name}</span>
+          {expandedId === r.employee_id ? (
+            <ChevronUp className="w-3 h-3 text-slate-400" />
+          ) : (
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'role',
+      header: 'Role',
+      sortable: true,
+      render: (r) => capitalize(r.role),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      render: (r) => (
+        <StatusBadge variant={statusVariant(r.status)}>
+          {capitalize(r.status)}
+        </StatusBadge>
+      ),
+    },
+    { key: 'shift_count', header: 'Shifts', align: 'right', sortable: true },
+    {
+      key: 'hours_worked',
+      header: 'Hours',
+      align: 'right',
+      sortable: true,
+      render: (r) => r.hours_worked.toFixed(1),
+    },
+    {
+      key: 'labor_cost',
+      header: 'Cost ($)',
+      align: 'right',
+      sortable: true,
+      render: (r) => cents(r.labor_cost),
+    },
+    {
+      key: 'avg_hours_per_shift',
+      header: 'Avg Hrs/Shift',
+      align: 'right',
+      sortable: true,
+      render: (r) => r.avg_hours_per_shift.toFixed(1),
+    },
+    {
+      key: 'hourly_rate',
+      header: 'Rate ($/hr)',
+      align: 'right',
+      sortable: true,
+      render: (r) => cents(r.hourly_rate),
+    },
+  ];
+
+  return (
+    <div className="space-y-0">
+      <DataTable
+        columns={employeeColumns}
+        data={employees}
+        keyExtractor={(r) => r.employee_id}
+        isLoading={isLoading}
+        emptyTitle="No employees found"
+        emptyDescription="No employee data is available for this location and period."
+        onRowClick={(r) =>
+          setExpandedId(expandedId === r.employee_id ? null : r.employee_id)
+        }
+        expandedRowId={expandedId ?? undefined}
+        renderExpanded={(r) => {
+          const profile = profiles.find((p) => p.employee_id === r.employee_id);
+          if (!profile) return null;
+          return (
+            <ExpandedProfilePanel
+              profile={profile}
+              overviewEmployee={r}
+              onClose={() => setExpandedId(null)}
+            />
+          );
+        }}
+      />
+    </div>
+  );
+}
+
+// ─── Staff Profiles Tab ──────────────────────────────────────────────────────
 
 function StaffProfilesTab({ locationId }: { locationId: string }) {
   const { data, isLoading, error, refetch } = useProfiles(locationId);
@@ -194,13 +378,32 @@ function StaffProfilesTab({ locationId }: { locationId: string }) {
       key: 'display_name',
       header: 'Employee',
       sortable: true,
-      render: (r) => <span className="font-semibold text-white">{r.display_name}</span>,
+      render: (r) => (
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-white">{r.display_name}</span>
+          {expandedId === r.employee_id ? (
+            <ChevronUp className="w-3 h-3 text-slate-400" />
+          ) : (
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          )}
+        </div>
+      ),
     },
     {
       key: 'role',
       header: 'Role',
       sortable: true,
       render: (r) => capitalize(r.role),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      render: (r) => (
+        <StatusBadge variant={statusVariant(r.status)}>
+          {capitalize(r.status)}
+        </StatusBadge>
+      ),
     },
     {
       key: 'elu_ratings',
@@ -247,7 +450,7 @@ function StaffProfilesTab({ locationId }: { locationId: string }) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-0">
       <DataTable
         columns={profileColumns}
         data={profiles}
@@ -255,25 +458,17 @@ function StaffProfilesTab({ locationId }: { locationId: string }) {
         isLoading={isLoading}
         emptyTitle="No profiles found"
         emptyDescription="No staff profile data is available for this location."
-        onRowClick={(r) => setExpandedId(expandedId === r.employee_id ? null : r.employee_id)}
+        onRowClick={(r) =>
+          setExpandedId(expandedId === r.employee_id ? null : r.employee_id)
+        }
+        expandedRowId={expandedId ?? undefined}
+        renderExpanded={(r) => (
+          <ExpandedProfilePanel
+            profile={r}
+            onClose={() => setExpandedId(null)}
+          />
+        )}
       />
-      {expandedId && (() => {
-        const profile = profiles.find((p) => p.employee_id === expandedId);
-        return profile ? (
-          <div className="border border-white/10 rounded-lg overflow-hidden shadow-sm">
-            <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
-              <span className="font-semibold text-white">{profile.display_name}</span>
-              <button
-                onClick={() => setExpandedId(null)}
-                className="text-slate-300 hover:text-slate-300 text-lg leading-none"
-              >
-                ×
-              </button>
-            </div>
-            <ExpandedProfile profile={profile} />
-          </div>
-        ) : null;
-      })()}
     </div>
   );
 }
@@ -374,7 +569,6 @@ function ELUManagementTab({ locationId }: { locationId: string }) {
     setSaveSuccess(false);
     const profile = profiles.find((p) => p.employee_id === id);
     if (profile) {
-      // Start with existing ratings or a default set
       const defaults: Record<string, number> =
         Object.keys(profile.elu_ratings).length > 0
           ? { ...profile.elu_ratings }
@@ -456,14 +650,14 @@ function ELUManagementTab({ locationId }: { locationId: string }) {
               <div className="relative mb-1">
                 <div className="w-full h-2 rounded-full bg-gradient-to-r from-red-400 via-yellow-300 to-green-500 opacity-30" />
                 <div
-                  className={`absolute top-0 h-2 rounded-full ${eluColor(score)} opacity-80`}
-                  style={{ width: `${Math.min((score / 2.0) * 100, 100)}%` }}
+                  className={`absolute top-0 h-2 rounded-full ${eluBarColor(score)} opacity-80`}
+                  style={{ width: `${Math.min((score / 5.0) * 100, 100)}%` }}
                 />
               </div>
               <input
                 type="range"
                 min={0}
-                max={2}
+                max={5}
                 step={0.1}
                 value={score}
                 onChange={(e) => handleSliderChange(station, parseFloat(e.target.value))}
@@ -471,19 +665,19 @@ function ELUManagementTab({ locationId }: { locationId: string }) {
               />
               <div className="flex justify-between text-xs text-slate-300">
                 <span>0.0</span>
-                <span>1.0</span>
-                <span>2.0</span>
+                <span>2.5</span>
+                <span>5.0</span>
               </div>
             </div>
           ))}
 
           {saveError && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+            <p className="text-sm text-red-400 bg-red-900/20 border border-red-500/30 rounded p-2">
               {saveError}
             </p>
           )}
           {saveSuccess && (
-            <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded p-2">
+            <p className="text-sm text-green-400 bg-green-900/20 border border-green-500/30 rounded p-2">
               ELU ratings saved successfully.
             </p>
           )}
@@ -530,6 +724,10 @@ export default function LaborPage() {
     refetch: refetchEmployees,
   } = useLaborEmployees(locationId);
 
+  // Fetch profiles here so Overview tab can look up ELU + availability data
+  const { data: profilesData } = useProfiles(locationId);
+  const profiles = profilesData?.profiles ?? [];
+
   if (!locationId) return <LoadingSpinner fullPage />;
 
   const employees = employeesData?.employees ?? [];
@@ -555,7 +753,7 @@ export default function LaborPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors ${
               activeTab === tab.id
-                ? 'border-red-500 text-red-600 bg-red-50'
+                ? 'border-red-500 text-red-400 bg-red-500/10'
                 : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5'
             }`}
           >
@@ -615,16 +813,18 @@ export default function LaborPage() {
             </div>
           )}
 
-          {/* Employee table */}
+          {/* Employee table — expandable rows */}
           <div>
-            <h2 className="text-lg font-semibold text-white mb-3">Employee Detail</h2>
-            <DataTable
-              columns={employeeColumns}
-              data={employees}
-              keyExtractor={(r) => r.employee_id}
+            <h2 className="text-lg font-semibold text-white mb-3">
+              Employee Detail
+              <span className="ml-2 text-xs font-normal text-slate-400">
+                — click any row to expand profile
+              </span>
+            </h2>
+            <OverviewEmployeeTable
+              employees={employees}
               isLoading={employeesLoading}
-              emptyTitle="No employees found"
-              emptyDescription="No employee data is available for this location and period."
+              profiles={profiles}
             />
           </div>
         </div>

@@ -19,6 +19,10 @@ interface DataTableProps<T> {
   emptyDescription?: string;
   onRowClick?: (row: T) => void;
   rowClassName?: (row: T) => string;
+  /** If provided, the row with this key will render expandedRowContent below it. */
+  expandedRowId?: string;
+  /** Render a node below the row when expandedRowId matches. */
+  renderExpanded?: (row: T) => ReactNode;
 }
 
 export default function DataTable<T>({
@@ -30,6 +34,8 @@ export default function DataTable<T>({
   emptyDescription,
   onRowClick,
   rowClassName,
+  expandedRowId,
+  renderExpanded,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
@@ -92,21 +98,34 @@ export default function DataTable<T>({
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {sorted.map((row) => (
-              <tr
-                key={keyExtractor(row)}
-                className={`hover:bg-white/5 transition-colors ${onRowClick ? 'cursor-pointer' : ''} ${rowClassName ? rowClassName(row) : ''}`}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-              >
-                {columns.map((col) => (
-                  <td key={col.key} className={`px-6 py-3 ${alignClass(col.align)} text-slate-300`}>
-                    {col.render
-                      ? col.render(row)
-                      : String((row as Record<string, unknown>)[col.key] ?? '')}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {sorted.map((row) => {
+              const key = keyExtractor(row);
+              const isExpanded = expandedRowId === key;
+              return (
+                <>
+                  <tr
+                    key={key}
+                    className={`hover:bg-white/5 transition-colors ${onRowClick ? 'cursor-pointer' : ''} ${isExpanded ? 'bg-white/[0.07]' : ''} ${rowClassName ? rowClassName(row) : ''}`}
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  >
+                    {columns.map((col) => (
+                      <td key={col.key} className={`px-6 py-3 ${alignClass(col.align)} text-slate-300`}>
+                        {col.render
+                          ? col.render(row)
+                          : String((row as Record<string, unknown>)[col.key] ?? '')}
+                      </td>
+                    ))}
+                  </tr>
+                  {isExpanded && renderExpanded && (
+                    <tr key={`${key}-expanded`}>
+                      <td colSpan={columns.length} className="p-0">
+                        {renderExpanded(row)}
+                      </td>
+                    </tr>
+                  )}
+                </>
+              );
+            })}
           </tbody>
         </table>
       </div>
