@@ -334,7 +334,7 @@ export default function DashboardPage() {
   const stations = (capacity?.stations ?? []) as any[];
 
   return (
-    <div className="bg-slate-900 -mx-4 -my-4 px-4 py-4 md:-mx-6 md:-my-6 md:px-6 md:py-6 min-h-screen">
+    <div className="min-h-full">
 
       {/* ── Page Header ───────────────────────────────────────────────── */}
       <div className="mb-6 flex items-center justify-between">

@@ -2140,7 +2140,7 @@ export default function PortfolioPage() {
     }));
 
   return (
-    <div className="min-h-full relative overflow-x-hidden bg-slate-900 -mx-4 -my-4 px-4 py-4 md:-mx-6 md:-my-6 md:px-6 md:py-6">
+    <div className="min-h-full relative overflow-x-hidden">
       {/* Inject ticker animation CSS */}
       <style>{tickerStyle}</style>
 
