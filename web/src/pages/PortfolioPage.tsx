@@ -2140,34 +2140,8 @@ export default function PortfolioPage() {
     }));
 
   return (
-    <div className="min-h-full relative overflow-hidden">
-      {/* Inject ticker animation CSS */}
+    <div className="space-y-8">
       <style>{tickerStyle}</style>
-
-      {/* Animated background */}
-      <div
-        className="absolute inset-0 -z-10"
-        style={{
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 35%, #0f172a 65%, #1a1f35 100%)',
-        }}
-      />
-      {/* Subtle radial glow */}
-      <div
-        className="absolute inset-0 -z-10 opacity-40 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(249,115,22,0.15) 0%, transparent 60%)',
-        }}
-      />
-      {/* Grid pattern */}
-      <div
-        className="absolute inset-0 -z-10 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }}
-      />
-
-      <div className="relative py-6 space-y-8 overflow-hidden">
         {/* Hero Header */}
         <div className="text-center space-y-4 pt-4">
           <div className="flex items-center justify-center gap-3 mb-2">
@@ -2252,7 +2226,6 @@ export default function PortfolioPage() {
             FireLine by OpsNerve · Real-time AI operations intelligence · Data refreshes every 30s
           </p>
         </div>
-      </div>
     </div>
   );
 }
