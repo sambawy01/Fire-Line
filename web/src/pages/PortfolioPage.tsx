@@ -2167,7 +2167,7 @@ export default function PortfolioPage() {
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      <div className="relative w-full py-6 space-y-8">
         {/* Hero Header */}
         <div className="text-center space-y-4 pt-4">
           <div className="flex items-center justify-center gap-3 mb-2">
