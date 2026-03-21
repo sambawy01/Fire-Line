@@ -522,7 +522,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
   return (
     <div className="space-y-6">
       <div className="overflow-x-auto">
-        <div className="min-w-[500px]">
+        <div className="min-w-0">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-px flex-1 bg-white/5" />
             <span className="text-xs font-semibold uppercase tracking-widest text-slate-300">
@@ -2140,7 +2140,7 @@ export default function PortfolioPage() {
     }));
 
   return (
-    <div className="min-h-full relative overflow-x-hidden">
+    <div className="min-h-full relative overflow-x-hidden w-full max-w-full box-border">
       {/* Inject ticker animation CSS */}
       <style>{tickerStyle}</style>
 
@@ -2153,14 +2153,14 @@ export default function PortfolioPage() {
       />
       {/* Subtle radial glow */}
       <div
-        className="fixed inset-0 -z-10 opacity-40"
+        className="absolute inset-0 -z-10 opacity-40 pointer-events-none"
         style={{
           background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(249,115,22,0.15) 0%, transparent 60%)',
         }}
       />
       {/* Grid pattern */}
       <div
-        className="fixed inset-0 -z-10 opacity-[0.03]"
+        className="absolute inset-0 -z-10 opacity-[0.03] pointer-events-none"
         style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
