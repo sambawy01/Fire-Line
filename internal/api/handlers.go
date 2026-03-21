@@ -45,6 +45,7 @@ func (h *InventoryHandler) RegisterRoutes(mux *http.ServeMux, authMW func(http.H
 
 	// Variances
 	mux.Handle("GET /api/v1/inventory/variances", authMW(http.HandlerFunc(h.ListVariances)))
+	mux.Handle("GET /api/v1/inventory/expiry", authMW(http.HandlerFunc(h.GetExpiryAlerts)))
 
 	// Purchase Orders — specific paths before parameterized ones
 	mux.Handle("GET /api/v1/inventory/po/pending", authMW(http.HandlerFunc(h.ListPendingPOs)))

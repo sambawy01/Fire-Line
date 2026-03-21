@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/opsnerve/fireline/internal/auth"
+	"github.com/jackc/pgx/v5"
 	"github.com/opsnerve/fireline/internal/inventory"
+	"github.com/opsnerve/fireline/pkg/database"
 	"github.com/opsnerve/fireline/internal/tenant"
 )
 
@@ -268,4 +270,87 @@ func (h *InventoryHandler) ListVariances(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"variances": variances})
+}
+
+// GetExpiryAlerts returns ingredients approaching or past expiry date.
+func (h *InventoryHandler) GetExpiryAlerts(w http.ResponseWriter, r *http.Request) {
+	orgID, err := tenant.OrgIDFrom(r.Context())
+	if err != nil {
+		WriteError(w, http.StatusUnauthorized, "AUTH_NO_TENANT", "no tenant context")
+		return
+	}
+	locationID := r.URL.Query().Get("location_id")
+	if locationID == "" {
+		WriteError(w, http.StatusBadRequest, "INVENTORY_MISSING_LOCATION", "location_id is required")
+		return
+	}
+
+	tenantCtx := tenant.WithOrgID(r.Context(), orgID)
+	type ExpiryItem struct {
+		IngredientID   string  `json:"ingredient_id"`
+		Name           string  `json:"name"`
+		Category       string  `json:"category"`
+		ExpiryDate     *string `json:"expiry_date"`
+		BatchNumber    *string `json:"batch_number"`
+		DaysUntilExpiry int    `json:"days_until_expiry"`
+		Status         string  `json:"status"`
+		VendorName     string  `json:"vendor_name"`
+	}
+	var items []ExpiryItem
+
+	err = database.TenantTx(tenantCtx, h.svc.GetPool(), func(tx pgx.Tx) error {
+		rows, err := tx.Query(tenantCtx,
+			`SELECT i.ingredient_id, i.name, i.category,
+			        ilc.expiry_date::TEXT, ilc.batch_number,
+			        COALESCE(ilc.expiry_date - CURRENT_DATE, 999) as days_until,
+			        CASE WHEN ilc.expiry_date < CURRENT_DATE THEN 'expired'
+			             WHEN ilc.expiry_date = CURRENT_DATE THEN 'expires_today'
+			             WHEN ilc.expiry_date <= CURRENT_DATE + 2 THEN 'expiring_soon'
+			             ELSE 'ok' END as status,
+			        COALESCE(ilc.vendor_name, '') as vendor_name
+			 FROM ingredients i
+			 JOIN ingredient_location_configs ilc ON ilc.ingredient_id = i.ingredient_id
+			 WHERE ilc.location_id = $1 AND ilc.expiry_date IS NOT NULL
+			 ORDER BY ilc.expiry_date ASC`,
+			locationID,
+		)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var item ExpiryItem
+			if err := rows.Scan(&item.IngredientID, &item.Name, &item.Category,
+				&item.ExpiryDate, &item.BatchNumber, &item.DaysUntilExpiry,
+				&item.Status, &item.VendorName); err != nil {
+				return err
+			}
+			items = append(items, item)
+		}
+		return rows.Err()
+	})
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, "EXPIRY_ERROR", err.Error())
+		return
+	}
+	if items == nil {
+		items = []ExpiryItem{}
+	}
+
+	// Count by status
+	expired := 0; expiringToday := 0; expiringSoon := 0
+	for _, item := range items {
+		switch item.Status {
+		case "expired": expired++
+		case "expires_today": expiringToday++
+		case "expiring_soon": expiringSoon++
+		}
+	}
+
+	WriteJSON(w, http.StatusOK, map[string]any{
+		"items": items,
+		"expired_count": expired,
+		"expiring_today_count": expiringToday,
+		"expiring_soon_count": expiringSoon,
+	})
 }

@@ -252,3 +252,8 @@ func (s *Service) handleOrdersProcessed(ctx context.Context, env event.Envelope)
 
 	return nil
 }
+
+// GetPool returns the underlying pool for direct queries.
+func (s *Service) GetPool() *pgxpool.Pool {
+	return s.pool
+}
