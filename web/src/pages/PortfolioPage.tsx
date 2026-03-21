@@ -522,7 +522,7 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
   return (
     <div className="space-y-6">
       <div className="overflow-x-auto">
-        <div className="min-w-[320px] sm:min-w-[640px]">
+        <div className="min-w-[500px]">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-px flex-1 bg-white/5" />
             <span className="text-xs font-semibold uppercase tracking-widest text-slate-300">
@@ -696,7 +696,7 @@ function RevenueRace({ branchRows }: { branchRows: BranchKPIRow[] }) {
           const pct = (b.revenue / maxRevenue) * 100;
           return (
             <div key={b.name} className="flex items-center gap-3">
-              <span className="text-xs text-slate-400 w-20 sm:w-36 truncate">{b.shortName}</span>
+              <span className="text-xs text-slate-400 w-16 sm:w-28 md:w-36 truncate">{b.shortName}</span>
               <div className="flex-1 h-6 bg-white/5 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ${
@@ -1897,7 +1897,7 @@ function AIRecommendations() {
             <div
               key={i}
               onClick={() => updateRec(i, { modalOpen: true })}
-              className="bg-gradient-to-br from-indigo-950/40 to-purple-950/30 border border-indigo-500/20 hover:border-indigo-400/40 hover:scale-[1.02] rounded-xl p-4 transition-all cursor-pointer group w-64 sm:w-80 flex-shrink-0"
+              className="bg-gradient-to-br from-indigo-950/40 to-purple-950/30 border border-indigo-500/20 hover:border-indigo-400/40 hover:scale-[1.02] rounded-xl p-4 transition-all cursor-pointer group w-60 sm:w-72 flex-shrink-0"
             >
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
@@ -2027,7 +2027,7 @@ function CEOBriefing() {
       </div>
 
       {/* 3-column grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <BriefingCard
           title="Requires Attention"
           items={ATTENTION_ITEMS}
@@ -2140,7 +2140,7 @@ export default function PortfolioPage() {
     }));
 
   return (
-    <div className="min-h-full relative overflow-x-hidden bg-slate-900 -mx-6 -my-6 px-6 py-6">
+    <div className="min-h-full relative overflow-x-hidden bg-slate-900 -mx-4 -my-4 px-4 py-4 md:-mx-6 md:-my-6 md:px-6 md:py-6">
       {/* Inject ticker animation CSS */}
       <style>{tickerStyle}</style>
 
@@ -2179,7 +2179,7 @@ export default function PortfolioPage() {
             <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#F97316]/60" />
           </div>
 
-          <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tight leading-none">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-none">
             Nimbu
           </h1>
           <p className="text-lg text-slate-400 font-medium max-w-xl mx-auto">
