@@ -9,6 +9,144 @@ import ErrorBanner from '../components/ui/ErrorBanner';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import type { PurchaseOrder, POLine } from '../lib/api';
 
+// ─── AI Purchase Intelligence Data ───────────────────────────────────────────
+
+const AI_PURCHASE_INSIGHTS = [
+  {
+    icon: '🔴',
+    type: 'urgent' as const,
+    title: 'Tuna Sashimi Grade — EXPIRED Stock Alert',
+    description:
+      'Current stock expired yesterday. 3 menu items affected (Tuna Tartare, Wagyu Carpaccio, Grilled Salmon Teriyaki). Auto-generated reorder to Ocean Fresh Egypt for 12kg at EGP 1,920/kg.',
+    action: 'Auto-PO created → Review & Approve',
+    savings: null,
+  },
+  {
+    icon: '📊',
+    type: 'forecast' as const,
+    title: 'Friday Demand Spike Predicted — Pre-order Recommended',
+    description:
+      'AI forecasts 2.3x normal seafood demand for Friday dinner based on historical patterns + reservation data. Current stock covers 60% of projected demand. Pre-order from Ocean Fresh will prevent stockout.',
+    action: 'Pre-order generated for 4 seafood items',
+    savings: 'Prevents ~EGP 35,000 in lost sales',
+  },
+  {
+    icon: '💰',
+    type: 'savings' as const,
+    title: 'Bulk Purchase Opportunity — Ribeye Steak',
+    description:
+      'Premium Meats Co offers 15% discount on orders >30kg. Current weekly consumption: 25kg across 4 branches. Consolidating into one monthly order saves EGP 8,100/month.',
+    action: 'Consolidated PO draft ready for approval',
+    savings: 'EGP 8,100/month (EGP 97,200/year)',
+  },
+  {
+    icon: '⚠️',
+    type: 'risk' as const,
+    title: 'Single-Source Risk — Fresh Truffle',
+    description:
+      'All truffle sourced from Specialty Imports (100% dependency). Lead time increased from 3 to 7 days this month. AI recommends qualifying a backup supplier to prevent menu disruption.',
+    action: 'Vendor diversification recommended',
+    savings: 'Risk mitigation — protects EGP 12,000/week in truffle dish revenue',
+  },
+  {
+    icon: '🔄',
+    type: 'optimization' as const,
+    title: 'Delivery Schedule Optimization',
+    description:
+      'AI analysis shows receiving 3x/week instead of 2x/week for proteins reduces waste by 22% and improves freshness scores. Slight increase in delivery fees (+EGP 600/week) offset by EGP 3,200/week in waste savings.',
+    action: 'Schedule change recommendation → Manager approval needed',
+    savings: 'Net savings: EGP 2,600/week (EGP 135,200/year)',
+  },
+];
+
+type InsightType = 'urgent' | 'forecast' | 'savings' | 'risk' | 'optimization';
+
+function insightBorderColor(type: InsightType): string {
+  switch (type) {
+    case 'urgent':
+      return 'border-l-red-500';
+    case 'forecast':
+      return 'border-l-blue-500';
+    case 'savings':
+      return 'border-l-emerald-500';
+    case 'risk':
+      return 'border-l-amber-500';
+    case 'optimization':
+      return 'border-l-purple-500';
+  }
+}
+
+function insightBadgeStyle(type: InsightType): string {
+  switch (type) {
+    case 'urgent':
+      return 'bg-red-500/20 text-red-300';
+    case 'forecast':
+      return 'bg-blue-500/20 text-blue-300';
+    case 'savings':
+      return 'bg-emerald-500/20 text-emerald-300';
+    case 'risk':
+      return 'bg-amber-500/20 text-amber-300';
+    case 'optimization':
+      return 'bg-purple-500/20 text-purple-300';
+  }
+}
+
+// ─── AI Purchase Intelligence Panel ──────────────────────────────────────────
+
+function AIPurchaseIntelligence() {
+  return (
+    <section>
+      {/* Panel header */}
+      <div className="flex items-center gap-2.5 mb-4">
+        <span className="text-xl">🤖</span>
+        <h2 className="text-lg font-semibold text-white">AI Purchase Intelligence</h2>
+        <span className="relative flex h-2.5 w-2.5 ml-1">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+        </span>
+      </div>
+
+      {/* Horizontal scrolling row of cards */}
+      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {AI_PURCHASE_INSIGHTS.map((insight, idx) => (
+          <div
+            key={idx}
+            className={`bg-white/5 border border-white/10 border-l-4 ${insightBorderColor(insight.type)} rounded-xl p-4 w-80 flex-shrink-0 flex flex-col gap-3`}
+          >
+            {/* Icon + type badge */}
+            <div className="flex items-center justify-between">
+              <span className="text-2xl leading-none">{insight.icon}</span>
+              <span
+                className={`text-xs font-medium px-2 py-0.5 rounded-full uppercase tracking-wide ${insightBadgeStyle(insight.type)}`}
+              >
+                {insight.type}
+              </span>
+            </div>
+
+            {/* Title */}
+            <p className="font-semibold text-white text-sm leading-snug">{insight.title}</p>
+
+            {/* Description */}
+            <p className="text-xs text-slate-300 leading-relaxed line-clamp-3">
+              {insight.description}
+            </p>
+
+            {/* Action line */}
+            <p className="text-xs text-slate-400 italic">{insight.action}</p>
+
+            {/* Savings badge */}
+            {insight.savings && (
+              <span className="inline-block self-start bg-emerald-500/15 text-emerald-300 text-xs font-medium px-2.5 py-1 rounded-full">
+                {insight.savings}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function dollars(cents: number): string {
@@ -206,7 +344,13 @@ function SuggestedPOs({
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-semibold text-white">{po.vendor_name}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold text-white">{po.vendor_name}</p>
+                  {/* AI Generated badge */}
+                  <span className="inline-flex items-center gap-1 bg-indigo-500/20 text-indigo-300 text-xs font-medium px-2 py-0.5 rounded-full">
+                    🤖 AI Generated
+                  </span>
+                </div>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {po.line_count ?? 0} item{(po.line_count ?? 0) !== 1 ? 's' : ''} · Est. {dollars(po.total_estimated ?? 0)}
                 </p>
@@ -214,8 +358,12 @@ function SuggestedPOs({
               <StatusBadge variant="info">Suggested</StatusBadge>
             </div>
 
+            {/* AI reason from notes field */}
             {po.notes && (
-              <p className="text-xs text-slate-400 line-clamp-2">{po.notes}</p>
+              <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-lg px-3 py-2">
+                <p className="text-xs text-indigo-300 font-medium mb-0.5">AI Reasoning</p>
+                <p className="text-xs text-slate-300 line-clamp-2">{po.notes}</p>
+              </div>
             )}
 
             <div className="flex gap-2 mt-auto">
@@ -399,6 +547,9 @@ export default function PurchaseOrdersPage() {
 
       {!isLoading && !error && (
         <>
+          {/* AI Purchase Intelligence panel */}
+          <AIPurchaseIntelligence />
+
           {/* Section 1 — Suggested */}
           <SuggestedPOs pos={suggestedPOs} onReview={setSelectedPoId} />
 
