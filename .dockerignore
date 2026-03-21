@@ -1,0 +1,9 @@
+web/
+tablet/
+docs/
+scripts/
+terraform/
+.git/
+*.md
+.github/
+.semgrep/
