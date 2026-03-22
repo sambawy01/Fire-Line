@@ -694,20 +694,22 @@ function RevenueRace({ branchRows }: { branchRows: BranchKPIRow[] }) {
       <div className="space-y-3">
         {sorted.map((b, idx) => {
           const pct = (b.revenue / maxRevenue) * 100;
+          const barColors = [
+            'from-emerald-500 via-emerald-400 to-teal-300',
+            'from-blue-500 via-cyan-400 to-teal-300',
+            'from-violet-500 via-purple-400 to-fuchsia-300',
+            'from-orange-500 via-amber-400 to-yellow-300',
+          ];
           return (
             <div key={b.name} className="flex items-center gap-3">
-              <span className="text-xs text-slate-400 w-16 sm:w-28 md:w-36 truncate">{b.shortName}</span>
-              <div className="flex-1 h-6 bg-white/5 rounded-full overflow-hidden">
+              <span className="text-xs text-slate-300 w-16 sm:w-28 md:w-36 truncate font-medium">{b.shortName}</span>
+              <div className="flex-1 h-7 bg-white/5 rounded-full overflow-hidden relative">
                 <div
-                  className={`h-full rounded-full transition-all duration-1000 ${
-                    idx === 0
-                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
-                      : 'bg-gradient-to-r from-slate-600 to-slate-500'
-                  }`}
-                  style={{ width: `${pct}%` }}
+                  className={`h-full rounded-full transition-all duration-1000 bg-gradient-to-r ${barColors[idx] ?? barColors[3]}`}
+                  style={{ width: `${pct}%`, boxShadow: idx === 0 ? '0 0 12px rgba(16,185,129,0.4)' : '0 0 8px rgba(99,102,241,0.2)' }}
                 />
               </div>
-              <span className="text-xs font-bold text-white w-16 text-right">
+              <span className={`text-xs font-bold w-16 text-right ${idx === 0 ? 'text-emerald-400' : 'text-white'}`}>
                 {Math.round(b.revenue / 100000)}K
               </span>
               {idx === 0 && <span className="text-xs">🏆</span>}
