@@ -24,9 +24,26 @@ interface Adapter {
 const MOCK_ADAPTERS: Adapter[] = [
   {
     id: 'adapter-001',
-    name: 'Toast POS - Main Street',
+    name: 'Loyverse POS — Nimbu Egypt',
+    type: 'Loyverse',
+    location: 'All Branches',
+    status: 'active',
+    brandColor: '#7C3AED',
+    capabilities: [
+      'READ_ORDERS',
+      'READ_MENU',
+      'READ_INVENTORY',
+      'READ_EMPLOYEES',
+      'READ_CUSTOMERS',
+      'WRITE_86_STATUS',
+    ],
+    lastSync: new Date().toISOString(),
+  },
+  {
+    id: 'adapter-002',
+    name: 'Toast POS — Nimbu El Gouna',
     type: 'Toast',
-    location: '123 Main Street',
+    location: 'El Gouna, Red Sea',
     status: 'active',
     brandColor: '#FF6B35',
     capabilities: [
@@ -36,17 +53,51 @@ const MOCK_ADAPTERS: Adapter[] = [
       'READ_PAYMENTS',
       'READ_LABOR',
     ],
-    lastSync: '2026-03-19T14:28:00Z',
+    lastSync: new Date(Date.now() - 3600000).toISOString(),
   },
   {
-    id: 'adapter-002',
-    name: 'Square POS - Downtown',
-    type: 'Square',
-    location: '456 Oak Avenue',
+    id: 'adapter-003',
+    name: 'Toast POS — Nimbu New Cairo',
+    type: 'Toast',
+    location: 'New Cairo, Cairo',
+    status: 'active',
+    brandColor: '#FF6B35',
+    capabilities: [
+      'READ_ORDERS',
+      'READ_MENU',
+      'WRITE_MENU',
+      'READ_PAYMENTS',
+      'READ_LABOR',
+    ],
+    lastSync: new Date(Date.now() - 7200000).toISOString(),
+  },
+  {
+    id: 'adapter-004',
+    name: 'Toast POS — Nimbu Zayed',
+    type: 'Toast',
+    location: 'Sheikh Zayed, Giza',
+    status: 'active',
+    brandColor: '#FF6B35',
+    capabilities: [
+      'READ_ORDERS',
+      'READ_MENU',
+      'READ_PAYMENTS',
+    ],
+    lastSync: new Date(Date.now() - 5400000).toISOString(),
+  },
+  {
+    id: 'adapter-005',
+    name: 'Toast POS — Nimbu North Coast',
+    type: 'Toast',
+    location: 'North Coast',
     status: 'paused',
-    brandColor: '#006AFF',
-    capabilities: ['READ_ORDERS', 'READ_MENU', 'READ_PAYMENTS'],
-    lastSync: '2026-03-18T22:15:00Z',
+    brandColor: '#FF6B35',
+    capabilities: [
+      'READ_ORDERS',
+      'READ_MENU',
+      'READ_PAYMENTS',
+    ],
+    lastSync: new Date(Date.now() - 86400000).toISOString(),
   },
 ];
 
@@ -130,7 +181,7 @@ export default function AdaptersPage() {
             return (
               <div
                 key={adapter.id}
-                className="rounded-xl border border-white/10 bg-white shadow-sm"
+                className="rounded-xl border border-white/10 bg-white/5 shadow-sm"
               >
                 <div className="p-5">
                   {/* Top row: logo + name + status */}
