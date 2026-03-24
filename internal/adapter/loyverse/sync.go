@@ -206,7 +206,7 @@ func (s *Syncer) StartPolling(ctx context.Context, interval time.Duration) {
 
 // runFullSync performs a complete sync of all data types.
 func (s *Syncer) runFullSync(ctx context.Context) {
-	since := time.Now().Add(-1 * time.Hour) // pull last hour on each poll
+	since := time.Now().Truncate(24 * time.Hour) // pull all of today's orders
 
 	if _, err := s.SyncMenu(ctx); err != nil {
 		slog.Error("loyverse: menu sync failed", "error", err)
