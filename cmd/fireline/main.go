@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/opsnerve/fireline/internal/adapter"
+	"github.com/opsnerve/fireline/internal/adapter/loyverse"
 	"github.com/opsnerve/fireline/internal/adapter/toast"
 	"github.com/opsnerve/fireline/internal/alerting"
 	"github.com/opsnerve/fireline/internal/api"
@@ -91,6 +92,11 @@ func main() {
 	// ─── Adapter Registry ───
 	registry := adapter.NewRegistry()
 	registry.RegisterFactory("toast", func() adapter.Adapter { return toast.New() })
+	registry.RegisterFactory("loyverse", func() adapter.Adapter { return loyverse.New() })
+
+	// Loyverse HTTP handler — uses a shared adapter instance wired to the event bus.
+	loyverseAdapter := loyverse.NewWithBus(bus)
+	loyverseHandler := loyverse.NewHandler(loyverseAdapter)
 
 	// ─── Data Pipeline ───
 	pipe := pipeline.New(pool.Raw(), bus)
@@ -200,7 +206,7 @@ func main() {
 			"modules": map[string]any{
 				"database":  dbStatus,
 				"event_bus": "ok",
-				"adapters":  map[string]string{"toast": "registered"},
+				"adapters":  map[string]string{"toast": "registered", "loyverse": "registered"},
 			},
 		})
 	})
@@ -250,6 +256,9 @@ func main() {
 
 	maintHandler := api.NewMaintenanceHandler(maintSvc)
 	maintHandler.RegisterRoutes(mux, authMW)
+
+	// Loyverse adapter routes
+	loyverseHandler.RegisterRoutes(mux, authMW)
 
 	// CORS for frontend dev
 	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
