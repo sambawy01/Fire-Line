@@ -30,12 +30,16 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, authMW func(http.Handler) h
 		authMW(http.HandlerFunc(h.Status)))
 	mux.Handle("POST /api/v1/adapters/loyverse/sync",
 		authMW(http.HandlerFunc(h.TriggerSync)))
+	mux.Handle("POST /api/v1/adapters/loyverse/import",
+		authMW(http.HandlerFunc(h.ImportHistorical)))
 }
 
 // connectRequest is the body for POST /api/v1/adapters/loyverse/connect.
 type connectRequest struct {
-	APIToken string `json:"api_token"`
-	StoreID  string `json:"store_id"`
+	APIToken   string `json:"api_token"`
+	StoreID    string `json:"store_id"`
+	OrgID      string `json:"org_id"`
+	LocationID string `json:"location_id"`
 }
 
 // Connect configures and (re-)initializes the Loyverse adapter.
@@ -68,6 +72,8 @@ func (h *Handler) Connect(w http.ResponseWriter, r *http.Request) {
 
 	cfg := adapter.Config{
 		AdapterType: "loyverse",
+		OrgID:       req.OrgID,
+		LocationID:  req.LocationID,
 		Credentials: map[string]string{
 			"api_token": req.APIToken,
 			"store_id":  req.StoreID,
@@ -139,6 +145,55 @@ func (h *Handler) TriggerSync(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusAccepted, map[string]string{
 		"status": "sync_triggered",
+	})
+}
+
+// ImportHistorical imports historical data for a given number of days (default 30).
+//
+// POST /api/v1/adapters/loyverse/import
+// Body: {"days": 30}  (optional, defaults to 30)
+func (h *Handler) ImportHistorical(w http.ResponseWriter, r *http.Request) {
+	h.a.mu.RLock()
+	if h.a.status != adapter.StatusActive {
+		h.a.mu.RUnlock()
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{
+			"error": "loyverse adapter not active — connect first",
+		})
+		return
+	}
+	syncer := h.a.syncer
+	h.a.mu.RUnlock()
+
+	var req struct {
+		Days int `json:"days"`
+	}
+	_ = json.NewDecoder(r.Body).Decode(&req)
+	if req.Days <= 0 {
+		req.Days = 30
+	}
+
+	since := time.Now().AddDate(0, 0, -req.Days)
+
+	// Run synchronously so the caller knows when it's done.
+	orders, err := syncer.SyncOrders(r.Context(), since)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": fmt.Sprintf("import orders failed: %v", err),
+		})
+		return
+	}
+
+	// Also sync menu + employees
+	items, _ := syncer.SyncMenu(r.Context())
+	employees, _ := syncer.SyncEmployees(r.Context())
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":         "import_complete",
+		"days":           req.Days,
+		"since":          since.Format(time.RFC3339),
+		"orders_synced":  len(orders),
+		"items_synced":   len(items),
+		"employees_synced": len(employees),
 	})
 }
 

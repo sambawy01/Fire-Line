@@ -66,14 +66,11 @@ func (s *Syncer) SyncMenu(ctx context.Context) ([]adapter.NormalizedMenuItem, er
 
 	if s.bus != nil {
 		s.bus.Publish(ctx, event.Envelope{
-			EventType:  "loyverse.menu.synced",
+			EventType:  "adapter.menu.synced",
 			OrgID:      s.cfg.OrgID,
 			LocationID: s.cfg.LocationID,
 			Source:     "loyverse",
-			Payload: map[string]any{
-				"item_count": len(allItems),
-				"items":      allItems,
-			},
+			Payload:    allItems,
 		})
 	}
 
@@ -105,14 +102,11 @@ func (s *Syncer) SyncOrders(ctx context.Context, since time.Time) ([]adapter.Nor
 
 	if s.bus != nil {
 		s.bus.Publish(ctx, event.Envelope{
-			EventType:  "loyverse.orders.synced",
+			EventType:  "adapter.orders.synced",
 			OrgID:      s.cfg.OrgID,
 			LocationID: s.cfg.LocationID,
 			Source:     "loyverse",
-			Payload: map[string]any{
-				"order_count": len(allOrders),
-				"since":       since,
-			},
+			Payload:    allOrders,
 		})
 	}
 
