@@ -102,6 +102,30 @@ func main() {
 	loyverseAdapter := loyverse.NewWithBus(bus)
 	loyverseHandler := loyverse.NewHandler(loyverseAdapter)
 
+	// Auto-connect Loyverse if env vars are set.
+	if loyToken := os.Getenv("LOYVERSE_API_TOKEN"); loyToken != "" {
+		loyStoreID := os.Getenv("LOYVERSE_STORE_ID")
+		loyOrgID := os.Getenv("LOYVERSE_ORG_ID")
+		loyLocID := os.Getenv("LOYVERSE_LOCATION_ID")
+		if loyOrgID == "" {
+			// Fall back: look up the first org in the DB.
+			_ = adminPool.Raw().QueryRow(ctx, "SELECT org_id FROM organizations LIMIT 1").Scan(&loyOrgID)
+		}
+		if err := loyverseAdapter.Initialize(ctx, adapter.Config{
+			AdapterType: "loyverse",
+			OrgID:       loyOrgID,
+			LocationID:  loyLocID,
+			Credentials: map[string]string{
+				"api_token": loyToken,
+				"store_id":  loyStoreID,
+			},
+		}); err != nil {
+			slog.Error("loyverse auto-connect failed", "error", err)
+		} else {
+			slog.Info("loyverse auto-connected", "store_id", loyStoreID, "location_id", loyLocID)
+		}
+	}
+
 	// ─── Data Pipeline ───
 	pipe := pipeline.New(pool.Raw(), bus)
 	pipe.RegisterHandlers()
