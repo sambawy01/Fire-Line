@@ -22,6 +22,7 @@ import (
 	"github.com/opsnerve/fireline/internal/customer"
 	"github.com/opsnerve/fireline/internal/event"
 	"github.com/opsnerve/fireline/internal/financial"
+	"github.com/opsnerve/fireline/internal/intelligence"
 	"github.com/opsnerve/fireline/internal/inventory"
 	"github.com/opsnerve/fireline/internal/labor"
 	"github.com/opsnerve/fireline/internal/maintenance"
@@ -32,6 +33,7 @@ import (
 	"github.com/opsnerve/fireline/internal/pipeline"
 	"github.com/opsnerve/fireline/internal/portfolio"
 	"github.com/opsnerve/fireline/internal/reporting"
+	"github.com/opsnerve/fireline/internal/tasks"
 	"github.com/opsnerve/fireline/internal/vendor"
 	"github.com/opsnerve/fireline/pkg/config"
 	"github.com/opsnerve/fireline/pkg/database"
@@ -149,6 +151,13 @@ func main() {
 	// ─── Onboarding ───
 	onboardingSvc := onboarding.New(pool.Raw(), bus)
 
+	// ─── Tasks ───
+	tasksSvc := tasks.New(pool.Raw(), bus)
+
+	// ─── Intelligence ───
+	intelSvc := intelligence.New(pool.Raw(), bus)
+	intelSvc.RegisterHandlers()
+
 	// ─── Maintenance ───
 	maintSvc := maintenance.New(pool.Raw(), bus)
 
@@ -168,6 +177,8 @@ func main() {
 		"portfolio", "ready",
 		"onboarding", "ready",
 		"maintenance", "ready",
+		"tasks", "ready",
+		"intelligence", "ready",
 	)
 
 	// ─── Auth ───
@@ -256,6 +267,12 @@ func main() {
 
 	maintHandler := api.NewMaintenanceHandler(maintSvc)
 	maintHandler.RegisterRoutes(mux, authMW)
+
+	tasksHandler := api.NewTasksHandler(tasksSvc)
+	tasksHandler.RegisterRoutes(mux, authMW)
+
+	intelHandler := api.NewIntelligenceHandler(intelSvc)
+	intelHandler.RegisterRoutes(mux, authMW)
 
 	// Loyverse adapter routes
 	loyverseHandler.RegisterRoutes(mux, authMW)
