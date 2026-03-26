@@ -28,8 +28,10 @@ import (
 	"github.com/opsnerve/fireline/internal/maintenance"
 	"github.com/opsnerve/fireline/internal/marketing"
 	"github.com/opsnerve/fireline/internal/menu"
+	"github.com/opsnerve/fireline/internal/messaging"
 	"github.com/opsnerve/fireline/internal/onboarding"
 	"github.com/opsnerve/fireline/internal/operations"
+	"github.com/opsnerve/fireline/internal/payroll"
 	"github.com/opsnerve/fireline/internal/pipeline"
 	"github.com/opsnerve/fireline/internal/portfolio"
 	"github.com/opsnerve/fireline/internal/reporting"
@@ -158,6 +160,12 @@ func main() {
 	intelSvc := intelligence.New(pool.Raw(), bus)
 	intelSvc.RegisterHandlers()
 
+	// ─── Messaging ───
+	msgSvc := messaging.New(pool.Raw(), bus)
+
+	// ─── Payroll ───
+	payrollSvc := payroll.New(pool.Raw(), bus)
+
 	// ─── Maintenance ───
 	maintSvc := maintenance.New(pool.Raw(), bus)
 
@@ -179,6 +187,8 @@ func main() {
 		"maintenance", "ready",
 		"tasks", "ready",
 		"intelligence", "ready",
+		"messaging", "ready",
+		"payroll", "ready",
 	)
 
 	// ─── Auth ───
@@ -273,6 +283,12 @@ func main() {
 
 	intelHandler := api.NewIntelligenceHandler(intelSvc)
 	intelHandler.RegisterRoutes(mux, authMW)
+
+	msgHandler := api.NewMessagingHandler(msgSvc)
+	msgHandler.RegisterRoutes(mux, authMW)
+
+	payrollHandler := api.NewPayrollHandler(payrollSvc)
+	payrollHandler.RegisterRoutes(mux, authMW)
 
 	// Loyverse adapter routes
 	loyverseHandler.RegisterRoutes(mux, authMW)

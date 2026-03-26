@@ -1,11 +1,12 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Home, ClipboardList, Calendar, Trophy, LogOut } from 'lucide-react';
+import { Home, ClipboardList, Calendar, MessageCircle, Trophy, LogOut } from 'lucide-react';
 import { getUser, logout } from '../stores/auth';
 
 const tabs = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/tasks', label: 'Tasks', icon: ClipboardList },
   { to: '/schedule', label: 'Schedule', icon: Calendar },
+  { to: '/chat', label: 'Chat', icon: MessageCircle },
   { to: '/points', label: 'Points', icon: Trophy },
 ] as const;
 

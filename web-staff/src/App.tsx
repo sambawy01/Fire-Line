@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import TasksPage from './pages/TasksPage';
 import SchedulePage from './pages/SchedulePage';
 import PointsPage from './pages/PointsPage';
+import ChatPage from './pages/ChatPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />;
@@ -20,6 +21,7 @@ export default function App() {
           <Route index element={<HomePage />} />
           <Route path="tasks" element={<TasksPage />} />
           <Route path="schedule" element={<SchedulePage />} />
+          <Route path="chat" element={<ChatPage />} />
           <Route path="points" element={<PointsPage />} />
         </Route>
       </Routes>

@@ -22,6 +22,8 @@ import {
   ChefHat,
   Megaphone,
   Wrench,
+  Wallet,
+  Shield,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth';
 import { useLocationStore } from '../stores/location';
@@ -43,6 +45,8 @@ const navItems = [
   { to: '/maintenance', label: 'Maintenance', icon: Wrench },
   { to: '/reports', label: 'Reports', icon: FileText },
   { to: '/marketing', label: 'Marketing', icon: Megaphone },
+  { to: '/payroll', label: 'Payroll', icon: Wallet },
+  { to: '/intelligence', label: 'Intelligence', icon: Shield },
   { to: '/alerts', label: 'Alerts', icon: Bell, showBadge: true },
   { to: '/adapters', label: 'Adapters', icon: Plug },
 ];

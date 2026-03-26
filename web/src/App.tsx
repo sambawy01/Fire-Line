@@ -21,6 +21,8 @@ import SchedulingPage from './pages/SchedulingPage';
 import KitchenPage from './pages/KitchenPage';
 import MaintenancePage from './pages/MaintenancePage';
 import MarketingPage from './pages/MarketingPage';
+import PayrollPage from './pages/PayrollPage';
+import IntelligencePage from './pages/IntelligencePage';
 import PortfolioPage from './pages/PortfolioPage';
 
 const queryClient = new QueryClient({
@@ -60,6 +62,8 @@ export default function App() {
             <Route path="maintenance" element={<MaintenancePage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="marketing" element={<MarketingPage />} />
+            <Route path="payroll" element={<PayrollPage />} />
+            <Route path="intelligence" element={<IntelligencePage />} />
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="adapters" element={<AdaptersPage />} />
           </Route>

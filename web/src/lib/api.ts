@@ -1559,4 +1559,153 @@ export const maintenanceApi = {
   },
 };
 
+// ─── Payroll ─────────────────────────────────────────────────────────────────
+
+export interface PayrollEmployee {
+  employee_id: string;
+  display_name: string;
+  role: string;
+  shift_count: number;
+  regular_hours: number;
+  overtime_hours: number;
+  regular_pay: number;
+  overtime_pay: number;
+  gross_pay: number;
+}
+
+export interface PayrollSummary {
+  total_gross_pay: number;
+  total_overtime_pay: number;
+  total_hours: number;
+  employee_count: number;
+  employees: PayrollEmployee[];
+}
+
+export interface PayrollHistoryMonth {
+  month: string;
+  gross_pay: number;
+  labor_cost_pct: number;
+}
+
+export const payrollApi = {
+  getSummary(locationId: string, periodStart: string, periodEnd: string) {
+    const params = new URLSearchParams({
+      location_id: locationId,
+      period_start: periodStart,
+      period_end: periodEnd,
+    });
+    return request<PayrollSummary>(`/payroll/summary?${params}`);
+  },
+  getHistory(locationId: string, months = 6) {
+    return request<{ history: PayrollHistoryMonth[] }>(
+      `/payroll/history?location_id=${locationId}&months=${months}`
+    );
+  },
+  async exportCsv(locationId: string, periodStart: string, periodEnd: string) {
+    const token = localStorage.getItem('access_token');
+    const params = new URLSearchParams({
+      location_id: locationId,
+      period_start: periodStart,
+      period_end: periodEnd,
+    });
+    const res = await fetch(`${API_BASE}/payroll/export?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('CSV export failed');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payroll-${periodStart}-${periodEnd}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+};
+
+// ─── Intelligence ────────────────────────────────────────────────────────────
+
+export interface IntelligenceLocationRisk {
+  location_id: string;
+  location_name: string;
+  risk_level: 'low' | 'medium' | 'high';
+  anomaly_count: number;
+  task_completion_pct: number;
+  attendance_pct: number;
+  labor_cost_pct: number;
+}
+
+export interface TurnoverRiskEmployee {
+  employee_id: string;
+  display_name: string;
+  role: string;
+  location_name: string;
+  risk_score: number;
+  signals: string[];
+}
+
+export interface StaffingGap {
+  location_name: string;
+  date: string;
+  scheduled: number;
+  required: number;
+  gap: number;
+}
+
+export interface TopPerformer {
+  employee_id: string;
+  display_name: string;
+  points: number;
+  location_name: string;
+  role: string;
+}
+
+export interface TrainingROIEntry {
+  certification: string;
+  certified_count: number;
+  avg_elu_certified: number;
+  avg_elu_uncertified: number;
+  lift_pct: number;
+}
+
+export interface CEOBriefing {
+  fraud_risk_score: number;
+  workforce_health_score: number;
+  open_anomalies: number;
+  critical_anomalies: number;
+  location_risks: IntelligenceLocationRisk[];
+  turnover_risks: TurnoverRiskEmployee[];
+  staffing_gaps: StaffingGap[];
+  top_performers: TopPerformer[];
+  training_roi: TrainingROIEntry[];
+}
+
+export interface IntelligenceAnomaly {
+  anomaly_id: string;
+  type: 'void_pattern' | 'cash_variance' | 'clock_irregularity' | 'shrinkage' | 'transaction_pattern';
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  description: string;
+  location_id: string;
+  location_name: string;
+  detected_at: string;
+  status: 'open' | 'investigating' | 'resolved' | 'false_positive';
+  evidence: Record<string, unknown>;
+  resolution_notes: string | null;
+}
+
+export const intelligenceApi = {
+  getCEOBriefing() {
+    return request<CEOBriefing>('/intelligence/ceo-briefing');
+  },
+  getAnomalies() {
+    return request<{ anomalies: IntelligenceAnomaly[] }>('/intelligence/anomalies');
+  },
+  resolveAnomaly(id: string, status: string, notes: string) {
+    return request<{ status: string }>(`/intelligence/anomalies/${id}/resolve`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, notes }),
+    });
+  },
+};
+
 export { ApiError };

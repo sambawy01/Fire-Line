@@ -29,6 +29,10 @@ func (h *IntelligenceHandler) RegisterRoutes(mux *http.ServeMux, authMW func(htt
 	mux.Handle("GET /api/v1/intelligence/anomalies/{id}", chain(http.HandlerFunc(h.GetAnomaly), authMW, restrictedRoles))
 	mux.Handle("PUT /api/v1/intelligence/anomalies/{id}/resolve", chain(http.HandlerFunc(h.ResolveAnomaly), authMW, restrictedRoles))
 	mux.Handle("GET /api/v1/intelligence/investigation/{id}", chain(http.HandlerFunc(h.GetEmployeeTimeline), authMW, restrictedRoles))
+
+	// CEO-level intelligence briefing
+	ceoRoles := requireRole("ops_director", "owner")
+	mux.Handle("GET /api/v1/intelligence/ceo-briefing", chain(http.HandlerFunc(h.GetCEOBriefing), authMW, ceoRoles))
 }
 
 // ListAnomalies returns anomalies with optional filters.
@@ -148,4 +152,22 @@ func (h *IntelligenceHandler) GetEmployeeTimeline(w http.ResponseWriter, r *http
 	}
 
 	WriteJSON(w, http.StatusOK, timeline)
+}
+
+// GetCEOBriefing returns a cross-location intelligence summary for executive review.
+// GET /api/v1/intelligence/ceo-briefing
+func (h *IntelligenceHandler) GetCEOBriefing(w http.ResponseWriter, r *http.Request) {
+	orgID, err := tenant.OrgIDFrom(r.Context())
+	if err != nil {
+		WriteError(w, http.StatusUnauthorized, "AUTH_NO_TENANT", "no tenant context")
+		return
+	}
+
+	briefing, err := h.svc.GetCEOBriefing(r.Context(), orgID)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, "INTEL_CEO_BRIEFING_ERROR", err.Error())
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, briefing)
 }
