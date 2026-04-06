@@ -175,14 +175,19 @@ func (s *Syncer) SyncInventory(ctx context.Context) ([]InventoryLevel, error) {
 	return resp.InventoryLevels, nil
 }
 
-// StartPolling launches a background goroutine that runs a full sync every interval.
+// StartPolling launches a background goroutine that runs an immediate full sync
+// followed by periodic syncs at the given interval.
 // The goroutine exits when ctx is cancelled.
 func (s *Syncer) StartPolling(ctx context.Context, interval time.Duration) {
 	if interval <= 0 {
 		interval = 5 * time.Minute
 	}
-	ticker := time.NewTicker(interval)
 	go func() {
+		// Run an immediate sync on connect so data is available right away.
+		slog.Info("loyverse: running initial sync", "location_id", s.cfg.LocationID)
+		s.runInitialSync(ctx)
+
+		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 		slog.Info("loyverse: polling started", "interval", interval, "location_id", s.cfg.LocationID)
 		for {
@@ -196,6 +201,24 @@ func (s *Syncer) StartPolling(ctx context.Context, interval time.Duration) {
 			}
 		}
 	}()
+}
+
+// runInitialSync performs a first-time sync with 30 days of historical orders.
+func (s *Syncer) runInitialSync(ctx context.Context) {
+	since := time.Now().AddDate(0, 0, -30)
+
+	if _, err := s.SyncMenu(ctx); err != nil {
+		slog.Error("loyverse: initial menu sync failed", "error", err)
+	}
+	if _, err := s.SyncOrders(ctx, since); err != nil {
+		slog.Error("loyverse: initial orders sync failed", "error", err)
+	}
+	if _, err := s.SyncEmployees(ctx); err != nil {
+		slog.Error("loyverse: initial employees sync failed", "error", err)
+	}
+	if _, err := s.SyncInventory(ctx); err != nil {
+		slog.Error("loyverse: initial inventory sync failed", "error", err)
+	}
 }
 
 // runFullSync performs a complete sync of all data types.

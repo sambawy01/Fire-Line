@@ -103,7 +103,7 @@ func MapEmployee(emp Employee) adapter.NormalizedEmployee {
 		FirstName:  firstName,
 		LastName:   lastName,
 		Role:       normalizeRole(emp.Role),
-		Active:     !emp.Active, // Loyverse Active field is actually is_deleted
+		Active:     !emp.Active, // emp.Active reads json:"is_deleted", so invert
 		Source:     "loyverse",
 	}
 }

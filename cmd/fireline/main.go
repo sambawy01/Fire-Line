@@ -137,6 +137,12 @@ func main() {
 	loyverseAdapter := loyverse.NewWithBus(bus)
 	loyverseHandler := loyverse.NewHandler(loyverseAdapter)
 
+	// ─── Data Pipeline ───
+	// Register pipeline handlers BEFORE auto-connecting adapters so the initial
+	// sync events are captured by the pipeline.
+	pipe := pipeline.New(pool.Raw(), bus)
+	pipe.RegisterHandlers()
+
 	// Auto-connect Loyverse if env vars are set.
 	if loyToken := os.Getenv("LOYVERSE_API_TOKEN"); loyToken != "" {
 		loyStoreID := os.Getenv("LOYVERSE_STORE_ID")
@@ -160,10 +166,6 @@ func main() {
 			slog.Info("loyverse auto-connected", "store_id", loyStoreID, "location_id", loyLocID)
 		}
 	}
-
-	// ─── Data Pipeline ───
-	pipe := pipeline.New(pool.Raw(), bus)
-	pipe.RegisterHandlers()
 
 	// ─── Intelligence Services ───
 	invSvc := inventory.New(pool.Raw(), bus)
