@@ -78,6 +78,7 @@ var rolePermissions = map[string][]string{
 		"intelligence:anomalies",
 		"announcements:read",
 		"announcements:write",
+		"tasks:assign",
 		"tasks:manage",
 	},
 	"ops_director": {
@@ -118,12 +119,15 @@ var rolePermissions = map[string][]string{
 		"intelligence:resolve",
 		"announcements:read",
 		"announcements:write",
+		"tasks:assign",
 		"tasks:manage",
 	},
 	"owner": {
 		"schedule:read_own",
 		"tasks:read",
 		"tasks:write",
+		"tasks:assign",
+		"tasks:manage",
 		"menu:read",
 		"reporting:read",
 		"staff:read",
@@ -161,6 +165,8 @@ var rolePermissions = map[string][]string{
 		"intelligence:anomalies",
 		"intelligence:investigate",
 		"intelligence:resolve",
+		"announcements:read",
+		"announcements:write",
 	},
 }
 

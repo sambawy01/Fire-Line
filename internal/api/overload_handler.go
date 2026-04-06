@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 
@@ -21,7 +22,8 @@ func (h *OperationsHandler) GetOverloadStatus(w http.ResponseWriter, r *http.Req
 	}
 	status, err := h.svc.GetOverloadStatus(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_OVERLOAD_ERROR", err.Error())
+		slog.Error("ops overload error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_OVERLOAD_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, status)
@@ -48,7 +50,8 @@ func (h *OperationsHandler) ApplyOverloadResponse(w http.ResponseWriter, r *http
 		return
 	}
 	if err := h.svc.ApplyOverloadResponse(r.Context(), orgID, req.LocationID, req.ActionType, req.ItemID); err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_OVERLOAD_APPLY_ERROR", err.Error())
+		slog.Error("ops overload apply error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_OVERLOAD_APPLY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "applied"})
@@ -68,7 +71,8 @@ func (h *OperationsHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 	}
 	health, err := h.svc.GetOperationalHealth(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_HEALTH_ERROR", err.Error())
+		slog.Error("ops health error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_HEALTH_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, health)
@@ -88,7 +92,8 @@ func (h *OperationsHandler) GetTicketPriorities(w http.ResponseWriter, r *http.R
 	}
 	priorities, err := h.svc.GetTicketPriorities(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_PRIORITY_ERROR", err.Error())
+		slog.Error("ops priority error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_PRIORITY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "priorities", priorities)
@@ -108,7 +113,8 @@ func (h *OperationsHandler) GetRealTimeHorizon(w http.ResponseWriter, r *http.Re
 	}
 	horizon, err := h.svc.GetRealTimeHorizon(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_RT_ERROR", err.Error())
+		slog.Error("ops horizon rt error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_RT_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, horizon)
@@ -128,7 +134,8 @@ func (h *OperationsHandler) GetShiftHorizon(w http.ResponseWriter, r *http.Reque
 	}
 	horizon, err := h.svc.GetShiftHorizon(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_SHIFT_ERROR", err.Error())
+		slog.Error("ops horizon shift error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_SHIFT_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, horizon)
@@ -148,7 +155,8 @@ func (h *OperationsHandler) GetDailyHorizon(w http.ResponseWriter, r *http.Reque
 	}
 	horizon, err := h.svc.GetDailyHorizon(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_DAILY_ERROR", err.Error())
+		slog.Error("ops horizon daily error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_DAILY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, horizon)
@@ -168,7 +176,8 @@ func (h *OperationsHandler) GetWeeklyHorizon(w http.ResponseWriter, r *http.Requ
 	}
 	horizon, err := h.svc.GetWeeklyHorizon(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_WEEKLY_ERROR", err.Error())
+		slog.Error("ops horizon weekly error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_WEEKLY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, horizon)
@@ -188,7 +197,8 @@ func (h *OperationsHandler) GetStrategicHorizon(w http.ResponseWriter, r *http.R
 	}
 	horizon, err := h.svc.GetStrategicHorizon(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_STRATEGIC_ERROR", err.Error())
+		slog.Error("ops horizon strategic error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_HORIZON_STRATEGIC_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, horizon)

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -37,7 +38,8 @@ func (h *FinancialHandler) CreateBudget(w http.ResponseWriter, r *http.Request) 
 
 	created, err := h.svc.CreateBudget(r.Context(), orgID, b)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_BUDGET_ERROR", err.Error())
+		slog.Error("financial budget error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_BUDGET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, created)
@@ -59,7 +61,8 @@ func (h *FinancialHandler) ListBudgets(w http.ResponseWriter, r *http.Request) {
 
 	budgets, err := h.svc.ListBudgets(r.Context(), orgID, locationID, periodType)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_BUDGET_ERROR", err.Error())
+		slog.Error("financial budget error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_BUDGET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"budgets": budgets})
@@ -88,7 +91,8 @@ func (h *FinancialHandler) GetBudgetVariance(w http.ResponseWriter, r *http.Requ
 
 	variance, err := h.svc.CalculateBudgetVariance(r.Context(), orgID, locationID, date)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_VARIANCE_ERROR", err.Error())
+		slog.Error("financial variance error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_VARIANCE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, variance)
@@ -110,7 +114,8 @@ func (h *FinancialHandler) GetCostCenters(w http.ResponseWriter, r *http.Request
 	from, to := parseDateRange(r)
 	centers, err := h.svc.GetCostCenterBreakdown(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_COST_CENTER_ERROR", err.Error())
+		slog.Error("financial cost center error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_COST_CENTER_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"cost_centers": centers, "period_start": from, "period_end": to})
@@ -139,7 +144,8 @@ func (h *FinancialHandler) GetTransactionAnomalies(w http.ResponseWriter, r *htt
 
 	anomalies, err := h.svc.DetectTransactionAnomalies(r.Context(), orgID, locationID, day)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_TX_ANOMALY_ERROR", err.Error())
+		slog.Error("financial tx anomaly error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_TX_ANOMALY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"anomalies": anomalies})
@@ -162,7 +168,8 @@ func (h *FinancialHandler) GetDrilldownItems(w http.ResponseWriter, r *http.Requ
 	from, to := parseDateRange(r)
 	items, err := h.svc.GetItemCostBreakdown(r.Context(), orgID, locationID, category, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_DRILLDOWN_ERROR", err.Error())
+		slog.Error("financial drilldown error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_DRILLDOWN_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"items": items, "period_start": from, "period_end": to})
@@ -189,7 +196,8 @@ func (h *FinancialHandler) GetDrilldownIngredients(w http.ResponseWriter, r *htt
 	from, to := parseDateRange(r)
 	breakdown, err := h.svc.GetIngredientCostBreakdown(r.Context(), orgID, locationID, menuItemID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_DRILLDOWN_ERROR", err.Error())
+		slog.Error("financial drilldown error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_DRILLDOWN_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"ingredients": breakdown, "period_start": from, "period_end": to})
@@ -215,7 +223,8 @@ func (h *FinancialHandler) GetDrilldownVendor(w http.ResponseWriter, r *http.Req
 
 	history, err := h.svc.GetIngredientVendorHistory(r.Context(), orgID, locationID, ingredientID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_VENDOR_HISTORY_ERROR", err.Error())
+		slog.Error("financial vendor history error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_VENDOR_HISTORY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"vendor_history": history})
@@ -237,7 +246,8 @@ func (h *FinancialHandler) GetPeriodComparison(w http.ResponseWriter, r *http.Re
 	from, to := parseDateRange(r)
 	comparison, err := h.svc.CalculatePeriodComparison(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_COMPARISON_ERROR", err.Error())
+		slog.Error("financial comparison error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_COMPARISON_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, comparison)

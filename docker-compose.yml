@@ -3,7 +3,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: fireline
-      POSTGRES_PASSWORD: fireline
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fireline}
       POSTGRES_DB: fireline
     ports:
       - "5432:5432"

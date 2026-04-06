@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 
@@ -65,7 +66,8 @@ func (h *TasksHandler) CreateTemplate(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := h.svc.CreateTemplate(r.Context(), orgID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_CREATE_TEMPLATE_ERROR", err.Error())
+		slog.Error("task create template error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_CREATE_TEMPLATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, tmpl)
@@ -84,7 +86,8 @@ func (h *TasksHandler) ListTemplates(w http.ResponseWriter, r *http.Request) {
 
 	templates, err := h.svc.ListTemplates(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_LIST_TEMPLATES_ERROR", err.Error())
+		slog.Error("task list templates error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_LIST_TEMPLATES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "templates", templates)
@@ -117,7 +120,8 @@ func (h *TasksHandler) InstantiateTemplate(w http.ResponseWriter, r *http.Reques
 
 	created, err := h.svc.InstantiateTemplate(r.Context(), orgID, templateID, body.AssignedTo, body.AssignedBy)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_INSTANTIATE_ERROR", err.Error())
+		slog.Error("task instantiate error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_INSTANTIATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusCreated, "tasks", created)
@@ -146,7 +150,8 @@ func (h *TasksHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	task, err := h.svc.CreateTask(r.Context(), orgID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_CREATE_ERROR", err.Error())
+		slog.Error("task create error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_CREATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, task)
@@ -167,7 +172,8 @@ func (h *TasksHandler) ListTasks(w http.ResponseWriter, r *http.Request) {
 
 	taskList, err := h.svc.ListTasks(r.Context(), orgID, locationID, assignedTo, status)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_LIST_ERROR", err.Error())
+		slog.Error("task list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "tasks", taskList)
@@ -190,7 +196,8 @@ func (h *TasksHandler) GetMyTasks(w http.ResponseWriter, r *http.Request) {
 
 	myTasks, err := h.svc.GetMyTasks(r.Context(), orgID, userID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_MY_ERROR", err.Error())
+		slog.Error("task my error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_MY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "tasks", myTasks)
@@ -225,7 +232,8 @@ func (h *TasksHandler) UpdateTaskStatus(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := h.svc.UpdateTaskStatus(r.Context(), orgID, taskID, body.Status); err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_UPDATE_STATUS_ERROR", err.Error())
+		slog.Error("task update status error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_UPDATE_STATUS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": body.Status})
@@ -259,7 +267,8 @@ func (h *TasksHandler) CompleteTask(w http.ResponseWriter, r *http.Request) {
 
 	task, err := h.svc.CompleteTask(r.Context(), orgID, taskID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_COMPLETE_ERROR", err.Error())
+		slog.Error("task complete error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_COMPLETE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, task)
@@ -288,7 +297,8 @@ func (h *TasksHandler) CreateAnnouncement(w http.ResponseWriter, r *http.Request
 
 	announcement, err := h.svc.CreateAnnouncement(r.Context(), orgID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_CREATE_ANNOUNCEMENT_ERROR", err.Error())
+		slog.Error("task create announcement error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_CREATE_ANNOUNCEMENT_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, announcement)
@@ -307,7 +317,8 @@ func (h *TasksHandler) ListAnnouncements(w http.ResponseWriter, r *http.Request)
 
 	announcements, err := h.svc.ListAnnouncements(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "TASK_LIST_ANNOUNCEMENTS_ERROR", err.Error())
+		slog.Error("task list announcements error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "TASK_LIST_ANNOUNCEMENTS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "announcements", announcements)

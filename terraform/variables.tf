@@ -63,3 +63,8 @@ variable "desired_count" {
   type        = number
   default     = 2
 }
+
+variable "domain_name" {
+  description = "Primary domain for the application"
+  type        = string
+}

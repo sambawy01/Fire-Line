@@ -86,14 +86,18 @@ module "secrets" {
 module "ecs" {
   source = "./modules/ecs"
 
-  environment        = var.environment
-  vpc_id             = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids
-  public_subnet_ids  = module.vpc.public_subnet_ids
-  ecr_repository_url = module.ecr.repository_url
-  db_secret_arn      = module.secrets.db_secret_arn
-  redis_endpoint     = module.redis.endpoint
-  container_cpu      = var.container_cpu
-  container_memory   = var.container_memory
-  desired_count      = var.desired_count
+  environment         = var.environment
+  project             = "fireline"
+  vpc_id              = module.vpc.vpc_id
+  private_subnet_ids  = module.vpc.private_subnet_ids
+  public_subnet_ids   = module.vpc.public_subnet_ids
+  ecr_repository_url  = module.ecr.repository_url
+  db_secret_arn       = module.secrets.db_secret_arn
+  admin_db_secret_arn = module.secrets.admin_db_secret_arn
+  jwt_secret_arn      = module.secrets.jwt_secret_arn
+  redis_endpoint      = module.redis.endpoint
+  container_cpu       = var.container_cpu
+  container_memory    = var.container_memory
+  desired_count       = var.desired_count
+  domain_name         = var.domain_name
 }

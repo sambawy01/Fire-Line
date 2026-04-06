@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/opsnerve/fireline/internal/labor"
@@ -58,7 +59,8 @@ func (h *LaborHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 	from, to := parseDateRange(r)
 	summary, err := h.svc.GetSummary(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_SUMMARY_ERROR", err.Error())
+		slog.Error("labor summary error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_SUMMARY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, summary)
@@ -81,7 +83,8 @@ func (h *LaborHandler) GetEmployees(w http.ResponseWriter, r *http.Request) {
 	from, to := parseDateRange(r)
 	employees, err := h.svc.GetEmployees(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_EMPLOYEES_ERROR", err.Error())
+		slog.Error("labor employees error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_EMPLOYEES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"employees": employees})

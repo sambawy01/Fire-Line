@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 
@@ -84,7 +85,8 @@ func (h *MaintenanceHandler) ListEquipment(w http.ResponseWriter, r *http.Reques
 
 	equipment, err := h.svc.ListEquipment(r.Context(), orgID, locationID, status, category)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_LIST_EQUIPMENT_ERROR", err.Error())
+		slog.Error("maint list equipment error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_LIST_EQUIPMENT_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "equipment", equipment)
@@ -103,7 +105,8 @@ func (h *MaintenanceHandler) CreateEquipment(w http.ResponseWriter, r *http.Requ
 	}
 	eq, err := h.svc.CreateEquipment(r.Context(), orgID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_CREATE_EQUIPMENT_ERROR", err.Error())
+		slog.Error("maint create equipment error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_CREATE_EQUIPMENT_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, eq)
@@ -118,7 +121,8 @@ func (h *MaintenanceHandler) GetEquipment(w http.ResponseWriter, r *http.Request
 	equipmentID := r.PathValue("id")
 	eq, err := h.svc.GetEquipment(r.Context(), orgID, equipmentID)
 	if err != nil {
-		WriteError(w, http.StatusNotFound, "MAINT_EQUIPMENT_NOT_FOUND", err.Error())
+		slog.Error("maint equipment not found", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusNotFound, "MAINT_EQUIPMENT_NOT_FOUND", "resource not found")
 		return
 	}
 	WriteJSON(w, http.StatusOK, eq)
@@ -138,7 +142,8 @@ func (h *MaintenanceHandler) UpdateEquipment(w http.ResponseWriter, r *http.Requ
 	}
 	eq, err := h.svc.UpdateEquipment(r.Context(), orgID, equipmentID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_UPDATE_EQUIPMENT_ERROR", err.Error())
+		slog.Error("maint update equipment error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_UPDATE_EQUIPMENT_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, eq)
@@ -158,7 +163,8 @@ func (h *MaintenanceHandler) ListTickets(w http.ResponseWriter, r *http.Request)
 
 	tickets, err := h.svc.ListTickets(r.Context(), orgID, locationID, status, priority)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_LIST_TICKETS_ERROR", err.Error())
+		slog.Error("maint list tickets error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_LIST_TICKETS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "tickets", tickets)
@@ -177,7 +183,8 @@ func (h *MaintenanceHandler) CreateTicket(w http.ResponseWriter, r *http.Request
 	}
 	ticket, err := h.svc.CreateTicket(r.Context(), orgID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_CREATE_TICKET_ERROR", err.Error())
+		slog.Error("maint create ticket error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_CREATE_TICKET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, ticket)
@@ -192,7 +199,8 @@ func (h *MaintenanceHandler) GetTicket(w http.ResponseWriter, r *http.Request) {
 	ticketID := r.PathValue("id")
 	ticket, err := h.svc.GetTicket(r.Context(), orgID, ticketID)
 	if err != nil {
-		WriteError(w, http.StatusNotFound, "MAINT_TICKET_NOT_FOUND", err.Error())
+		slog.Error("maint ticket not found", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusNotFound, "MAINT_TICKET_NOT_FOUND", "resource not found")
 		return
 	}
 	WriteJSON(w, http.StatusOK, ticket)
@@ -211,7 +219,8 @@ func (h *MaintenanceHandler) UpdateTicket(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if err := h.svc.UpdateTicket(r.Context(), orgID, ticketID, updates); err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_UPDATE_TICKET_ERROR", err.Error())
+		slog.Error("maint update ticket error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_UPDATE_TICKET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "updated"})
@@ -233,7 +242,8 @@ func (h *MaintenanceHandler) CompleteTicket(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	if err := h.svc.CompleteTicket(r.Context(), orgID, ticketID, req.Resolution, req.ActualCost); err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_COMPLETE_TICKET_ERROR", err.Error())
+		slog.Error("maint complete ticket error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_COMPLETE_TICKET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "completed"})
@@ -259,7 +269,8 @@ func (h *MaintenanceHandler) AddLog(w http.ResponseWriter, r *http.Request) {
 	}
 	log, err := h.svc.AddLog(r.Context(), orgID, ticketID, req.EquipmentID, req.Action, req.Notes, req.Cost, req.PerformedBy)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_ADD_LOG_ERROR", err.Error())
+		slog.Error("maint add log error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_ADD_LOG_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, log)
@@ -276,7 +287,8 @@ func (h *MaintenanceHandler) GetOverdue(w http.ResponseWriter, r *http.Request) 
 	locationID := r.URL.Query().Get("location_id")
 	equipment, err := h.svc.GetOverdueMaintenanceEquipment(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_OVERDUE_ERROR", err.Error())
+		slog.Error("maint overdue error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_OVERDUE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "equipment", equipment)
@@ -291,7 +303,8 @@ func (h *MaintenanceHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	locationID := r.URL.Query().Get("location_id")
 	stats, err := h.svc.GetMaintenanceStats(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_STATS_ERROR", err.Error())
+		slog.Error("maint stats error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_STATS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, stats)
@@ -307,7 +320,8 @@ func (h *MaintenanceHandler) GetEquipmentReadings(w http.ResponseWriter, r *http
 	equipmentID := r.PathValue("id")
 	readings, err := h.svc.GetEquipmentReadings(r.Context(), orgID, equipmentID, 50)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MAINT_READINGS_ERROR", err.Error())
+		slog.Error("maint readings error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MAINT_READINGS_ERROR", "an internal error occurred")
 		return
 	}
 	if readings == nil {

@@ -69,12 +69,12 @@ func (s *Service) CreateTicket(ctx context.Context, orgID string, input TicketIn
 	var ticket MaintenanceTicket
 
 	err := database.TenantTx(tenantCtx, s.pool, func(tx pgx.Tx) error {
-		// Generate ticket number
-		var count int
-		if err := tx.QueryRow(tenantCtx, "SELECT COUNT(*) FROM maintenance_tickets").Scan(&count); err != nil {
-			return err
+		// Generate ticket number from sequence (concurrency-safe, no duplicates)
+		var ticketNumber int
+		if err := tx.QueryRow(tenantCtx, "SELECT nextval('maintenance_ticket_seq')").Scan(&ticketNumber); err != nil {
+			return fmt.Errorf("generate ticket number: %w", err)
 		}
-		ticketNumber := fmt.Sprintf("MT-%04d", count+1)
+		ticketNum := fmt.Sprintf("MT-%04d", ticketNumber)
 
 		return tx.QueryRow(tenantCtx,
 			`INSERT INTO maintenance_tickets (org_id, location_id, equipment_id, ticket_number, type, priority, status,
@@ -83,7 +83,7 @@ func (s *Service) CreateTicket(ctx context.Context, orgID string, input TicketIn
 			 RETURNING ticket_id, org_id, location_id, equipment_id, ticket_number, type, priority, status,
 				title, description, assigned_to, estimated_cost, actual_cost, scheduled_date::TEXT,
 				started_at::TEXT, completed_at::TEXT, resolution, created_by::TEXT, created_at::TEXT, updated_at::TEXT`,
-			orgID, input.LocationID, input.EquipmentID, ticketNumber, input.Type, input.Priority,
+			orgID, input.LocationID, input.EquipmentID, ticketNum, input.Type, input.Priority,
 			input.Title, input.Description, input.AssignedTo, input.EstimatedCost, input.ScheduledDate,
 		).Scan(
 			&ticket.TicketID, &ticket.OrgID, &ticket.LocationID, &ticket.EquipmentID,

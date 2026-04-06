@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/opsnerve/fireline/internal/operations"
@@ -69,7 +70,8 @@ func (h *OperationsHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 	from, to := parseDateRange(r)
 	summary, err := h.svc.GetSummary(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_SUMMARY_ERROR", err.Error())
+		slog.Error("ops summary error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_SUMMARY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, summary)
@@ -90,7 +92,8 @@ func (h *OperationsHandler) GetHourly(w http.ResponseWriter, r *http.Request) {
 	from, to := parseDateRange(r)
 	hourly, err := h.svc.GetHourly(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "OPS_HOURLY_ERROR", err.Error())
+		slog.Error("ops hourly error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "OPS_HOURLY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"hourly": hourly})

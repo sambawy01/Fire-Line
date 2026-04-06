@@ -1,29 +1,32 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Layout from './components/Layout';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import OnboardingPage from './pages/OnboardingPage';
-import DashboardPage from './pages/DashboardPage';
-import InventoryPage from './pages/InventoryPage';
-import FinancialPage from './pages/FinancialPage';
-import AlertsPage from './pages/AlertsPage';
-import AdaptersPage from './pages/AdaptersPage';
-import MenuPage from './pages/MenuPage';
-import LaborPage from './pages/LaborPage';
-import VendorPage from './pages/VendorPage';
-import CustomerPage from './pages/CustomerPage';
-import OperationsPage from './pages/OperationsPage';
-import ReportsPage from './pages/ReportsPage';
-import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
-import SchedulingPage from './pages/SchedulingPage';
-import KitchenPage from './pages/KitchenPage';
-import MaintenancePage from './pages/MaintenancePage';
-import MarketingPage from './pages/MarketingPage';
-import PayrollPage from './pages/PayrollPage';
-import IntelligencePage from './pages/IntelligencePage';
-import PortfolioPage from './pages/PortfolioPage';
+
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const SignupPage = lazy(() => import('./pages/SignupPage'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const InventoryPage = lazy(() => import('./pages/InventoryPage'));
+const FinancialPage = lazy(() => import('./pages/FinancialPage'));
+const AlertsPage = lazy(() => import('./pages/AlertsPage'));
+const AdaptersPage = lazy(() => import('./pages/AdaptersPage'));
+const MenuPage = lazy(() => import('./pages/MenuPage'));
+const LaborPage = lazy(() => import('./pages/LaborPage'));
+const VendorPage = lazy(() => import('./pages/VendorPage'));
+const CustomerPage = lazy(() => import('./pages/CustomerPage'));
+const OperationsPage = lazy(() => import('./pages/OperationsPage'));
+const ReportsPage = lazy(() => import('./pages/ReportsPage'));
+const PurchaseOrdersPage = lazy(() => import('./pages/PurchaseOrdersPage'));
+const SchedulingPage = lazy(() => import('./pages/SchedulingPage'));
+const KitchenPage = lazy(() => import('./pages/KitchenPage'));
+const MaintenancePage = lazy(() => import('./pages/MaintenancePage'));
+const MarketingPage = lazy(() => import('./pages/MarketingPage'));
+const PayrollPage = lazy(() => import('./pages/PayrollPage'));
+const IntelligencePage = lazy(() => import('./pages/IntelligencePage'));
+const PortfolioPage = lazy(() => import('./pages/PortfolioPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,8 +36,10 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div></div>}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
@@ -69,7 +74,9 @@ export default function App() {
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

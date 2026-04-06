@@ -1,10 +1,20 @@
+import * as SecureStore from 'expo-secure-store';
+
 const BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080/api/v1';
 
-let _token: string | null = null;
+const TOKEN_KEY = 'manager_token';
 
-export function setToken(token: string | null): void {
-  _token = token;
+export async function setToken(token: string | null): Promise<void> {
+  if (token) {
+    await SecureStore.setItemAsync(TOKEN_KEY, token);
+  } else {
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
+  }
+}
+
+export async function getToken(): Promise<string | null> {
+  return SecureStore.getItemAsync(TOKEN_KEY);
 }
 
 async function request<T>(
@@ -16,8 +26,9 @@ async function request<T>(
     'Content-Type': 'application/json',
   };
 
-  if (_token) {
-    headers['Authorization'] = `Bearer ${_token}`;
+  const token = await getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(`${BASE_URL}${path}`, {

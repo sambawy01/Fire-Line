@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   AreaChart,
@@ -1152,13 +1153,22 @@ function BriefingDetailModal({ item, itemKey, isAttention, state, onUpdate, onCl
     if (e.target === e.currentTarget) onClose();
   }
 
-  // Escape key
+  // Escape key + lock scroll on main content area
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
     }
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      if (mainEl) {
+        mainEl.style.overflow = '';
+      }
+    };
   }, [onClose]);
 
   const priorityColors: Record<string, string> = {
@@ -1692,7 +1702,16 @@ function RecommendationModal({
       if (e.key === 'Escape') onClose();
     }
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      if (mainEl) {
+        mainEl.style.overflow = '';
+      }
+    };
   }, [onClose]);
 
   const riskColor = {
@@ -1946,17 +1965,18 @@ function AIRecommendations() {
         </div>
       )}
 
-      {/* Recommendation Modal */}
+      {/* Recommendation Modal — rendered via portal to escape transform stacking context */}
       {openModalIdx !== undefined && (() => {
         const idx = Number(openModalIdx);
         const state = recStates[idx] ?? defaultRecState();
-        return (
+        return createPortal(
           <RecommendationModal
             rec={AI_RECOMMENDATIONS[idx]}
             state={state}
             onUpdate={(patch) => updateRec(idx, patch)}
             onClose={() => updateRec(idx, { modalOpen: false, showAssign: false, showModify: false })}
-          />
+          />,
+          document.body
         );
       })()}
     </div>
@@ -2068,8 +2088,8 @@ function CEOBriefing() {
         />
       </div>
 
-      {/* Briefing Detail Modal */}
-      {modalKey && activeItem && activeState && (
+      {/* Briefing Detail Modal — rendered via portal to escape transform stacking context */}
+      {modalKey && activeItem && activeState && createPortal(
         <BriefingDetailModal
           item={activeItem}
           itemKey={modalKey}
@@ -2077,7 +2097,8 @@ function CEOBriefing() {
           state={activeState}
           onUpdate={handleItemAction}
           onClose={handleCloseModal}
-        />
+        />,
+        document.body
       )}
 
       {/* Feature 6: AI Recommendation Cards */}

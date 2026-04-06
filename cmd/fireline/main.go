@@ -10,8 +10,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/opsnerve/fireline/internal/adapter"
 	"github.com/opsnerve/fireline/internal/adapter/loyverse"
@@ -70,14 +74,35 @@ func main() {
 	}
 	defer adminPool.Close()
 
+	// ─── Redis ───
+	var rdb *redis.Client
+	redisOpts, err := redis.ParseURL(cfg.RedisURL)
+	if err != nil {
+		slog.Warn("invalid REDIS_URL, falling back to in-memory rate limiting", "error", err)
+	} else {
+		rdb = redis.NewClient(redisOpts)
+		if err := rdb.Ping(ctx).Err(); err != nil {
+			slog.Warn("redis unavailable, falling back to in-memory rate limiting", "error", err)
+			rdb = nil
+		} else {
+			slog.Info("redis connected", "addr", redisOpts.Addr)
+		}
+	}
+	defer func() {
+		if rdb != nil {
+			rdb.Close()
+		}
+	}()
+
 	if err := pool.Ping(ctx); err != nil {
 		slog.Error("failed to ping database", "error", err)
 		os.Exit(1)
 	}
 	slog.Info("database connected")
 
-	// JWT keys (ephemeral for dev)
+	// JWT keys (ephemeral for dev, PEM file for production)
 	var privKey *rsa.PrivateKey
+	var pubKey *rsa.PublicKey
 	if cfg.JWTPrivateKeyPath == "" {
 		slog.Warn("no JWT key configured, generating ephemeral key (development only)")
 		privKey, err = rsa.GenerateKey(rand.Reader, 2048)
@@ -85,9 +110,19 @@ func main() {
 			slog.Error("failed to generate ephemeral RSA key", "error", err)
 			os.Exit(1)
 		}
+		pubKey = &privKey.PublicKey
 	} else {
-		slog.Error("JWT key file loading not yet implemented")
-		os.Exit(1)
+		privPEM, err := os.ReadFile(cfg.JWTPrivateKeyPath)
+		if err != nil {
+			slog.Error("failed to read JWT private key", "path", cfg.JWTPrivateKeyPath, "error", err)
+			os.Exit(1)
+		}
+		privKey, err = jwt.ParseRSAPrivateKeyFromPEM(privPEM)
+		if err != nil {
+			slog.Error("failed to parse JWT private key", "error", err)
+			os.Exit(1)
+		}
+		pubKey = &privKey.PublicKey
 	}
 
 	// ─── Event Bus ───
@@ -216,13 +251,19 @@ func main() {
 	)
 
 	// ─── Auth ───
-	issuer := auth.NewTokenIssuer(privKey, &privKey.PublicKey, 15*time.Minute)
+	issuer := auth.NewTokenIssuer(privKey, pubKey, 15*time.Minute)
 	authService := auth.NewService(pool.Raw(), adminPool.Raw(), issuer)
 	authHandler := auth.NewHandler(authService, issuer)
 	authMW := auth.AuthMiddleware(issuer)
 
+	// ─── Metrics ───
+	metrics := observability.NewMetrics()
+
 	// ─── HTTP Router ───
 	mux := http.NewServeMux()
+
+	// Metrics endpoint (no auth)
+	mux.HandleFunc("GET /metrics", metrics.Handler())
 
 	// Health (no auth)
 	mux.HandleFunc("GET /health/live", func(w http.ResponseWriter, r *http.Request) {
@@ -238,6 +279,15 @@ func main() {
 			dbStatus = "error"
 		}
 
+		redisStatus := "not_configured"
+		if rdb != nil {
+			if err := rdb.Ping(r.Context()).Err(); err != nil {
+				redisStatus = "error"
+			} else {
+				redisStatus = "ok"
+			}
+		}
+
 		status := "ready"
 		if dbStatus != "ok" {
 			status = "not_ready"
@@ -250,75 +300,124 @@ func main() {
 			"status": status,
 			"modules": map[string]any{
 				"database":  dbStatus,
+				"redis":     redisStatus,
 				"event_bus": "ok",
 				"adapters":  map[string]string{"toast": "registered", "loyverse": "registered"},
 			},
 		})
 	})
 
+	// ─── Permission Middleware Helpers ───
+	requirePerm := auth.RequirePermission
+
+	// authMW + permission composition helper
+	authWithPerm := func(perm string) func(http.Handler) http.Handler {
+		return func(h http.Handler) http.Handler {
+			return authMW(requirePerm(perm)(h))
+		}
+	}
+
+	// ─── Rate Limiters ───
+	authRL := api.NewRateLimiter(rdb, 10, time.Minute)  // 10 req/min for auth endpoints
+	apiRL := api.NewRateLimiter(rdb, 100, time.Minute) // 100 req/min for general API
+
 	// Auth routes (no auth middleware — these create/validate auth)
-	authHandler.RegisterRoutes(mux)
+	// Wrap auth routes with rate limiting
+	authMux := http.NewServeMux()
+	authHandler.RegisterRoutes(authMux)
+	mux.Handle("POST /api/v1/auth/", api.RateLimit(authRL)(authMux))
 
-	// Module API routes (auth required)
+	// Module API routes (auth required + permission checks)
+
+	// Inventory: inventory:read for GET, inventory:write for writes
 	invHandler := api.NewInventoryHandler(invSvc)
-	invHandler.RegisterRoutes(mux, authMW)
+	invHandler.RegisterRoutes(mux, authWithPerm("inventory:read"))
 
+	// Financial: financial:read for all (handler registers only GET + POST budget)
 	finHandler := api.NewFinancialHandler(finSvc)
-	finHandler.RegisterRoutes(mux, authMW)
+	finHandler.RegisterRoutes(mux, authWithPerm("financial:read"))
 
+	// Alerting: reporting:read (alerts are read by anyone with reporting access)
 	alertHandler := api.NewAlertingHandler(alertSvc)
 	alertHandler.RegisterRoutes(mux, authMW)
 
-	locHandler := api.NewLocationHandler(adminPool.Raw())
+	// Locations: any authenticated user can see their own locations
+	locHandler := api.NewLocationHandler(pool.Raw())
 	locHandler.RegisterRoutes(mux, authMW)
 
+	// Menu: menu:read
 	menuHandler := api.NewMenuHandler(menuSvc)
-	menuHandler.RegisterRoutes(mux, authMW)
+	menuHandler.RegisterRoutes(mux, authWithPerm("menu:read"))
 
+	// Labor: labor schedule-related permissions (handler already has role checks internally)
 	laborHandler := api.NewLaborHandler(laborSvc)
 	laborHandler.RegisterRoutes(mux, authMW)
 
+	// Vendor: vendor:read
 	vendorHandler := api.NewVendorHandler(vendorSvc)
-	vendorHandler.RegisterRoutes(mux, authMW)
+	vendorHandler.RegisterRoutes(mux, authWithPerm("vendor:read"))
 
+	// Customer: customer:read
 	customerHandler := api.NewCustomerHandler(customerSvc)
-	customerHandler.RegisterRoutes(mux, authMW)
+	customerHandler.RegisterRoutes(mux, authWithPerm("customer:read"))
 
+	// Operations: operations:kitchen
 	opsHandler := api.NewOperationsHandler(opsSvc)
-	opsHandler.RegisterRoutes(mux, authMW)
+	opsHandler.RegisterRoutes(mux, authWithPerm("operations:kitchen"))
 
+	// Reporting: reporting:read
 	reportHandler := api.NewReportingHandler(reportSvc)
-	reportHandler.RegisterRoutes(mux, authMW)
+	reportHandler.RegisterRoutes(mux, authWithPerm("reporting:read"))
 
+	// Marketing: marketing:read
 	mktHandler := api.NewMarketingHandler(mktSvc)
-	mktHandler.RegisterRoutes(mux, authMW)
+	mktHandler.RegisterRoutes(mux, authWithPerm("marketing:read"))
 
+	// Portfolio: portfolio:read
 	portfolioHandler := api.NewPortfolioHandler(portfolioSvc)
-	portfolioHandler.RegisterRoutes(mux, authMW)
+	portfolioHandler.RegisterRoutes(mux, authWithPerm("portfolio:read"))
 
+	// Onboarding: system:admin (only owners set up orgs)
 	onboardingHandler := api.NewOnboardingHandler(onboardingSvc)
-	onboardingHandler.RegisterRoutes(mux, authMW)
+	onboardingHandler.RegisterRoutes(mux, authWithPerm("system:admin"))
 
+	// Maintenance: handler already has internal role checks
 	maintHandler := api.NewMaintenanceHandler(maintSvc)
 	maintHandler.RegisterRoutes(mux, authMW)
 
+	// Tasks: handler already has internal role checks
 	tasksHandler := api.NewTasksHandler(tasksSvc)
 	tasksHandler.RegisterRoutes(mux, authMW)
 
+	// Intelligence: handler already has internal role checks
 	intelHandler := api.NewIntelligenceHandler(intelSvc)
 	intelHandler.RegisterRoutes(mux, authMW)
 
+	// Messaging: handler already has internal role checks
 	msgHandler := api.NewMessagingHandler(msgSvc)
 	msgHandler.RegisterRoutes(mux, authMW)
 
+	// Payroll: financial:read (handler already has internal role checks)
 	payrollHandler := api.NewPayrollHandler(payrollSvc)
 	payrollHandler.RegisterRoutes(mux, authMW)
 
-	// Loyverse adapter routes
-	loyverseHandler.RegisterRoutes(mux, authMW)
+	// GDPR: system:admin (only admins can erase/export guest data)
+	gdprHandler := api.NewGDPRHandler(pool.Raw())
+	gdprHandler.RegisterRoutes(mux, authWithPerm("system:admin"))
 
-	// CORS for frontend dev
-	handler := corsMiddleware(api.CorrelationID(api.RequestLogger(api.Recovery(mux))))
+	// Loyverse adapter routes: integrations:manage
+	loyverseHandler.RegisterRoutes(mux, authWithPerm("integrations:manage"))
+
+	// ─── Middleware Chain ───
+	// Order (outermost first): CORS -> Security Headers -> Body Size -> Rate Limit -> Metrics -> Correlation -> Logger -> Recovery -> mux
+	handler := corsMiddleware(cfg,
+		api.SecurityHeaders(
+			api.MaxBodySize(1<<20)( // 1 MB body limit
+				api.RateLimit(apiRL)(
+					observability.MetricsMiddleware(metrics)(
+						api.CorrelationID(
+							api.RequestLogger(
+								api.Recovery(mux))))))))
 
 	// Suppress unused variable warnings
 	_ = registry
@@ -354,12 +453,21 @@ func main() {
 	slog.Info("server stopped")
 }
 
-func corsMiddleware(next http.Handler) http.Handler {
+func corsMiddleware(cfg *config.Config, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+		allowedOrigins := strings.Split(cfg.AllowedOrigins, ",")
+		for _, allowed := range allowedOrigins {
+			if strings.TrimSpace(allowed) == origin {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
+				break
+			}
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Max-Age", "86400")
+		w.Header().Set("Vary", "Origin")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusNoContent)

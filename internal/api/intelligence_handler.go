@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -50,7 +51,8 @@ func (h *IntelligenceHandler) ListAnomalies(w http.ResponseWriter, r *http.Reque
 
 	anomalies, err := h.svc.ListAnomalies(r.Context(), orgID, locationID, status, anomalyType)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "INTEL_LIST_ERROR", err.Error())
+		slog.Error("intel list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "INTEL_LIST_ERROR", "an internal error occurred")
 		return
 	}
 
@@ -74,7 +76,8 @@ func (h *IntelligenceHandler) GetAnomaly(w http.ResponseWriter, r *http.Request)
 
 	anomaly, err := h.svc.GetAnomaly(r.Context(), orgID, anomalyID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "INTEL_GET_ERROR", err.Error())
+		slog.Error("intel get error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "INTEL_GET_ERROR", "an internal error occurred")
 		return
 	}
 
@@ -116,7 +119,8 @@ func (h *IntelligenceHandler) ResolveAnomaly(w http.ResponseWriter, r *http.Requ
 
 	anomaly, err := h.svc.ResolveAnomaly(r.Context(), orgID, anomalyID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "INTEL_RESOLVE_ERROR", err.Error())
+		slog.Error("intel resolve error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "INTEL_RESOLVE_ERROR", "an internal error occurred")
 		return
 	}
 
@@ -147,7 +151,8 @@ func (h *IntelligenceHandler) GetEmployeeTimeline(w http.ResponseWriter, r *http
 
 	timeline, err := h.svc.GetEmployeeTimeline(r.Context(), orgID, employeeID, days)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "INTEL_TIMELINE_ERROR", err.Error())
+		slog.Error("intel timeline error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "INTEL_TIMELINE_ERROR", "an internal error occurred")
 		return
 	}
 
@@ -165,7 +170,8 @@ func (h *IntelligenceHandler) GetCEOBriefing(w http.ResponseWriter, r *http.Requ
 
 	briefing, err := h.svc.GetCEOBriefing(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "INTEL_CEO_BRIEFING_ERROR", err.Error())
+		slog.Error("intel ceo briefing error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "INTEL_CEO_BRIEFING_ERROR", "an internal error occurred")
 		return
 	}
 

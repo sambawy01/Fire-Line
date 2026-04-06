@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 
@@ -47,7 +48,8 @@ func (h *OnboardingHandler) StartOnboarding(w http.ResponseWriter, r *http.Reque
 	}
 	sess, err := h.svc.StartOnboarding(r.Context(), orgID, req.UserID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ONBOARDING_START_ERROR", err.Error())
+		slog.Error("onboarding start error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ONBOARDING_START_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, map[string]any{"session": sess})
@@ -94,7 +96,8 @@ func (h *OnboardingHandler) UpdateStep(w http.ResponseWriter, r *http.Request) {
 	}
 	sess, err := h.svc.UpdateStep(r.Context(), orgID, req.SessionID, req.Step, req.Data)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ONBOARDING_UPDATE_ERROR", err.Error())
+		slog.Error("onboarding update error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ONBOARDING_UPDATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"session": sess})
@@ -114,7 +117,8 @@ func (h *OnboardingHandler) GetInsights(w http.ResponseWriter, r *http.Request) 
 	}
 	insights, err := h.svc.GenerateFirstInsights(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ONBOARDING_INSIGHTS_ERROR", err.Error())
+		slog.Error("onboarding insights error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ONBOARDING_INSIGHTS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"insights": insights})
@@ -134,7 +138,8 @@ func (h *OnboardingHandler) InferConcept(w http.ResponseWriter, r *http.Request)
 	}
 	conceptType, err := h.svc.InferConceptType(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ONBOARDING_CONCEPT_ERROR", err.Error())
+		slog.Error("onboarding concept error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ONBOARDING_CONCEPT_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"concept_type": conceptType})
@@ -171,7 +176,8 @@ func (h *OnboardingHandler) GetChecklist(w http.ResponseWriter, r *http.Request)
 	}
 	items, err := h.svc.GetChecklist(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ONBOARDING_CHECKLIST_ERROR", err.Error())
+		slog.Error("onboarding checklist error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ONBOARDING_CHECKLIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"items": items})
@@ -194,7 +200,8 @@ func (h *OnboardingHandler) CompleteChecklistItem(w http.ResponseWriter, r *http
 			WriteError(w, http.StatusNotFound, "ONBOARDING_ITEM_NOT_FOUND", "checklist item not found")
 			return
 		}
-		WriteError(w, http.StatusInternalServerError, "ONBOARDING_COMPLETE_ERROR", err.Error())
+		slog.Error("onboarding complete error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ONBOARDING_COMPLETE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "completed"})

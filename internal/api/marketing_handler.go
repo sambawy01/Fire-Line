@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -61,7 +62,8 @@ func (h *MarketingHandler) CreateCampaign(w http.ResponseWriter, r *http.Request
 	}
 	c, err := h.svc.CreateCampaign(r.Context(), orgID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_CREATE_ERROR", err.Error())
+		slog.Error("marketing campaign create error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_CREATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, c)
@@ -78,7 +80,8 @@ func (h *MarketingHandler) ListCampaigns(w http.ResponseWriter, r *http.Request)
 	status := r.URL.Query().Get("status")
 	campaigns, err := h.svc.ListCampaigns(r.Context(), orgID, locationID, status)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_LIST_ERROR", err.Error())
+		slog.Error("marketing campaign list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "campaigns", campaigns)
@@ -94,7 +97,8 @@ func (h *MarketingHandler) GetCampaign(w http.ResponseWriter, r *http.Request) {
 	campaignID := r.PathValue("id")
 	c, err := h.svc.GetCampaign(r.Context(), orgID, campaignID)
 	if err != nil {
-		WriteError(w, http.StatusNotFound, "MARKETING_CAMPAIGN_NOT_FOUND", err.Error())
+		slog.Error("marketing campaign not found", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusNotFound, "MARKETING_CAMPAIGN_NOT_FOUND", "resource not found")
 		return
 	}
 	WriteJSON(w, http.StatusOK, c)
@@ -115,7 +119,8 @@ func (h *MarketingHandler) UpdateCampaign(w http.ResponseWriter, r *http.Request
 	}
 	c, err := h.svc.UpdateCampaign(r.Context(), orgID, campaignID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_UPDATE_ERROR", err.Error())
+		slog.Error("marketing campaign update error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_UPDATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, c)
@@ -131,7 +136,8 @@ func (h *MarketingHandler) ActivateCampaign(w http.ResponseWriter, r *http.Reque
 	campaignID := r.PathValue("id")
 	c, err := h.svc.ActivateCampaign(r.Context(), orgID, campaignID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_ACTIVATE_ERROR", err.Error())
+		slog.Error("marketing campaign activate error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_ACTIVATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, c)
@@ -147,7 +153,8 @@ func (h *MarketingHandler) PauseCampaign(w http.ResponseWriter, r *http.Request)
 	campaignID := r.PathValue("id")
 	c, err := h.svc.PauseCampaign(r.Context(), orgID, campaignID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_PAUSE_ERROR", err.Error())
+		slog.Error("marketing campaign pause error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MARKETING_CAMPAIGN_PAUSE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, c)
@@ -167,7 +174,8 @@ func (h *MarketingHandler) SimulateCampaign(w http.ResponseWriter, r *http.Reque
 	}
 	result, err := h.svc.SimulateCampaign(r.Context(), orgID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MARKETING_SIMULATE_ERROR", err.Error())
+		slog.Error("marketing simulate error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MARKETING_SIMULATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, result)
@@ -193,7 +201,8 @@ func (h *MarketingHandler) EnrollLoyalty(w http.ResponseWriter, r *http.Request)
 	}
 	member, err := h.svc.EnrollMember(r.Context(), orgID, req.GuestID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LOYALTY_ENROLL_ERROR", err.Error())
+		slog.Error("loyalty enroll error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LOYALTY_ENROLL_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, member)
@@ -222,7 +231,8 @@ func (h *MarketingHandler) EarnPoints(w http.ResponseWriter, r *http.Request) {
 	}
 	member, err := h.svc.EarnPoints(r.Context(), orgID, req.GuestID, req.Points, req.Description, req.CheckID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LOYALTY_EARN_ERROR", err.Error())
+		slog.Error("loyalty earn error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LOYALTY_EARN_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, member)
@@ -250,7 +260,8 @@ func (h *MarketingHandler) RedeemPoints(w http.ResponseWriter, r *http.Request) 
 	}
 	member, err := h.svc.RedeemPoints(r.Context(), orgID, req.GuestID, req.Points, req.Description)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LOYALTY_REDEEM_ERROR", err.Error())
+		slog.Error("loyalty redeem error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LOYALTY_REDEEM_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, member)
@@ -266,7 +277,8 @@ func (h *MarketingHandler) GetLoyaltyMember(w http.ResponseWriter, r *http.Reque
 	guestID := r.PathValue("guest_id")
 	member, err := h.svc.GetMember(r.Context(), orgID, guestID)
 	if err != nil {
-		WriteError(w, http.StatusNotFound, "LOYALTY_MEMBER_NOT_FOUND", err.Error())
+		slog.Error("loyalty member not found", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusNotFound, "LOYALTY_MEMBER_NOT_FOUND", "resource not found")
 		return
 	}
 	WriteJSON(w, http.StatusOK, member)
@@ -284,7 +296,8 @@ func (h *MarketingHandler) ListLoyaltyMembers(w http.ResponseWriter, r *http.Req
 	limit, _ := strconv.Atoi(limitStr)
 	members, err := h.svc.ListMembers(r.Context(), orgID, tier, limit)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LOYALTY_LIST_ERROR", err.Error())
+		slog.Error("loyalty list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LOYALTY_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "members", members)
@@ -299,7 +312,8 @@ func (h *MarketingHandler) GetCampaignMetrics(w http.ResponseWriter, r *http.Req
 	}
 	metrics, err := h.svc.GetCampaignMetrics(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MARKETING_METRICS_ERROR", err.Error())
+		slog.Error("marketing metrics error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MARKETING_METRICS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, metrics)
@@ -314,7 +328,8 @@ func (h *MarketingHandler) GetLoyaltyMetrics(w http.ResponseWriter, r *http.Requ
 	}
 	metrics, err := h.svc.GetLoyaltyMetrics(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LOYALTY_METRICS_ERROR", err.Error())
+		slog.Error("loyalty metrics error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LOYALTY_METRICS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, metrics)

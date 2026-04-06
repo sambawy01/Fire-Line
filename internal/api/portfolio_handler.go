@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -70,7 +71,8 @@ func (h *PortfolioHandler) CreateNode(w http.ResponseWriter, r *http.Request) {
 
 	node, err := h.svc.CreateNode(r.Context(), orgID, req.ParentNodeID, req.Name, req.NodeType, req.LocationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_CREATE_ERROR", err.Error())
+		slog.Error("portfolio create error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_CREATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, node)
@@ -85,7 +87,8 @@ func (h *PortfolioHandler) GetHierarchy(w http.ResponseWriter, r *http.Request) 
 	}
 	nodes, err := h.svc.GetHierarchy(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_HIERARCHY_ERROR", err.Error())
+		slog.Error("portfolio hierarchy error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_HIERARCHY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "nodes", nodes)
@@ -111,7 +114,8 @@ func (h *PortfolioHandler) UpdateNode(w http.ResponseWriter, r *http.Request) {
 			WriteError(w, http.StatusNotFound, "PORTFOLIO_NODE_NOT_FOUND", "node not found")
 			return
 		}
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_UPDATE_ERROR", err.Error())
+		slog.Error("portfolio update error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_UPDATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -130,7 +134,8 @@ func (h *PortfolioHandler) DeleteNode(w http.ResponseWriter, r *http.Request) {
 			WriteError(w, http.StatusNotFound, "PORTFOLIO_NODE_NOT_FOUND", "node not found")
 			return
 		}
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_DELETE_ERROR", err.Error())
+		slog.Error("portfolio delete error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_DELETE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
@@ -151,7 +156,8 @@ func (h *PortfolioHandler) AggregateKPIs(w http.ResponseWriter, r *http.Request)
 	from, to := parseDateRange(r)
 	kpis, err := h.svc.AggregateKPIs(r.Context(), orgID, nodeID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_KPI_ERROR", err.Error())
+		slog.Error("portfolio kpi error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_KPI_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, kpis)
@@ -174,7 +180,8 @@ func (h *PortfolioHandler) CompareLocations(w http.ResponseWriter, r *http.Reque
 
 	metrics, err := h.svc.GetLocationComparison(r.Context(), orgID, locationIDs, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_COMPARE_ERROR", err.Error())
+		slog.Error("portfolio compare error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_COMPARE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "locations", metrics)
@@ -189,7 +196,8 @@ func (h *PortfolioHandler) CalculateBenchmarks(w http.ResponseWriter, r *http.Re
 	}
 	from, to := parseDateRange(r)
 	if err := h.svc.CalculateBenchmarks(r.Context(), orgID, from, to); err != nil {
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_BENCHMARK_ERROR", err.Error())
+		slog.Error("portfolio benchmark error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_BENCHMARK_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "calculated"})
@@ -205,7 +213,8 @@ func (h *PortfolioHandler) GetBenchmarks(w http.ResponseWriter, r *http.Request)
 	from, to := parseDateRange(r)
 	benchmarks, err := h.svc.GetBenchmarks(r.Context(), orgID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_BENCHMARK_FETCH_ERROR", err.Error())
+		slog.Error("portfolio benchmark fetch error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_BENCHMARK_FETCH_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "benchmarks", benchmarks)
@@ -221,7 +230,8 @@ func (h *PortfolioHandler) DetectOutliers(w http.ResponseWriter, r *http.Request
 	from, to := parseDateRange(r)
 	outliers, err := h.svc.DetectOutliers(r.Context(), orgID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_OUTLIER_ERROR", err.Error())
+		slog.Error("portfolio outlier error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_OUTLIER_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "outliers", outliers)
@@ -236,7 +246,8 @@ func (h *PortfolioHandler) DetectBestPractices(w http.ResponseWriter, r *http.Re
 	}
 	practices, err := h.svc.DetectBestPractices(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_DETECT_ERROR", err.Error())
+		slog.Error("portfolio detect error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_DETECT_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "best_practices", practices)
@@ -252,7 +263,8 @@ func (h *PortfolioHandler) ListBestPractices(w http.ResponseWriter, r *http.Requ
 	status := r.URL.Query().Get("status")
 	practices, err := h.svc.ListBestPractices(r.Context(), orgID, status)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_PRACTICES_ERROR", err.Error())
+		slog.Error("portfolio practices error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_PRACTICES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "best_practices", practices)
@@ -271,7 +283,8 @@ func (h *PortfolioHandler) AdoptPractice(w http.ResponseWriter, r *http.Request)
 			WriteError(w, http.StatusNotFound, "PORTFOLIO_PRACTICE_NOT_FOUND", "best practice not found")
 			return
 		}
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_ADOPT_ERROR", err.Error())
+		slog.Error("portfolio adopt error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_ADOPT_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "adopted"})
@@ -290,7 +303,8 @@ func (h *PortfolioHandler) DismissPractice(w http.ResponseWriter, r *http.Reques
 			WriteError(w, http.StatusNotFound, "PORTFOLIO_PRACTICE_NOT_FOUND", "best practice not found")
 			return
 		}
-		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_DISMISS_ERROR", err.Error())
+		slog.Error("portfolio dismiss error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PORTFOLIO_DISMISS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "dismissed"})

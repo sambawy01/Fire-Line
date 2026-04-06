@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -44,7 +45,8 @@ func (h *MessagingHandler) ListChannels(w http.ResponseWriter, r *http.Request) 
 
 	channels, err := h.svc.ListChannels(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MSG_LIST_CHANNELS_ERROR", err.Error())
+		slog.Error("msg list channels error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MSG_LIST_CHANNELS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "channels", channels)
@@ -74,7 +76,8 @@ func (h *MessagingHandler) ListMessages(w http.ResponseWriter, r *http.Request) 
 
 	messages, err := h.svc.ListMessages(r.Context(), orgID, channelID, limit)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MSG_LIST_MESSAGES_ERROR", err.Error())
+		slog.Error("msg list messages error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MSG_LIST_MESSAGES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "messages", messages)
@@ -134,7 +137,8 @@ func (h *MessagingHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 
 	msg, err := h.svc.SendMessage(r.Context(), orgID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MSG_SEND_ERROR", err.Error())
+		slog.Error("msg send error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MSG_SEND_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, msg)
@@ -165,7 +169,8 @@ func (h *MessagingHandler) PinMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.PinMessage(r.Context(), orgID, messageID, body.Pinned); err != nil {
-		WriteError(w, http.StatusInternalServerError, "MSG_PIN_ERROR", err.Error())
+		slog.Error("msg pin error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MSG_PIN_ERROR", "an internal error occurred")
 		return
 	}
 

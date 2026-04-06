@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -52,7 +53,8 @@ func (h *PayrollHandler) GetPayrollSummary(w http.ResponseWriter, r *http.Reques
 
 	summary, err := h.svc.GetPayrollSummary(r.Context(), orgID, locationID, periodStart, periodEnd)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PAYROLL_SUMMARY_ERROR", err.Error())
+		slog.Error("payroll summary error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PAYROLL_SUMMARY_ERROR", "an internal error occurred")
 		return
 	}
 
@@ -83,7 +85,8 @@ func (h *PayrollHandler) GetPayrollHistory(w http.ResponseWriter, r *http.Reques
 
 	history, err := h.svc.GetPayrollHistory(r.Context(), orgID, locationID, months)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PAYROLL_HISTORY_ERROR", err.Error())
+		slog.Error("payroll history error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PAYROLL_HISTORY_ERROR", "an internal error occurred")
 		return
 	}
 
@@ -114,7 +117,8 @@ func (h *PayrollHandler) ExportPayroll(w http.ResponseWriter, r *http.Request) {
 
 	csvBytes, err := h.svc.ExportPayroll(r.Context(), orgID, locationID, periodStart, periodEnd)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PAYROLL_EXPORT_ERROR", err.Error())
+		slog.Error("payroll export error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PAYROLL_EXPORT_ERROR", "an internal error occurred")
 		return
 	}
 

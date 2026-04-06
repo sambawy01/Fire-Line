@@ -77,22 +77,43 @@ function ShiftStatusCard() {
   const [schedule, setSchedule] = useState<ScheduleEntry | null>(null);
   const [loading, setLoading] = useState(true);
   const [clockedIn, setClockedIn] = useState(false);
+  const [activeShiftId, setActiveShiftId] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [clockInTime, setClockInTime] = useState<number | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Load today's schedule AND check for an active (open) shift
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const data = await api<{ schedules: ScheduleEntry[] }>(
+        // Fetch schedule
+        const schedulePromise = api<{ schedules: ScheduleEntry[] }>(
           `/labor/schedules/employee/${user?.user_id}`,
-        );
+        ).catch(() => ({ schedules: [] as ScheduleEntry[] }));
+
+        // Check for an active shift (clock_in set, clock_out NULL)
+        const activePromise = api<{ shift?: { shift_id: string; clock_in: string } }>(
+          `/labor/shifts/active?employee_id=${user?.user_id}`,
+        ).catch(() => ({ shift: undefined }));
+
+        const [schedData, activeData] = await Promise.all([schedulePromise, activePromise]);
+
         if (cancelled) return;
+
         const today = new Date().toISOString().slice(0, 10);
-        const entry = data.schedules?.find((s) => s.date === today) ?? null;
+        const entry = schedData.schedules?.find((s) => s.date === today) ?? null;
         setSchedule(entry);
-      } catch {
-        /* schedule not available */
+
+        // If there's an active shift, resume the clock
+        if (activeData.shift) {
+          setClockedIn(true);
+          setActiveShiftId(activeData.shift.shift_id);
+          const startMs = new Date(activeData.shift.clock_in).getTime();
+          setClockInTime(startMs);
+          setElapsed(Math.floor((Date.now() - startMs) / 1000));
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -109,16 +130,45 @@ function ShiftStatusCard() {
     return () => clearInterval(id);
   }, [clockedIn, clockInTime]);
 
-  const toggle = useCallback(() => {
-    if (clockedIn) {
-      setClockedIn(false);
-      setClockInTime(null);
-      setElapsed(0);
-    } else {
-      setClockedIn(true);
-      setClockInTime(Date.now());
+  const toggle = useCallback(async () => {
+    if (actionLoading) return;
+    setActionLoading(true);
+    setError(null);
+
+    try {
+      if (clockedIn && activeShiftId) {
+        // Clock out: update the existing shift with clock_out
+        await api<{ status: string }>(`/labor/shifts/${activeShiftId}/clock-out`, {
+          method: 'POST',
+        });
+        setClockedIn(false);
+        setActiveShiftId(null);
+        setClockInTime(null);
+        setElapsed(0);
+      } else {
+        // Clock in: create a new shift
+        const data = await api<{ shift_id: string; clock_in: string }>(
+          '/labor/shifts/clock-in',
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              employee_id: user?.user_id,
+              location_id: user?.location_id,
+            }),
+          },
+        );
+        setClockedIn(true);
+        setActiveShiftId(data.shift_id);
+        const startMs = new Date(data.clock_in).getTime();
+        setClockInTime(startMs);
+        setElapsed(0);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to update shift status');
+    } finally {
+      setActionLoading(false);
     }
-  }, [clockedIn]);
+  }, [clockedIn, activeShiftId, actionLoading, user?.user_id, user?.location_id]);
 
   return (
     <Card>
@@ -147,15 +197,26 @@ function ShiftStatusCard() {
         </p>
       )}
 
+      {error && (
+        <p className="text-red-400 text-xs text-center mb-2">{error}</p>
+      )}
+
       <button
         onClick={toggle}
-        className={`w-full rounded-lg py-3 text-sm font-semibold transition-colors ${
+        disabled={actionLoading}
+        className={`w-full rounded-lg py-3 text-sm font-semibold transition-colors disabled:opacity-50 ${
           clockedIn
             ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
             : 'bg-orange-500 hover:bg-orange-600 text-white'
         }`}
       >
-        {clockedIn ? 'Clock Out' : 'Clock In'}
+        {actionLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+        ) : clockedIn ? (
+          'Clock Out'
+        ) : (
+          'Clock In'
+        )}
       </button>
     </Card>
   );

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -24,7 +25,8 @@ func (h *CustomerHandler) ListGuests(w http.ResponseWriter, r *http.Request) {
 
 	guests, err := h.svc.ListGuests(r.Context(), orgID, locationID, sortBy, limit, offset)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "GUEST_LIST_ERROR", err.Error())
+		slog.Error("guest list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "GUEST_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"guests": guests})
@@ -45,7 +47,8 @@ func (h *CustomerHandler) GetGuest(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := h.svc.GetGuestProfile(r.Context(), orgID, guestID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "GUEST_GET_ERROR", err.Error())
+		slog.Error("guest get error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "GUEST_GET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, profile)
@@ -77,7 +80,8 @@ func (h *CustomerHandler) EnrichGuest(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := h.svc.EnrichGuest(r.Context(), orgID, guestID, body.FirstName, body.Email, body.Phone)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "GUEST_ENRICH_ERROR", err.Error())
+		slog.Error("guest enrich error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "GUEST_ENRICH_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, profile)
@@ -106,7 +110,8 @@ func (h *CustomerHandler) ResolveGuest(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := h.svc.ResolveGuest(r.Context(), orgID, body.CheckID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "RESOLVE_ERROR", err.Error())
+		slog.Error("resolve error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "RESOLVE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, profile)
@@ -123,19 +128,22 @@ func (h *CustomerHandler) RefreshAnalytics(w http.ResponseWriter, r *http.Reques
 
 	segUpdated, err := h.svc.RunSegmentation(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ANALYTICS_SEG_ERROR", err.Error())
+		slog.Error("analytics seg error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ANALYTICS_SEG_ERROR", "an internal error occurred")
 		return
 	}
 
 	churnUpdated, err := h.svc.RunChurnPrediction(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ANALYTICS_CHURN_ERROR", err.Error())
+		slog.Error("analytics churn error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ANALYTICS_CHURN_ERROR", "an internal error occurred")
 		return
 	}
 
 	clvUpdated, err := h.svc.RecalculateAllCLV(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ANALYTICS_CLV_ERROR", err.Error())
+		slog.Error("analytics clv error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ANALYTICS_CLV_ERROR", "an internal error occurred")
 		return
 	}
 
@@ -156,7 +164,8 @@ func (h *CustomerHandler) GetSegmentDist(w http.ResponseWriter, r *http.Request)
 
 	buckets, err := h.svc.GetSegmentDistribution(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ANALYTICS_SEG_DIST_ERROR", err.Error())
+		slog.Error("analytics seg dist error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ANALYTICS_SEG_DIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"segments": buckets})
@@ -172,7 +181,8 @@ func (h *CustomerHandler) GetChurnDist(w http.ResponseWriter, r *http.Request) {
 
 	buckets, err := h.svc.GetChurnDistribution(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ANALYTICS_CHURN_DIST_ERROR", err.Error())
+		slog.Error("analytics churn dist error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ANALYTICS_CHURN_DIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"churn": buckets})
@@ -188,7 +198,8 @@ func (h *CustomerHandler) GetCLVDist(w http.ResponseWriter, r *http.Request) {
 
 	buckets, err := h.svc.GetCLVDistribution(r.Context(), orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "ANALYTICS_CLV_DIST_ERROR", err.Error())
+		slog.Error("analytics clv dist error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "ANALYTICS_CLV_DIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"clv": buckets})

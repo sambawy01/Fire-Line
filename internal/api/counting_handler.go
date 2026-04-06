@@ -47,7 +47,8 @@ func (h *InventoryHandler) CreateCount(w http.ResponseWriter, r *http.Request) {
 
 	cs, err := h.svc.CreateCount(r.Context(), orgID, req.LocationID, req.CountedBy, req.CountType, req.Category)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "COUNT_CREATE_ERROR", err.Error())
+		slog.Error("count create error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "COUNT_CREATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, cs)
@@ -69,7 +70,8 @@ func (h *InventoryHandler) GetCount(w http.ResponseWriter, r *http.Request) {
 
 	cw, err := h.svc.GetCount(r.Context(), orgID, countID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "COUNT_GET_ERROR", err.Error())
+		slog.Error("count get error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "COUNT_GET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, cw)
@@ -101,7 +103,8 @@ func (h *InventoryHandler) UpdateCountStatus(w http.ResponseWriter, r *http.Requ
 	switch req.Status {
 	case "submitted":
 		if err := h.svc.SubmitCount(r.Context(), orgID, countID); err != nil {
-			WriteError(w, http.StatusInternalServerError, "COUNT_SUBMIT_ERROR", err.Error())
+			slog.Error("count submit error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+			WriteError(w, http.StatusInternalServerError, "COUNT_SUBMIT_ERROR", "an internal error occurred")
 			return
 		}
 
@@ -134,7 +137,8 @@ func (h *InventoryHandler) UpdateCountStatus(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		if err := h.svc.ApproveCount(r.Context(), orgID, countID, approvedBy); err != nil {
-			WriteError(w, http.StatusInternalServerError, "COUNT_APPROVE_ERROR", err.Error())
+			slog.Error("count approve error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+			WriteError(w, http.StatusInternalServerError, "COUNT_APPROVE_ERROR", "an internal error occurred")
 			return
 		}
 		WriteJSON(w, http.StatusOK, map[string]string{"status": "approved"})
@@ -172,7 +176,8 @@ func (h *InventoryHandler) UpsertCountLines(w http.ResponseWriter, r *http.Reque
 
 	updated, err := h.svc.UpsertCountLines(r.Context(), orgID, countID, req.Lines)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "COUNT_LINES_ERROR", err.Error())
+		slog.Error("count lines error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "COUNT_LINES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]int{"updated": updated})
@@ -215,7 +220,8 @@ func (h *InventoryHandler) LogWaste(w http.ResponseWriter, r *http.Request) {
 
 	wl, err := h.svc.LogWaste(r.Context(), orgID, req.LocationID, input)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "WASTE_LOG_ERROR", err.Error())
+		slog.Error("waste log error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "WASTE_LOG_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, wl)
@@ -238,7 +244,8 @@ func (h *InventoryHandler) ListWasteLogs(w http.ResponseWriter, r *http.Request)
 	from, to := parseDateRange(r)
 	logs, err := h.svc.ListWasteLogs(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "WASTE_LIST_ERROR", err.Error())
+		slog.Error("waste list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "WASTE_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"waste_logs": logs})
@@ -266,7 +273,8 @@ func (h *InventoryHandler) ListVariances(w http.ResponseWriter, r *http.Request)
 	from, to := parseDateRange(r)
 	variances, err := h.svc.ListVariances(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "VARIANCE_LIST_ERROR", err.Error())
+		slog.Error("variance list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "VARIANCE_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"variances": variances})
@@ -330,7 +338,8 @@ func (h *InventoryHandler) GetExpiryAlerts(w http.ResponseWriter, r *http.Reques
 		return rows.Err()
 	})
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "EXPIRY_ERROR", err.Error())
+		slog.Error("expiry error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "EXPIRY_ERROR", "an internal error occurred")
 		return
 	}
 	if items == nil {

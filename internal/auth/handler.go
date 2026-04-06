@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"sync"
 	"time"
@@ -129,10 +130,12 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		DisplayName: req.DisplayName,
 	})
 	if err != nil {
-		writeHandlerError(w, http.StatusBadRequest, "SIGNUP_FAILED", err.Error())
+		slog.Error("signup failed", "error", err, "email", req.Email)
+		writeHandlerError(w, http.StatusBadRequest, "SIGNUP_FAILED", "unable to complete signup")
 		return
 	}
 
+	setRefreshTokenCookie(w, r, result.RefreshToken)
 	writeHandlerJSON(w, http.StatusCreated, map[string]interface{}{
 		"org_id":        result.OrgID,
 		"user_id":       result.UserID,
@@ -168,6 +171,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	setRefreshTokenCookie(w, r, result.RefreshToken)
 	writeHandlerJSON(w, http.StatusOK, map[string]interface{}{
 		"user_id":       result.UserID,
 		"org_id":        result.OrgID,
@@ -178,20 +182,31 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		RefreshToken string `json:"refresh_token"`
+	// Prefer cookie, fall back to JSON body for mobile/tablet clients.
+	refreshTokenIn := ""
+	if cookie, err := r.Cookie("refresh_token"); err == nil {
+		refreshTokenIn = cookie.Value
+	} else {
+		var req struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err == nil {
+			refreshTokenIn = req.RefreshToken
+		}
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeHandlerError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid JSON body")
+
+	if refreshTokenIn == "" {
+		writeHandlerError(w, http.StatusBadRequest, "MISSING_TOKEN", "refresh token required")
 		return
 	}
 
-	accessToken, refreshToken, err := h.service.RefreshAccessToken(r.Context(), req.RefreshToken)
+	accessToken, refreshToken, err := h.service.RefreshAccessToken(r.Context(), refreshTokenIn)
 	if err != nil {
 		writeHandlerError(w, http.StatusUnauthorized, "REFRESH_FAILED", "invalid or expired refresh token")
 		return
 	}
 
+	setRefreshTokenCookie(w, r, refreshToken)
 	writeHandlerJSON(w, http.StatusOK, map[string]interface{}{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
@@ -199,16 +214,47 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		RefreshToken string `json:"refresh_token"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeHandlerError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid JSON body")
-		return
+	// Read refresh token from cookie or body to revoke server-side.
+	refreshTokenIn := ""
+	if cookie, err := r.Cookie("refresh_token"); err == nil {
+		refreshTokenIn = cookie.Value
+	} else {
+		var req struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err == nil {
+			refreshTokenIn = req.RefreshToken
+		}
 	}
 
-	_ = h.service.Logout(r.Context(), req.RefreshToken)
-	writeHandlerJSON(w, http.StatusOK, map[string]string{"status": "logged_out"})
+	if refreshTokenIn != "" {
+		_ = h.service.Logout(r.Context(), refreshTokenIn)
+	}
+
+	// Clear the HttpOnly cookie regardless.
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/api/v1/auth/refresh",
+		HttpOnly: true,
+		Secure:   r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   -1,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// setRefreshTokenCookie attaches the refresh token as an HttpOnly cookie.
+func setRefreshTokenCookie(w http.ResponseWriter, r *http.Request, token string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    token,
+		Path:     "/api/v1/auth/refresh",
+		HttpOnly: true,
+		Secure:   r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   7 * 24 * 60 * 60, // 7 days
+	})
 }
 
 // writeHandlerJSON writes a JSON response. Mirrors api.WriteJSON without the import cycle.

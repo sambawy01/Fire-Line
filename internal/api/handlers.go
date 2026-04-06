@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -73,7 +74,8 @@ func (h *InventoryHandler) GetTheoreticalUsage(w http.ResponseWriter, r *http.Re
 	from, to := parseDateRange(r)
 	usage, err := h.svc.CalculateTheoreticalUsage(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "INVENTORY_USAGE_ERROR", err.Error())
+		slog.Error("inventory usage error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "INVENTORY_USAGE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"usage": usage, "period_start": from, "period_end": to})
@@ -94,7 +96,8 @@ func (h *InventoryHandler) GetPARStatus(w http.ResponseWriter, r *http.Request) 
 	// In production, current levels would come from inventory counts
 	status, err := h.svc.GetPARStatus(r.Context(), orgID, locationID, map[string]float64{})
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "INVENTORY_PAR_ERROR", err.Error())
+		slog.Error("inventory par error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "INVENTORY_PAR_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"par_status": status})
@@ -114,7 +117,8 @@ func (h *InventoryHandler) MaterializeRecipeExplosion(w http.ResponseWriter, r *
 		return
 	}
 	if err := h.svc.MaterializeRecipeExplosion(r.Context(), orgID, req.MenuItemID); err != nil {
-		WriteError(w, http.StatusInternalServerError, "INVENTORY_EXPLODE_ERROR", err.Error())
+		slog.Error("inventory explode error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "INVENTORY_EXPLODE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -168,7 +172,8 @@ func (h *FinancialHandler) GetPnL(w http.ResponseWriter, r *http.Request) {
 	from, to := parseDateRange(r)
 	pnl, err := h.svc.CalculatePnL(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_PNL_ERROR", err.Error())
+		slog.Error("financial pnl error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_PNL_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, pnl)
@@ -188,7 +193,8 @@ func (h *FinancialHandler) GetAnomalies(w http.ResponseWriter, r *http.Request) 
 
 	anomalies, err := h.svc.DetectAnomalies(r.Context(), orgID, locationID, time.Now())
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "FINANCIAL_ANOMALY_ERROR", err.Error())
+		slog.Error("financial anomaly error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "FINANCIAL_ANOMALY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"anomalies": anomalies})

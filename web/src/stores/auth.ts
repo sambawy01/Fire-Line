@@ -3,7 +3,6 @@ import { authApi } from '../lib/api';
 
 interface AuthState {
   accessToken: string | null;
-  refreshToken: string | null;
   orgId: string | null;
   userId: string | null;
   role: string | null;
@@ -16,9 +15,8 @@ interface AuthState {
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   accessToken: localStorage.getItem('access_token'),
-  refreshToken: localStorage.getItem('refresh_token'),
   orgId: localStorage.getItem('org_id'),
   userId: localStorage.getItem('user_id'),
   role: localStorage.getItem('role'),
@@ -35,13 +33,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return;
       }
       localStorage.setItem('access_token', result.access_token);
-      localStorage.setItem('refresh_token', result.refresh_token);
       if (result.org_id) localStorage.setItem('org_id', result.org_id);
       if (result.user_id) localStorage.setItem('user_id', result.user_id);
       if (result.role) localStorage.setItem('role', result.role);
       set({
         accessToken: result.access_token,
-        refreshToken: result.refresh_token,
         orgId: result.org_id || null,
         userId: result.user_id || null,
         role: result.role || null,
@@ -58,12 +54,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const result = await authApi.signup(data);
       localStorage.setItem('access_token', result.access_token);
-      localStorage.setItem('refresh_token', result.refresh_token);
       if (result.org_id) localStorage.setItem('org_id', result.org_id);
       if (result.user_id) localStorage.setItem('user_id', result.user_id);
       set({
         accessToken: result.access_token,
-        refreshToken: result.refresh_token,
         orgId: result.org_id || null,
         userId: result.user_id || null,
         role: 'owner',
@@ -76,18 +70,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
-    const { refreshToken } = get();
-    if (refreshToken) {
-      try { await authApi.logout(refreshToken); } catch {}
-    }
+    await authApi.logout();
     localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
     localStorage.removeItem('org_id');
     localStorage.removeItem('user_id');
     localStorage.removeItem('role');
     set({
       accessToken: null,
-      refreshToken: null,
       orgId: null,
       userId: null,
       role: null,

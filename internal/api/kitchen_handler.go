@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -26,7 +27,8 @@ func (h *OperationsHandler) GetStations(w http.ResponseWriter, r *http.Request) 
 	}
 	stations, err := h.svc.GetStations(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "KITCHEN_STATIONS_ERROR", err.Error())
+		slog.Error("kitchen stations error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KITCHEN_STATIONS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "stations", stations)
@@ -47,7 +49,8 @@ func (h *OperationsHandler) SetupStations(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if err := h.svc.SetupDefaultStations(r.Context(), orgID, req.LocationID); err != nil {
-		WriteError(w, http.StatusInternalServerError, "KITCHEN_SETUP_ERROR", err.Error())
+		slog.Error("kitchen setup error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KITCHEN_SETUP_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -67,7 +70,8 @@ func (h *OperationsHandler) GetCapacity(w http.ResponseWriter, r *http.Request) 
 	}
 	capacity, err := h.svc.CalculateCapacity(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "KITCHEN_CAPACITY_ERROR", err.Error())
+		slog.Error("kitchen capacity error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KITCHEN_CAPACITY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, capacity)
@@ -89,7 +93,8 @@ func (h *OperationsHandler) EstimateTicketTime(w http.ResponseWriter, r *http.Re
 	menuItemIDs := strings.Split(rawIDs, ",")
 	estimate, err := h.svc.EstimateTicketTime(r.Context(), orgID, locationID, menuItemIDs)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "KITCHEN_ESTIMATE_ERROR", err.Error())
+		slog.Error("kitchen estimate error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KITCHEN_ESTIMATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, estimate)
@@ -109,7 +114,8 @@ func (h *OperationsHandler) GetResourceProfiles(w http.ResponseWriter, r *http.R
 	}
 	profiles, err := h.svc.GetResourceProfiles(r.Context(), orgID, menuItemID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "KITCHEN_PROFILES_ERROR", err.Error())
+		slog.Error("kitchen profiles error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KITCHEN_PROFILES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "profiles", profiles)
@@ -135,7 +141,8 @@ func (h *OperationsHandler) SetResourceProfiles(w http.ResponseWriter, r *http.R
 		return
 	}
 	if err := h.svc.SetResourceProfile(r.Context(), orgID, menuItemID, req.Profiles); err != nil {
-		WriteError(w, http.StatusInternalServerError, "KITCHEN_PROFILES_SET_ERROR", err.Error())
+		slog.Error("kitchen profiles set error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KITCHEN_PROFILES_SET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -164,7 +171,8 @@ func (h *OperationsHandler) CreateKDSTicket(w http.ResponseWriter, r *http.Reque
 	}
 	ticket, err := h.svc.CreateTicketFromCheck(r.Context(), orgID, req.LocationID, req.CheckID, req.OrderNumber, req.Channel)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "KDS_CREATE_ERROR", err.Error())
+		slog.Error("kds create error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KDS_CREATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, ticket)
@@ -184,7 +192,8 @@ func (h *OperationsHandler) GetAllKDSTickets(w http.ResponseWriter, r *http.Requ
 	}
 	tickets, err := h.svc.GetAllTickets(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "KDS_LIST_ERROR", err.Error())
+		slog.Error("kds list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KDS_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "tickets", tickets)
@@ -209,7 +218,8 @@ func (h *OperationsHandler) GetStationKDSTickets(w http.ResponseWriter, r *http.
 	}
 	tickets, err := h.svc.GetStationTickets(r.Context(), orgID, locationID, stationType)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "KDS_STATION_ERROR", err.Error())
+		slog.Error("kds station error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KDS_STATION_ERROR", "an internal error occurred")
 		return
 	}
 	WriteList(w, http.StatusOK, "tickets", tickets)
@@ -236,7 +246,8 @@ func (h *OperationsHandler) BumpKDSItem(w http.ResponseWriter, r *http.Request) 
 	}
 	item, err := h.svc.BumpTicketItem(r.Context(), orgID, itemID, req.Status)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "KDS_BUMP_ERROR", err.Error())
+		slog.Error("kds bump error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KDS_BUMP_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, item)
@@ -255,7 +266,8 @@ func (h *OperationsHandler) CancelKDSTicket(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	if err := h.svc.CancelTicket(r.Context(), orgID, ticketID); err != nil {
-		WriteError(w, http.StatusInternalServerError, "KDS_CANCEL_ERROR", err.Error())
+		slog.Error("kds cancel error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KDS_CANCEL_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "cancelled"})
@@ -276,7 +288,8 @@ func (h *OperationsHandler) GetKDSMetrics(w http.ResponseWriter, r *http.Request
 	from, to := parseDateRange(r)
 	metrics, err := h.svc.GetKDSMetrics(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "KDS_METRICS_ERROR", err.Error())
+		slog.Error("kds metrics error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "KDS_METRICS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, metrics)

@@ -107,11 +107,11 @@ func TestMaterializeRecipeExplosion(t *testing.T) {
 	bus := event.New()
 	svc := inventory.New(appPool, bus)
 
-	err := svc.MaterializeRecipeExplosion(context.Background(), f.orgID, f.menuItemID)
+	ctx := tenant.WithOrgID(context.Background(), f.orgID)
+	err := svc.MaterializeRecipeExplosion(ctx, f.orgID, f.menuItemID)
 	require.NoError(t, err)
 
 	// Verify explosion was created
-	ctx := tenant.WithOrgID(context.Background(), f.orgID)
 	var qty float64
 	err = database.TenantTx(ctx, appPool, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx,
@@ -135,11 +135,11 @@ func TestCalculateTheoreticalUsage(t *testing.T) {
 	svc := inventory.New(appPool, bus)
 
 	// Materialize recipe explosion first
-	err := svc.MaterializeRecipeExplosion(context.Background(), f.orgID, f.menuItemID)
+	ctx := tenant.WithOrgID(context.Background(), f.orgID)
+	err := svc.MaterializeRecipeExplosion(ctx, f.orgID, f.menuItemID)
 	require.NoError(t, err)
 
 	// Create a closed check with 3 burgers
-	ctx := context.Background()
 	closedAt := time.Now()
 	var checkID string
 	superPool.QueryRow(ctx,
@@ -158,7 +158,7 @@ func TestCalculateTheoreticalUsage(t *testing.T) {
 
 	// Calculate theoretical usage for the last hour
 	usage, err := svc.CalculateTheoreticalUsage(
-		context.Background(), f.orgID, f.locationID,
+		ctx, f.orgID, f.locationID,
 		time.Now().Add(-1*time.Hour), time.Now().Add(1*time.Hour),
 	)
 	require.NoError(t, err)
@@ -217,7 +217,8 @@ func TestGetPARStatus(t *testing.T) {
 
 	// Current level below reorder point
 	currentLevels := map[string]float64{f.ingredientID: 20.0}
-	status, err := svc.GetPARStatus(context.Background(), f.orgID, f.locationID, currentLevels)
+	tctx := tenant.WithOrgID(context.Background(), f.orgID)
+	status, err := svc.GetPARStatus(tctx, f.orgID, f.locationID, currentLevels)
 	require.NoError(t, err)
 	require.Len(t, status, 1)
 

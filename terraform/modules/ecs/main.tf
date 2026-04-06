@@ -1,13 +1,20 @@
 variable "environment" { type = string }
+variable "project" { type = string }
 variable "vpc_id" { type = string }
 variable "private_subnet_ids" { type = list(string) }
 variable "public_subnet_ids" { type = list(string) }
 variable "ecr_repository_url" { type = string }
 variable "db_secret_arn" { type = string }
+variable "admin_db_secret_arn" { type = string }
+variable "jwt_secret_arn" { type = string }
 variable "redis_endpoint" { type = string }
 variable "container_cpu" { type = number }
 variable "container_memory" { type = number }
 variable "desired_count" { type = number }
+variable "domain_name" {
+  description = "Primary domain for the application"
+  type        = string
+}
 
 # ---------- ECS Cluster ----------
 resource "aws_ecs_cluster" "main" {
@@ -95,6 +102,34 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+# ---------- ACM Certificate ----------
+resource "aws_acm_certificate" "main" {
+  domain_name       = var.domain_name
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name = "${var.project}-cert"
+  }
+}
+
+# ---------- HTTPS Listener ----------
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = aws_acm_certificate.main.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
 # ---------- ECS Security Group ----------
 resource "aws_security_group" "ecs" {
   name_prefix = "fireline-${var.environment}-ecs-"
@@ -144,7 +179,7 @@ resource "aws_iam_role_policy" "ecs_secrets" {
     Statement = [{
       Effect   = "Allow"
       Action   = ["secretsmanager:GetSecretValue"]
-      Resource = [var.db_secret_arn]
+      Resource = [var.db_secret_arn, var.admin_db_secret_arn, var.jwt_secret_arn]
     }]
   })
 }
@@ -191,12 +226,23 @@ resource "aws_ecs_task_definition" "app" {
       { name = "ENV", value = var.environment },
       { name = "PORT", value = "8080" },
       { name = "REDIS_URL", value = "redis://${var.redis_endpoint}:6379/0" },
+      { name = "ALLOWED_ORIGINS", value = "https://${var.domain_name}" },
     ]
 
-    secrets = [{
-      name      = "DATABASE_URL"
-      valueFrom = var.db_secret_arn
-    }]
+    secrets = [
+      {
+        name      = "DATABASE_URL"
+        valueFrom = var.db_secret_arn
+      },
+      {
+        name      = "ADMIN_DATABASE_URL"
+        valueFrom = var.admin_db_secret_arn
+      },
+      {
+        name      = "JWT_PRIVATE_KEY_PATH"
+        valueFrom = var.jwt_secret_arn
+      },
+    ]
 
     logConfiguration = {
       logDriver = "awslogs"

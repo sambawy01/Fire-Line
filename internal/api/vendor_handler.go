@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -48,7 +49,8 @@ func (h *VendorHandler) GetVendors(w http.ResponseWriter, r *http.Request) {
 	from, to := parseVendorDateRange(r)
 	vendors, err := h.svc.GetVendors(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "VENDOR_LIST_ERROR", err.Error())
+		slog.Error("vendor list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "VENDOR_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"vendors": vendors})
@@ -69,7 +71,8 @@ func (h *VendorHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 	from, to := parseVendorDateRange(r)
 	summary, err := h.svc.GetSummary(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "VENDOR_SUMMARY_ERROR", err.Error())
+		slog.Error("vendor summary error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "VENDOR_SUMMARY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, summary)

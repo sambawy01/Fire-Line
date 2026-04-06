@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -49,7 +50,8 @@ func (h *MenuHandler) GetItems(w http.ResponseWriter, r *http.Request) {
 	from, to := parseMenuDateRange(r)
 	items, err := h.svc.AnalyzeMenuItems(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_ANALYSIS_ERROR", err.Error())
+		slog.Error("menu analysis error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_ANALYSIS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"items": items})
@@ -69,7 +71,8 @@ func (h *MenuHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 	from, to := parseMenuDateRange(r)
 	summary, err := h.svc.GetSummary(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_SUMMARY_ERROR", err.Error())
+		slog.Error("menu summary error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_SUMMARY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, summary)

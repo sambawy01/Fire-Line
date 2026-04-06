@@ -13,6 +13,56 @@ class ApiError extends Error {
   }
 }
 
+// ---------- Silent token refresh machinery ----------
+
+let _refreshPromise: Promise<boolean> | null = null;
+
+function clearAuthAndRedirect(): void {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('org_id');
+  localStorage.removeItem('user_id');
+  localStorage.removeItem('role');
+  window.location.href = '/login';
+}
+
+/** Attempt to exchange a refresh_token for a new access_token.
+ *  Uses a mutex (_refreshPromise) so concurrent 401s only trigger one refresh. */
+async function attemptTokenRefresh(): Promise<boolean> {
+  if (_refreshPromise) return _refreshPromise;
+
+  _refreshPromise = (async (): Promise<boolean> => {
+    try {
+      // The refresh token is sent automatically via HttpOnly cookie.
+      // credentials: 'include' ensures the browser attaches the cookie.
+      const res = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      if (!res.ok) return false;
+
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem('access_token', data.access_token);
+      }
+      if (data.org_id) localStorage.setItem('org_id', data.org_id);
+      if (data.user_id) localStorage.setItem('user_id', data.user_id);
+      if (data.role) localStorage.setItem('role', data.role);
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  try {
+    return await _refreshPromise;
+  } finally {
+    _refreshPromise = null;
+  }
+}
+
+// ---------- Core request function ----------
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('access_token');
   const headers: Record<string, string> = {
@@ -23,21 +73,26 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-
-    // 401: clear auth state and redirect to login (unless in demo mode)
-    if (res.status === 401) {
-      const isDemo = sessionStorage.getItem('fireline_demo') === 'true';
-      if (!isDemo) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('org_id');
-        localStorage.removeItem('user_id');
-        localStorage.removeItem('role');
-        window.location.href = '/login';
+    // On 401, attempt a silent token refresh and retry the original request once
+    if (res.status === 401 && path !== '/auth/refresh') {
+      const refreshed = await attemptTokenRefresh();
+      if (refreshed) {
+        // Retry with the new token
+        const newToken = localStorage.getItem('access_token');
+        const retryHeaders: Record<string, string> = {
+          'Content-Type': 'application/json',
+          ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),
+        };
+        const retryRes = await fetch(`${API_BASE}${path}`, { ...options, headers: retryHeaders });
+        if (retryRes.ok) {
+          return retryRes.json();
+        }
+        // Retry also failed — fall through to clear auth
       }
+      clearAuthAndRedirect();
     }
 
+    const body = await res.json().catch(() => ({}));
     throw new ApiError(res.status, body.error?.code || 'UNKNOWN', body.error?.message || res.statusText);
   }
 
@@ -68,16 +123,19 @@ export interface AuthTokens {
 
 export const authApi = {
   signup(data: { org_name: string; org_slug: string; email: string; password: string; display_name: string }) {
-    return request<AuthTokens>('/auth/signup', { method: 'POST', body: JSON.stringify(data) });
+    return request<AuthTokens>('/auth/signup', { method: 'POST', body: JSON.stringify(data), credentials: 'include' });
   },
   login(data: { email: string; password: string }) {
-    return request<AuthTokens & { mfa_required?: boolean }>('/auth/login', { method: 'POST', body: JSON.stringify(data) });
+    return request<AuthTokens & { mfa_required?: boolean }>('/auth/login', { method: 'POST', body: JSON.stringify(data), credentials: 'include' });
   },
-  refresh(refresh_token: string) {
-    return request<AuthTokens>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refresh_token }) });
+  refresh() {
+    return request<AuthTokens>('/auth/refresh', { method: 'POST', credentials: 'include' });
   },
-  logout(refresh_token: string) {
-    return request<{ status: string }>('/auth/logout', { method: 'POST', body: JSON.stringify({ refresh_token }) });
+  async logout(): Promise<void> {
+    // Call logout endpoint with cookie; ignore errors so local state is always cleared.
+    try {
+      await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch { /* best-effort */ }
   },
 };
 

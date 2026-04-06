@@ -20,7 +20,7 @@ dev-down:
 
 migrate:
 	atlas migrate hash --dir file://migrations
-	atlas migrate apply --dir file://migrations --url "postgres://fireline:fireline@localhost:5432/fireline?sslmode=disable"
+	atlas migrate apply --dir file://migrations --url "$${DATABASE_URL:-postgres://fireline:fireline@localhost:5432/fireline?sslmode=disable}"
 
 check-rls:
 	./scripts/check_rls.sh

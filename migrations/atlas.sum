@@ -1,4 +1,4 @@
-h1:300cCr9P8O61QUAmcq7plJdU5yLt8EohDBhaFwQRnfc=
+h1:C47SPS9opuyHUechT6HnkXNM2xsKu+Gepb1B0PKntKk=
 001_core_schema.sql h1:0L5Dn77TMjG31gEMMlatEZdW3UDpGW9ZcU6Tp1LfbqM=
 002_auth_tokens.sql h1:W+lLGgn8rVCikp1K4ZnJ6rz9fgeYpuc0Q6v7MsGoQ0E=
 003_menu_recipe_schema.sql h1:v5KjHNW8mg3W5zYecP+NEGcOxGNmRu8WLS9kxu86IiM=
@@ -17,3 +17,8 @@ h1:300cCr9P8O61QUAmcq7plJdU5yLt8EohDBhaFwQRnfc=
 016_multi_location.sql h1:G026P7kvBPo8HMAzsiZkbGYr2ePV889vg5LBppl0gWY=
 017_onboarding.sql h1:uTRZP20lByTDjO9z4K3UotDVr+Ga6LcrXs2biJejP78=
 018_maintenance.sql h1:JnSMMBCALlEb//OOeeOTnovBoqP1WEsz+vAkodIFEnw=
+019_staff_intelligence.sql h1:148zt19W/QOszLTHXK6/91KgrYax938U+QBkwP1P2dY=
+020_messaging.sql h1:YX37sXulHygugc77uhF71boL58RKUf46+LXyBfjs8nk=
+021_hardening.sql h1:Y58RjObWxYDokLhQgvVycVziS4O1rvV8cGtaz2r8By0=
+022_pre_launch.sql h1:t6xCS4fcQ5HY0Vp6my2aoaEUu877LuaNAUrQyAG23X8=
+023_rotate_role_passwords.sql h1:4RU3vF7CCwnYgW983Rcjsi8sQT8CZhi22TEL0QM4xl0=

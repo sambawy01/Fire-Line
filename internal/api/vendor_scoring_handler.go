@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -22,7 +23,8 @@ func (h *VendorHandler) CalculateVendorScores(w http.ResponseWriter, r *http.Req
 	}
 	scores, err := h.svc.CalculateVendorScores(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "VENDOR_SCORE_CALC_ERROR", err.Error())
+		slog.Error("vendor score calc error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "VENDOR_SCORE_CALC_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"scores": scores})
@@ -43,7 +45,8 @@ func (h *VendorHandler) GetVendorScores(w http.ResponseWriter, r *http.Request) 
 	}
 	scores, err := h.svc.GetVendorScores(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "VENDOR_SCORES_ERROR", err.Error())
+		slog.Error("vendor scores error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "VENDOR_SCORES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"vendor_scores": scores})
@@ -69,7 +72,8 @@ func (h *VendorHandler) GetVendorScorecard(w http.ResponseWriter, r *http.Reques
 	}
 	scorecard, err := h.svc.GetVendorScorecard(r.Context(), orgID, locationID, vendorName)
 	if err != nil {
-		WriteError(w, http.StatusNotFound, "VENDOR_SCORECARD_NOT_FOUND", err.Error())
+		slog.Error("vendor scorecard not found", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusNotFound, "VENDOR_SCORECARD_NOT_FOUND", "resource not found")
 		return
 	}
 	WriteJSON(w, http.StatusOK, scorecard)
@@ -95,7 +99,8 @@ func (h *VendorHandler) CompareVendors(w http.ResponseWriter, r *http.Request) {
 	}
 	comparison, err := h.svc.CompareVendors(r.Context(), orgID, locationID, ingredientID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "VENDOR_COMPARE_ERROR", err.Error())
+		slog.Error("vendor compare error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "VENDOR_COMPARE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, comparison)
@@ -127,7 +132,8 @@ func (h *VendorHandler) GetPriceTrend(w http.ResponseWriter, r *http.Request) {
 	}
 	points, err := h.svc.GetPriceTrend(r.Context(), orgID, ingredientID, vendorName, months)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "VENDOR_PRICE_TREND_ERROR", err.Error())
+		slog.Error("vendor price trend error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "VENDOR_PRICE_TREND_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"price_trend": points})
@@ -148,7 +154,8 @@ func (h *VendorHandler) DetectPriceAnomalies(w http.ResponseWriter, r *http.Requ
 	}
 	anomalies, err := h.svc.DetectPriceAnomalies(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "VENDOR_ANOMALY_ERROR", err.Error())
+		slog.Error("vendor anomaly error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "VENDOR_ANOMALY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"anomalies": anomalies})
@@ -174,7 +181,8 @@ func (h *VendorHandler) RecommendVendor(w http.ResponseWriter, r *http.Request) 
 	}
 	recs, err := h.svc.RecommendVendor(r.Context(), orgID, locationID, ingredientID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "VENDOR_RECOMMEND_ERROR", err.Error())
+		slog.Error("vendor recommend error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "VENDOR_RECOMMEND_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"recommendations": recs})

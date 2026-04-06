@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API="http://localhost:8080/api/v1"
-DB="postgres://fireline:fireline@localhost:5432/fireline?sslmode=disable"
+DB="${DATABASE_URL:-postgres://fireline:fireline@localhost:5432/fireline?sslmode=disable}"
 
 echo "=== Step 1: Signup owner account ==="
 SIGNUP=$(curl -s -X POST "$API/auth/signup" \
@@ -12,7 +12,7 @@ SIGNUP=$(curl -s -X POST "$API/auth/signup" \
     "org_name": "Bistro Cloud",
     "org_slug": "bistro-cloud",
     "email": "owner@bistrocloud.com",
-    "password": "DemoPassword1234!",
+    "password": "${DEMO_PASSWORD:-DemoPassword1234!}",
     "display_name": "Alex Rivera"
   }')
 
@@ -242,6 +242,6 @@ echo "  2. Airport Terminal 4  (b2222222-...) - 45 orders, 5 menu items"
 echo ""
 echo "Login credentials:"
 echo "  Email:    owner@bistrocloud.com"
-echo "  Password: DemoPassword1234!"
+echo "  Password: ${DEMO_PASSWORD:-DemoPassword1234!}"
 echo ""
 echo "Open http://localhost:3000/login to test"

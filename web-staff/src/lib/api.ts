@@ -15,6 +15,13 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     },
   });
   if (!res.ok) {
+    // 401: clear staff auth and redirect to login
+    if (res.status === 401) {
+      localStorage.removeItem('staff_token');
+      localStorage.removeItem('staff_user');
+      window.location.href = '/login';
+    }
+
     const err = await res.json().catch(() => ({ error: { message: res.statusText } }));
     throw new Error(err.error?.message || res.statusText);
   }

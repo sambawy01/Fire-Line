@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -23,7 +24,8 @@ func (h *LaborHandler) ListProfiles(w http.ResponseWriter, r *http.Request) {
 	}
 	profiles, err := h.svc.ListEmployeeProfiles(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_PROFILES_ERROR", err.Error())
+		slog.Error("labor profiles error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_PROFILES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"profiles": profiles})
@@ -44,7 +46,8 @@ func (h *LaborHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	profile, err := h.svc.GetEmployeeProfile(r.Context(), orgID, employeeID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_PROFILE_ERROR", err.Error())
+		slog.Error("labor profile error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_PROFILE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, profile)
@@ -71,7 +74,8 @@ func (h *LaborHandler) UpdateELU(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.svc.UpdateELURatings(r.Context(), orgID, employeeID, body.Ratings); err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_ELU_UPDATE_ERROR", err.Error())
+		slog.Error("labor elu update error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_ELU_UPDATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -96,7 +100,8 @@ func (h *LaborHandler) UpdateAvailability(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if err := h.svc.UpdateAvailability(r.Context(), orgID, employeeID, availability); err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_AVAILABILITY_UPDATE_ERROR", err.Error())
+		slog.Error("labor availability update error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_AVAILABILITY_UPDATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -123,7 +128,8 @@ func (h *LaborHandler) UpdateCertifications(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	if err := h.svc.UpdateCertifications(r.Context(), orgID, employeeID, body.Certifications); err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_CERTS_UPDATE_ERROR", err.Error())
+		slog.Error("labor certs update error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_CERTS_UPDATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -155,7 +161,8 @@ func (h *LaborHandler) AwardPoints(w http.ResponseWriter, r *http.Request) {
 	}
 	pe, err := h.svc.AwardPoints(r.Context(), orgID, body.EmployeeID, body.Points, body.Reason, body.Description, body.ShiftID, body.AwardedBy)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_AWARD_POINTS_ERROR", err.Error())
+		slog.Error("labor award points error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_AWARD_POINTS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, pe)
@@ -182,7 +189,8 @@ func (h *LaborHandler) GetPointHistory(w http.ResponseWriter, r *http.Request) {
 	}
 	events, err := h.svc.GetPointHistory(r.Context(), orgID, employeeID, limit)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_POINT_HISTORY_ERROR", err.Error())
+		slog.Error("labor point history error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_POINT_HISTORY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"events": events})
@@ -205,7 +213,8 @@ func (h *LaborHandler) GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 	}
 	entries, err := h.svc.GetLeaderboard(r.Context(), orgID, locationID, limit)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LABOR_LEADERBOARD_ERROR", err.Error())
+		slog.Error("labor leaderboard error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LABOR_LEADERBOARD_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"leaderboard": entries})

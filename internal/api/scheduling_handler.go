@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -66,7 +67,8 @@ func (h *LaborHandler) GenerateForecast(w http.ResponseWriter, r *http.Request) 
 
 	blocks, err := h.svc.GenerateForecast(r.Context(), orgID, body.LocationID, targetDate)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "SCHED_FORECAST_ERROR", err.Error())
+		slog.Error("sched forecast error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SCHED_FORECAST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{
@@ -100,7 +102,8 @@ func (h *LaborHandler) GetForecast(w http.ResponseWriter, r *http.Request) {
 
 	blocks, err := h.svc.GetForecast(r.Context(), orgID, locationID, targetDate)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "SCHED_FORECAST_ERROR", err.Error())
+		slog.Error("sched forecast error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SCHED_FORECAST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{
@@ -136,7 +139,8 @@ func (h *LaborHandler) GenerateScheduleDraft(w http.ResponseWriter, r *http.Requ
 
 	sched, err := h.svc.GenerateScheduleDraft(r.Context(), orgID, body.LocationID, body.WeekStart, body.CreatedBy)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "SCHED_GENERATE_ERROR", err.Error())
+		slog.Error("sched generate error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SCHED_GENERATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, sched)
@@ -160,7 +164,8 @@ func (h *LaborHandler) GetSchedule(w http.ResponseWriter, r *http.Request) {
 
 	sched, err := h.svc.GetSchedule(r.Context(), orgID, locationID, weekStart)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "SCHED_GET_ERROR", err.Error())
+		slog.Error("sched get error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SCHED_GET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, sched)
@@ -191,7 +196,8 @@ func (h *LaborHandler) UpdateSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.UpdateScheduleShifts(r.Context(), orgID, scheduleID, body.Shifts); err != nil {
-		WriteError(w, http.StatusInternalServerError, "SCHED_UPDATE_ERROR", err.Error())
+		slog.Error("sched update error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SCHED_UPDATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -213,7 +219,8 @@ func (h *LaborHandler) PublishSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.PublishSchedule(r.Context(), orgID, scheduleID); err != nil {
-		WriteError(w, http.StatusInternalServerError, "SCHED_PUBLISH_ERROR", err.Error())
+		slog.Error("sched publish error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SCHED_PUBLISH_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "published"})
@@ -247,7 +254,8 @@ func (h *LaborHandler) GetEmployeeSchedule(w http.ResponseWriter, r *http.Reques
 
 	shifts, err := h.svc.GetEmployeeSchedule(r.Context(), orgID, employeeID, weekStart)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "SCHED_EMPLOYEE_ERROR", err.Error())
+		slog.Error("sched employee error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SCHED_EMPLOYEE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"shifts": shifts})
@@ -270,7 +278,8 @@ func (h *LaborHandler) ProjectLaborCost(w http.ResponseWriter, r *http.Request) 
 
 	proj, err := h.svc.ProjectLaborCost(r.Context(), orgID, scheduleID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "SCHED_COST_ERROR", err.Error())
+		slog.Error("sched cost error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SCHED_COST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, proj)
@@ -303,7 +312,8 @@ func (h *LaborHandler) CheckOvertimeRisk(w http.ResponseWriter, r *http.Request)
 
 	risks, err := h.svc.CheckOvertimeRisk(r.Context(), orgID, locationID, weekStart)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "SCHED_OVERTIME_ERROR", err.Error())
+		slog.Error("sched overtime error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SCHED_OVERTIME_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"overtime_risks": risks})
@@ -335,7 +345,8 @@ func (h *LaborHandler) RequestSwap(w http.ResponseWriter, r *http.Request) {
 
 	req, err := h.svc.RequestSwap(r.Context(), orgID, body.RequesterShiftID, body.TargetEmployeeID, body.Reason)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "SWAP_REQUEST_ERROR", err.Error())
+		slog.Error("swap request error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SWAP_REQUEST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, req)
@@ -355,7 +366,8 @@ func (h *LaborHandler) ListSwaps(w http.ResponseWriter, r *http.Request) {
 
 	reqs, err := h.svc.ListSwapRequests(r.Context(), orgID, locationID, status)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "SWAP_LIST_ERROR", err.Error())
+		slog.Error("swap list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SWAP_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"swap_requests": reqs})
@@ -391,7 +403,8 @@ func (h *LaborHandler) ReviewSwap(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.ReviewSwap(r.Context(), orgID, swapID, body.Approved, body.ReviewedBy); err != nil {
-		WriteError(w, http.StatusInternalServerError, "SWAP_REVIEW_ERROR", err.Error())
+		slog.Error("swap review error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "SWAP_REVIEW_ERROR", "an internal error occurred")
 		return
 	}
 

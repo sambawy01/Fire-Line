@@ -112,34 +112,56 @@ func (s *Service) RunChurnPrediction(ctx context.Context, orgID string) (int, er
 		guestMap[row.guestID].dates = append(guestMap[row.guestID].dates, row.visitedAt)
 	}
 
-	updated := 0
+	// Compute churn predictions for all guests before opening the write tx.
+	type churnResult struct {
+		guestID string
+		risk    string
+		prob    float64
+		clv     float64
+	}
+	var results []churnResult
 	for guestID, data := range guestMap {
 		risk, prob := PredictChurn(data.dates)
+		results = append(results, churnResult{
+			guestID: guestID,
+			risk:    risk,
+			prob:    prob,
+			clv:     data.clvScore,
+		})
+	}
 
-		err := database.TenantTx(tenantCtx, s.pool, func(tx pgx.Tx) error {
-			_, err := tx.Exec(tenantCtx,
+	// Batch all updates into a single transaction to avoid N+1 TenantTx calls.
+	updated := 0
+	err = database.TenantTx(tenantCtx, s.pool, func(tx pgx.Tx) error {
+		for _, r := range results {
+			_, execErr := tx.Exec(tenantCtx,
 				`UPDATE guest_profiles
 				 SET churn_risk = $1, churn_probability = $2, updated_at = now()
 				 WHERE guest_id = $3`,
-				risk, prob, guestID,
+				r.risk, r.prob, r.guestID,
 			)
-			return err
-		})
-		if err != nil {
-			continue
+			if execErr != nil {
+				return fmt.Errorf("update guest %s churn: %w", r.guestID, execErr)
+			}
+			updated++
 		}
-		updated++
+		return nil
+	})
+	if err != nil {
+		return 0, fmt.Errorf("batch churn update: %w", err)
+	}
 
-		// Emit alert event for high-CLV guests entering high or critical churn risk.
-		if data.clvScore >= 200 && (risk == "high" || risk == "critical") {
+	// Emit alert events for high-CLV guests entering high or critical churn risk.
+	for _, r := range results {
+		if r.clv >= 200 && (r.risk == "high" || r.risk == "critical") {
 			s.bus.Publish(ctx, event.Envelope{
 				EventType: "customer.churn_alert",
 				OrgID:     orgID,
 				Source:    "customer.churn",
 				Payload: map[string]any{
-					"guest_id":   guestID,
-					"churn_risk": risk,
-					"clv_score":  data.clvScore,
+					"guest_id":   r.guestID,
+					"churn_risk": r.risk,
+					"clv_score":  r.clv,
 				},
 			})
 		}

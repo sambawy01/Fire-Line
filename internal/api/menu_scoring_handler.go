@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -25,7 +26,8 @@ func (h *MenuHandler) ScoreMenuItems(w http.ResponseWriter, r *http.Request) {
 	}
 	scores, err := h.svc.ScoreMenuItems(r.Context(), orgID, req.LocationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_SCORE_ERROR", err.Error())
+		slog.Error("menu score error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_SCORE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"scores": scores})
@@ -46,7 +48,8 @@ func (h *MenuHandler) GetMenuScores(w http.ResponseWriter, r *http.Request) {
 	}
 	scores, err := h.svc.GetMenuItemScores(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_SCORES_ERROR", err.Error())
+		slog.Error("menu scores error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_SCORES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"items": scores})
@@ -73,7 +76,8 @@ func (h *MenuHandler) SetStrategicScore(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err := h.svc.SetStrategicScore(r.Context(), orgID, menuItemID, req.Score); err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_STRATEGIC_ERROR", err.Error())
+		slog.Error("menu strategic error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_STRATEGIC_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
@@ -101,7 +105,8 @@ func (h *MenuHandler) SimulatePriceChange(w http.ResponseWriter, r *http.Request
 	}
 	result, err := h.svc.SimulatePriceChange(r.Context(), orgID, req.LocationID, req.MenuItemID, req.NewPrice)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_SIMULATE_ERROR", err.Error())
+		slog.Error("menu simulate error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_SIMULATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, result)
@@ -128,7 +133,8 @@ func (h *MenuHandler) SimulateItemRemoval(w http.ResponseWriter, r *http.Request
 	}
 	result, err := h.svc.SimulateItemRemoval(r.Context(), orgID, req.LocationID, req.MenuItemID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_SIMULATE_ERROR", err.Error())
+		slog.Error("menu simulate error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_SIMULATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, result)
@@ -156,7 +162,8 @@ func (h *MenuHandler) SimulateIngredientCost(w http.ResponseWriter, r *http.Requ
 	}
 	result, err := h.svc.SimulateIngredientPriceChange(r.Context(), orgID, req.LocationID, req.IngredientID, req.NewCostPerUnit)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_SIMULATE_ERROR", err.Error())
+		slog.Error("menu simulate error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_SIMULATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, result)
@@ -176,7 +183,8 @@ func (h *MenuHandler) GetDependencies(w http.ResponseWriter, r *http.Request) {
 	}
 	deps, err := h.svc.GetIngredientDependencies(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_DEPS_ERROR", err.Error())
+		slog.Error("menu deps error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_DEPS_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"dependencies": deps})
@@ -202,7 +210,8 @@ func (h *MenuHandler) GetCrossSell(w http.ResponseWriter, r *http.Request) {
 	}
 	pairs, err := h.svc.GetCrossSellAffinity(r.Context(), orgID, locationID, limit)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "MENU_CROSSSELL_ERROR", err.Error())
+		slog.Error("menu crosssell error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "MENU_CROSSSELL_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"pairs": pairs})

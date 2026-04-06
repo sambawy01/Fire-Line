@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"encoding/json"
 	"net/http"
 
@@ -38,7 +39,8 @@ func (h *InventoryHandler) CreatePO(w http.ResponseWriter, r *http.Request) {
 
 	po, err := h.svc.CreatePO(r.Context(), orgID, req.LocationID, req.VendorName, req.Notes, req.Lines)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PO_CREATE_ERROR", err.Error())
+		slog.Error("po create error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PO_CREATE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusCreated, po)
@@ -61,7 +63,8 @@ func (h *InventoryHandler) ListPOs(w http.ResponseWriter, r *http.Request) {
 
 	pos, err := h.svc.ListPOs(r.Context(), orgID, locationID, status)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PO_LIST_ERROR", err.Error())
+		slog.Error("po list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PO_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"purchase_orders": pos})
@@ -83,7 +86,8 @@ func (h *InventoryHandler) GetPO(w http.ResponseWriter, r *http.Request) {
 
 	po, err := h.svc.GetPO(r.Context(), orgID, poID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PO_GET_ERROR", err.Error())
+		slog.Error("po get error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PO_GET_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, po)
@@ -122,7 +126,8 @@ func (h *InventoryHandler) UpdatePO(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err := h.svc.UpdatePOStatus(r.Context(), orgID, poID, newStatus, userID); err != nil {
-			WriteError(w, http.StatusInternalServerError, "PO_STATUS_ERROR", err.Error())
+			slog.Error("po status error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+			WriteError(w, http.StatusInternalServerError, "PO_STATUS_ERROR", "an internal error occurred")
 			return
 		}
 		WriteJSON(w, http.StatusOK, map[string]string{"status": newStatus})
@@ -140,7 +145,8 @@ func (h *InventoryHandler) UpdatePO(w http.ResponseWriter, r *http.Request) {
 			_ = json.Unmarshal(notesRaw, &notes)
 		}
 		if err := h.svc.UpdatePODraft(r.Context(), orgID, poID, notes, lines); err != nil {
-			WriteError(w, http.StatusInternalServerError, "PO_DRAFT_UPDATE_ERROR", err.Error())
+			slog.Error("po draft update error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+			WriteError(w, http.StatusInternalServerError, "PO_DRAFT_UPDATE_ERROR", "an internal error occurred")
 			return
 		}
 		WriteJSON(w, http.StatusOK, map[string]string{"status": "updated"})
@@ -165,7 +171,8 @@ func (h *InventoryHandler) DeletePO(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.DeletePO(r.Context(), orgID, poID); err != nil {
-		WriteError(w, http.StatusInternalServerError, "PO_DELETE_ERROR", err.Error())
+		slog.Error("po delete error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PO_DELETE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
@@ -183,7 +190,8 @@ func (h *InventoryHandler) ListPendingPOs(w http.ResponseWriter, r *http.Request
 
 	pos, err := h.svc.ListPendingPOs(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PO_PENDING_LIST_ERROR", err.Error())
+		slog.Error("po pending list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PO_PENDING_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"purchase_orders": pos})
@@ -219,7 +227,8 @@ func (h *InventoryHandler) ReceivePO(w http.ResponseWriter, r *http.Request) {
 
 	discrepancies, totalActual, err := h.svc.ReceivePO(r.Context(), orgID, poID, receivedBy, req.Lines)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PO_RECEIVE_ERROR", err.Error())
+		slog.Error("po receive error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PO_RECEIVE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{
@@ -245,7 +254,8 @@ func (h *InventoryHandler) GetPARBreaches(w http.ResponseWriter, r *http.Request
 
 	breaches, err := h.svc.GetPARBreaches(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "PAR_BREACHES_ERROR", err.Error())
+		slog.Error("par breaches error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "PAR_BREACHES_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"par_breaches": breaches})

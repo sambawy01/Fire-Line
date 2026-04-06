@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -47,7 +48,8 @@ func (h *LocationHandler) GetLocations(w http.ResponseWriter, r *http.Request) {
 		ORDER BY l.name
 	`, userID, orgID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "LOCATION_QUERY_ERROR", err.Error())
+		slog.Error("location query error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "LOCATION_QUERY_ERROR", "an internal error occurred")
 		return
 	}
 	defer rows.Close()
@@ -56,7 +58,8 @@ func (h *LocationHandler) GetLocations(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var loc LocationResponse
 		if err := rows.Scan(&loc.ID, &loc.Name, &loc.OrgID); err != nil {
-			WriteError(w, http.StatusInternalServerError, "LOCATION_SCAN_ERROR", err.Error())
+			slog.Error("location scan error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+			WriteError(w, http.StatusInternalServerError, "LOCATION_SCAN_ERROR", "an internal error occurred")
 			return
 		}
 		locations = append(locations, loc)

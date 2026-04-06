@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email,
       password,
     });
-    setToken(data.token);
+    await setToken(data.token);
 
     const locData = await api.get<LocationsResponse>('/locations');
 
@@ -108,7 +108,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: () => {
-    setToken(null);
+    void setToken(null);
     set({
       managerToken: null,
       activeStaff: null,

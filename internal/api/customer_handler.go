@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/opsnerve/fireline/internal/customer"
@@ -53,7 +54,8 @@ func (h *CustomerHandler) GetCustomers(w http.ResponseWriter, r *http.Request) {
 	}
 	customers, err := h.svc.GetCustomers(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "CUSTOMER_LIST_ERROR", err.Error())
+		slog.Error("customer list error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "CUSTOMER_LIST_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, map[string]any{"customers": customers})
@@ -73,7 +75,8 @@ func (h *CustomerHandler) GetSummary(w http.ResponseWriter, r *http.Request) {
 	}
 	summary, err := h.svc.GetSummary(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "CUSTOMER_SUMMARY_ERROR", err.Error())
+		slog.Error("customer summary error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "CUSTOMER_SUMMARY_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, summary)
@@ -93,7 +96,8 @@ func (h *CustomerHandler) Analyze(w http.ResponseWriter, r *http.Request) {
 	}
 	result, err := h.svc.AnalyzeAll(r.Context(), orgID, locationID)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "CUSTOMER_ANALYZE_ERROR", err.Error())
+		slog.Error("customer analyze error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "CUSTOMER_ANALYZE_ERROR", "an internal error occurred")
 		return
 	}
 	WriteJSON(w, http.StatusOK, result)

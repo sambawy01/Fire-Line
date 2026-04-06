@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"fmt"
 	"net/http"
 
@@ -41,7 +42,8 @@ func (h *ReportingHandler) GetDaily(w http.ResponseWriter, r *http.Request) {
 
 	report, err := h.svc.GenerateDaily(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "REPORT_DAILY_ERROR", err.Error())
+		slog.Error("report daily error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "REPORT_DAILY_ERROR", "an internal error occurred")
 		return
 	}
 
@@ -67,13 +69,15 @@ func (h *ReportingHandler) GetDailyPDF(w http.ResponseWriter, r *http.Request) {
 
 	report, err := h.svc.GenerateDaily(r.Context(), orgID, locationID, from, to)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "REPORT_DAILY_ERROR", err.Error())
+		slog.Error("report daily error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "REPORT_DAILY_ERROR", "an internal error occurred")
 		return
 	}
 
 	pdfBytes, err := h.svc.GeneratePDF(report)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "REPORT_PDF_ERROR", err.Error())
+		slog.Error("report pdf error", "error", err, "correlation_id", r.Header.Get("X-Request-ID"))
+		WriteError(w, http.StatusInternalServerError, "REPORT_PDF_ERROR", "an internal error occurred")
 		return
 	}
 

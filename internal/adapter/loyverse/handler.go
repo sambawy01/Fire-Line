@@ -3,7 +3,7 @@ package loyverse
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -82,8 +82,9 @@ func (h *Handler) Connect(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.a.Initialize(r.Context(), cfg); err != nil {
 		h.a.setStatus(adapter.StatusErrored)
+		slog.Error("failed to initialize loyverse adapter", "error", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{
-			"error": fmt.Sprintf("failed to initialize loyverse adapter: %v", err),
+			"error": "an internal error occurred",
 		})
 		return
 	}
@@ -177,8 +178,9 @@ func (h *Handler) ImportHistorical(w http.ResponseWriter, r *http.Request) {
 	// Run synchronously so the caller knows when it's done.
 	orders, err := syncer.SyncOrders(r.Context(), since)
 	if err != nil {
+		slog.Error("import orders failed", "error", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{
-			"error": fmt.Sprintf("import orders failed: %v", err),
+			"error": "an internal error occurred",
 		})
 		return
 	}
