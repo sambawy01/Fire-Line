@@ -144,6 +144,12 @@ func main() {
 	pipe.RegisterHandlers()
 
 	// Auto-connect Loyverse if env vars are set.
+	slog.Info("loyverse env check",
+		"has_token", os.Getenv("LOYVERSE_API_TOKEN") != "",
+		"has_store_id", os.Getenv("LOYVERSE_STORE_ID") != "",
+		"has_org_id", os.Getenv("LOYVERSE_ORG_ID") != "",
+		"has_location_id", os.Getenv("LOYVERSE_LOCATION_ID") != "",
+	)
 	if loyToken := os.Getenv("LOYVERSE_API_TOKEN"); loyToken != "" {
 		loyStoreID := os.Getenv("LOYVERSE_STORE_ID")
 		loyOrgID := os.Getenv("LOYVERSE_ORG_ID")
