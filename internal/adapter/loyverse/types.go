@@ -75,14 +75,18 @@ type Payment struct {
 }
 
 // Employee represents a Loyverse staff member.
+//
+// The Loyverse /employees endpoint does not return a role field; role is
+// inferred from is_owner. Deletion state is signalled by a non-null
+// deleted_at timestamp rather than an is_deleted flag.
 type Employee struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phone_number"`
-	Role        string `json:"role"`
-	Active      bool   `json:"is_deleted"` // Loyverse uses is_deleted; inverted
-	StoreID     string `json:"store_id"`
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Email       string   `json:"email"`
+	PhoneNumber string   `json:"phone_number"`
+	IsOwner     bool     `json:"is_owner"`
+	Stores      []string `json:"stores"`
+	DeletedAt   *string  `json:"deleted_at"`
 }
 
 // Customer represents a Loyverse customer profile.

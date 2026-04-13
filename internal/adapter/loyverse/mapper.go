@@ -96,14 +96,21 @@ func MapLineItem(li LineItem) adapter.NormalizedOrderItem {
 }
 
 // MapEmployee converts a Loyverse Employee into a FireLine NormalizedEmployee.
+// Loyverse does not expose a per-employee role, so role is derived from
+// is_owner; everyone else is normalized to "staff". Active state comes from
+// the presence of a deleted_at timestamp.
 func MapEmployee(emp Employee) adapter.NormalizedEmployee {
 	firstName, lastName := splitName(emp.Name)
+	role := "staff"
+	if emp.IsOwner {
+		role = "owner"
+	}
 	return adapter.NormalizedEmployee{
 		ExternalID: emp.ID,
 		FirstName:  firstName,
 		LastName:   lastName,
-		Role:       normalizeRole(emp.Role),
-		Active:     !emp.Active, // emp.Active reads json:"is_deleted", so invert
+		Role:       role,
+		Active:     emp.DeletedAt == nil,
 		Source:     "loyverse",
 	}
 }
@@ -119,24 +126,6 @@ func mapDiningOption(opt string) string {
 		return "delivery"
 	default:
 		return "dine_in"
-	}
-}
-
-// normalizeRole maps Loyverse role strings to canonical FireLine role strings.
-func normalizeRole(role string) string {
-	switch strings.ToUpper(role) {
-	case "OWNER", "ADMIN", "MANAGER":
-		return "manager"
-	case "CASHIER":
-		return "cashier"
-	case "BARISTA":
-		return "barista"
-	case "BARTENDER":
-		return "bartender"
-	case "WAITER", "SERVER":
-		return "server"
-	default:
-		return strings.ToLower(role)
 	}
 }
 

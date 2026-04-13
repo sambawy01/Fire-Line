@@ -257,9 +257,7 @@ func TestMapEmployee_Basic(t *testing.T) {
 		ID:    "emp-1",
 		Name:  "Amal Hassan",
 		Email: "amal@example.com",
-		Role:  "CASHIER",
-		// Active=false means is_deleted=false, so employee IS active
-		Active: false,
+		// DeletedAt nil → active. IsOwner false → role "staff".
 	}
 	ne := MapEmployee(emp)
 
@@ -272,27 +270,35 @@ func TestMapEmployee_Basic(t *testing.T) {
 	if ne.LastName != "Hassan" {
 		t.Errorf("LastName: want Hassan, got %s", ne.LastName)
 	}
-	if ne.Role != "cashier" {
-		t.Errorf("Role: want cashier, got %s", ne.Role)
+	if ne.Role != "staff" {
+		t.Errorf("Role: want staff, got %s", ne.Role)
 	}
 	if !ne.Active {
-		t.Error("Active: want true (is_deleted=false)")
+		t.Error("Active: want true (deleted_at=nil)")
 	}
 	if ne.Source != "loyverse" {
 		t.Errorf("Source: want loyverse, got %s", ne.Source)
 	}
 }
 
+func TestMapEmployee_Owner(t *testing.T) {
+	emp := Employee{ID: "emp-owner", Name: "Bistro Owner", IsOwner: true}
+	ne := MapEmployee(emp)
+	if ne.Role != "owner" {
+		t.Errorf("Role: want owner when is_owner=true, got %s", ne.Role)
+	}
+}
+
 func TestMapEmployee_Deleted(t *testing.T) {
+	ts := "2026-01-15T09:00:00Z"
 	emp := Employee{
-		ID:     "emp-2",
-		Name:   "Old Employee",
-		Role:   "SERVER",
-		Active: true, // is_deleted = true → active = false
+		ID:        "emp-2",
+		Name:      "Old Employee",
+		DeletedAt: &ts,
 	}
 	ne := MapEmployee(emp)
 	if ne.Active {
-		t.Error("Active: want false when is_deleted=true")
+		t.Error("Active: want false when deleted_at is set")
 	}
 }
 
@@ -304,30 +310,6 @@ func TestMapEmployee_SingleName(t *testing.T) {
 	}
 	if ne.LastName != "" {
 		t.Errorf("LastName: want empty, got %s", ne.LastName)
-	}
-}
-
-func TestMapEmployee_RoleNormalization(t *testing.T) {
-	cases := []struct {
-		input string
-		want  string
-	}{
-		{"OWNER", "manager"},
-		{"ADMIN", "manager"},
-		{"MANAGER", "manager"},
-		{"CASHIER", "cashier"},
-		{"BARTENDER", "bartender"},
-		{"WAITER", "server"},
-		{"SERVER", "server"},
-		{"BARISTA", "barista"},
-		{"chef", "chef"},
-	}
-	for _, tc := range cases {
-		emp := Employee{ID: "x", Name: "Test", Role: tc.input}
-		ne := MapEmployee(emp)
-		if ne.Role != tc.want {
-			t.Errorf("role %q: want %q, got %q", tc.input, tc.want, ne.Role)
-		}
 	}
 }
 
