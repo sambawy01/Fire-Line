@@ -185,7 +185,7 @@ func main() {
 	opsSvc := operations.New(pool.Raw(), bus)
 
 	// ─── Alerting ───
-	alertSvc := alerting.New(bus)
+	alertSvc := alerting.New(bus, adminPool.Raw())
 	alertSvc.RegisterDefaultRules()
 
 	// Seed demo alerts if the demo org exists
@@ -402,6 +402,10 @@ func main() {
 	// Payroll: financial:read (handler already has internal role checks)
 	payrollHandler := api.NewPayrollHandler(payrollSvc)
 	payrollHandler.RegisterRoutes(mux, authMW)
+
+	// Activity feed: any authenticated user
+	activityHandler := api.NewActivityHandler(pool.Raw(), alertSvc)
+	activityHandler.RegisterRoutes(mux, authMW)
 
 	// GDPR: system:admin (only admins can erase/export guest data)
 	gdprHandler := api.NewGDPRHandler(pool.Raw())

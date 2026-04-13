@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -25,9 +25,9 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { useLocationStore } from '../stores/location';
-import { usePnL } from '../hooks/useFinancial';
+import { usePnL, usePeriodComparison } from '../hooks/useFinancial';
 import { useAlertQueue, useAlertCount, useAcknowledgeAlert } from '../hooks/useAlerts';
-import { useHealth } from '../hooks/useOperations';
+import { useHealth, useOperationsHourly } from '../hooks/useOperations';
 import { useLaborSummary, useProfiles } from '../hooks/useLabor';
 import { useCapacity } from '../hooks/useKitchen';
 import { useMenuScores } from '../hooks/useMenuScoring';
@@ -67,115 +67,13 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-// ── Hourly data generator ─────────────────────────────────────────────────────
+// ── Hourly data formatter (from API response) ────────────────────────────────
 
-const HOUR_WEIGHTS = [
-  0, 0, 0.3, 0.5, 0.6, 0.8, // 6–11am
-  1.4, 1.6, 1.2, 0.9,        // 12–3pm (lunch)
-  0.7, 0.8, 1.0,              // 4–6pm
-  1.8, 2.0, 1.9, 1.5,        // 7–10pm (dinner)
-  0.8, 0.3,                   // 11pm–midnight
-];
-
-function generateHourlyData(totalRevenue: number) {
-  const hours: string[] = [];
-  const todayValues: number[] = [];
-  const yesterdayValues: number[] = [];
-
-  for (let h = 6; h <= 23; h++) {
-    hours.push(h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h - 12}pm`);
-  }
-
-  const weightSum = HOUR_WEIGHTS.reduce((a, b) => a + b, 0);
-  let todayCum = 0;
-  let yestCum = 0;
-  const yestTotal = totalRevenue * (0.88 + Math.random() * 0.15);
-
-  HOUR_WEIGHTS.forEach((w, i) => {
-    const todaySlice = (w / weightSum) * (totalRevenue / 100);
-    const yestSlice = (w / weightSum) * (yestTotal / 100);
-    todayCum += todaySlice;
-    yestCum += yestSlice;
-    todayValues.push(Math.round(todayCum));
-    yesterdayValues.push(Math.round(yestCum));
-  });
-
-  return hours.map((h, i) => ({
-    hour: h,
-    today: todayValues[i],
-    yesterday: yesterdayValues[i],
-  }));
+function formatHourLabel(hour: number): string {
+  if (hour < 12) return `${hour}am`;
+  if (hour === 12) return '12pm';
+  return `${hour - 12}pm`;
 }
-
-// ── Hardcoded demo deltas ─────────────────────────────────────────────────────
-
-const DEMO_DELTAS = {
-  revenue: +12,
-  orders: +8,
-  avgCheck: -2,
-  health: +3,
-};
-
-// ── Activity feed data ────────────────────────────────────────────────────────
-
-const ACTIVITY_FEED = [
-  {
-    id: 1,
-    icon: '🟢',
-    text: 'Order #CH-0320-0174 — Lomo Saltado x2, Pisco Sour — EGP 1,025 — Dine-in',
-    ts: new Date(Date.now() - 2 * 60_000).toISOString(),
-    border: 'border-emerald-500',
-  },
-  {
-    id: 2,
-    icon: '🔔',
-    text: 'Alert: Sea Bass wholesale price up 18% — acknowledged by manager',
-    ts: new Date(Date.now() - 8 * 60_000).toISOString(),
-    border: 'border-amber-500',
-  },
-  {
-    id: 3,
-    icon: '👤',
-    text: 'Ahmed Hassan clocked in — Grill Station — 8:00 AM',
-    ts: new Date(Date.now() - 14 * 60_000).toISOString(),
-    border: 'border-blue-500',
-  },
-  {
-    id: 4,
-    icon: '📦',
-    text: 'PO received from Sysco Egypt — 3 items, EGP 12,500',
-    ts: new Date(Date.now() - 22 * 60_000).toISOString(),
-    border: 'border-violet-500',
-  },
-  {
-    id: 5,
-    icon: '⚠️',
-    text: 'Kitchen capacity at 85% — auto-extending delivery times by 10 min',
-    ts: new Date(Date.now() - 35 * 60_000).toISOString(),
-    border: 'border-red-500',
-  },
-  {
-    id: 6,
-    icon: '✅',
-    text: 'Inventory count submitted — 10 items counted, 2 variances flagged',
-    ts: new Date(Date.now() - 48 * 60_000).toISOString(),
-    border: 'border-emerald-500',
-  },
-  {
-    id: 7,
-    icon: '🎯',
-    text: 'Pisco Hour promotion — 3 redemptions this hour, EGP 890 in uplift',
-    ts: new Date(Date.now() - 62 * 60_000).toISOString(),
-    border: 'border-pink-500',
-  },
-  {
-    id: 8,
-    icon: '📊',
-    text: 'Ceviche Clásico reclassified: workhorse → powerhouse (velocity +23%)',
-    ts: new Date(Date.now() - 78 * 60_000).toISOString(),
-    border: 'border-blue-500',
-  },
-];
 
 // ── Classification config ─────────────────────────────────────────────────────
 
@@ -225,7 +123,8 @@ function loadTextColor(pct: number): string {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function DeltaBadge({ delta }: { delta: number }) {
+function DeltaBadge({ delta, label = 'vs last wk' }: { delta: number | null; label?: string }) {
+  if (delta == null) return null;
   const positive = delta >= 0;
   return (
     <span
@@ -233,8 +132,8 @@ function DeltaBadge({ delta }: { delta: number }) {
         positive ? 'text-emerald-400' : 'text-red-400'
       }`}
     >
-      {positive ? '↑' : '↓'} {Math.abs(delta)}%
-      <span className="text-slate-300 font-normal ml-1">vs yday</span>
+      {positive ? '↑' : '↓'} {Math.abs(delta).toFixed(1)}%
+      <span className="text-slate-300 font-normal ml-1">{label}</span>
     </span>
   );
 }
@@ -280,17 +179,41 @@ export default function DashboardPage() {
   const locations = useLocationStore((s) => s.locations);
   const selectedLocation = locations.find((l) => l.id === locationId);
 
-  const { data: pnl } = usePnL(locationId);
+  const { data: pnl, dataUpdatedAt: pnlUpdatedAt } = usePnL(locationId);
   const { data: alertCountData } = useAlertCount(locationId);
-  const { data: alerts } = useAlertQueue(locationId, { limit: 5 });
+  const { data: alerts, dataUpdatedAt: alertsUpdatedAt } = useAlertQueue(locationId, { limit: 10 });
   const { data: health } = useHealth(locationId);
   const { data: labor } = useLaborSummary(locationId);
   const { data: profiles } = useProfiles(locationId);
   const { data: capacity } = useCapacity(locationId);
   const { data: menuScores } = useMenuScores(locationId);
+  const { data: periodComp } = usePeriodComparison(locationId);
   const { mutate: acknowledgeAlert } = useAcknowledgeAlert();
 
+  // Hourly data: today
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+  const { data: hourlyToday } = useOperationsHourly(locationId, today, today);
+  const { data: hourlyYesterday } = useOperationsHourly(locationId, yesterday, yesterday);
+
   const [hoveredAlert, setHoveredAlert] = useState<string | null>(null);
+
+  // ── Last data update indicator ─────────────────────────────────────────────
+
+  const lastUpdatedAt = Math.max(pnlUpdatedAt || 0, alertsUpdatedAt || 0);
+  const [, setTick] = useState(0);
+  // Re-render every 10s to keep "Updated Xs ago" fresh
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 10_000);
+    return () => clearInterval(id);
+  }, []);
+  const updatedAgoText = useMemo(() => {
+    if (!lastUpdatedAt) return 'Loading...';
+    const seconds = Math.floor((Date.now() - lastUpdatedAt) / 1000);
+    if (seconds < 5) return 'Updated just now';
+    if (seconds < 60) return `Updated ${seconds}s ago`;
+    return `Updated ${Math.floor(seconds / 60)}m ago`;
+  }, [lastUpdatedAt]);
 
   // ── Derived values ─────────────────────────────────────────────────────────
 
@@ -301,7 +224,125 @@ export default function DashboardPage() {
   const healthStatus = health?.status ?? 'unknown';
   const totalAlerts = alertCountData?.count ?? 0;
 
-  const hourlyData = useMemo(() => generateHourlyData(revenue), [revenue]);
+  // ── Deltas from period comparison (vs last week) ───────────────────────────
+
+  const deltas = useMemo(() => {
+    if (!periodComp?.current || !periodComp?.last_week) {
+      return { revenue: null, orders: null, avgCheck: null, health: null };
+    }
+    const cur = periodComp.current;
+    const prev = periodComp.last_week;
+    const pctChange = (a: number, b: number) =>
+      b !== 0 ? ((a - b) / Math.abs(b)) * 100 : null;
+    return {
+      revenue: pctChange(cur.net_revenue, prev.net_revenue),
+      orders: pctChange(cur.check_count, prev.check_count),
+      avgCheck: pctChange(cur.avg_check_size, prev.avg_check_size),
+      health: null as number | null, // Health score has no historical comparison
+    };
+  }, [periodComp]);
+
+  // ── Hourly chart data from API ─────────────────────────────────────────────
+
+  const hourlyData = useMemo(() => {
+    const todayHours = hourlyToday?.hourly ?? [];
+    const yesterdayHours = hourlyYesterday?.hourly ?? [];
+
+    if (todayHours.length === 0 && yesterdayHours.length === 0) return [];
+
+    // Build a map from hour -> data for both days
+    const todayMap = new Map(todayHours.map((h: any) => [h.hour, h.revenue / 100]));
+    const yesterdayMap = new Map(yesterdayHours.map((h: any) => [h.hour, h.revenue / 100]));
+
+    // Build cumulative revenue by hour (6am–midnight)
+    let todayCum = 0;
+    let yestCum = 0;
+    const result: { hour: string; today: number; yesterday: number }[] = [];
+
+    for (let h = 6; h <= 23; h++) {
+      todayCum += todayMap.get(h) ?? 0;
+      yestCum += yesterdayMap.get(h) ?? 0;
+      result.push({
+        hour: formatHourLabel(h),
+        today: Math.round(todayCum),
+        yesterday: Math.round(yestCum),
+      });
+    }
+
+    return result;
+  }, [hourlyToday, hourlyYesterday]);
+
+  // ── Activity feed from live API data ───────────────────────────────────────
+
+  const activityFeed = useMemo(() => {
+    const items: { id: string; icon: string; text: string; ts: string; border: string }[] = [];
+
+    // Add alerts as activity items
+    (alerts ?? []).forEach((alert: any) => {
+      const severityIcon = alert.severity === 'critical' ? '!!' : alert.severity === 'warning' ? '!' : 'i';
+      const severityBorder =
+        alert.severity === 'critical'
+          ? 'border-red-500'
+          : alert.severity === 'warning'
+          ? 'border-amber-500'
+          : 'border-blue-500';
+      items.push({
+        id: `alert-${alert.alert_id}`,
+        icon: severityIcon === '!!' ? '!!' : severityIcon === '!' ? '!' : 'i',
+        text: `Alert: ${alert.title}`,
+        ts: alert.created_at ?? new Date().toISOString(),
+        border: severityBorder,
+      });
+    });
+
+    // Add revenue milestone from PnL
+    if (pnl && revenue > 0) {
+      items.push({
+        id: 'pnl-revenue',
+        icon: '$',
+        text: `Revenue today: ${fmtEGP(revenue)} across ${orderCount} orders (avg check ${fmtEGP(avgCheck)})`,
+        ts: pnl.period_end ?? new Date().toISOString(),
+        border: 'border-emerald-500',
+      });
+      if (pnl.gross_margin > 0) {
+        items.push({
+          id: 'pnl-margin',
+          icon: '%',
+          text: `Gross margin at ${pnl.gross_margin.toFixed(1)}% — Gross profit ${fmtEGP(pnl.gross_profit)}`,
+          ts: pnl.period_end ?? new Date().toISOString(),
+          border: 'border-emerald-500',
+        });
+      }
+    }
+
+    // Add staff on shift from labor data
+    if (labor && (labor as any).employee_count > 0) {
+      items.push({
+        id: 'labor-shift',
+        icon: '#',
+        text: `${(labor as any).employee_count} employees on shift — labor cost ${((labor as any).labor_cost_pct ?? 0).toFixed(1)}% of revenue`,
+        ts: new Date().toISOString(),
+        border: 'border-blue-500',
+      });
+    }
+
+    // Add kitchen capacity from capacity data
+    if (capacity && (capacity as any).total_capacity_pct != null) {
+      const capPct = (capacity as any).total_capacity_pct;
+      items.push({
+        id: 'kitchen-cap',
+        icon: capPct >= 80 ? '!!' : 'i',
+        text: `Kitchen at ${capPct.toFixed(0)}% capacity — ${(capacity as any).active_tickets ?? 0} active tickets`,
+        ts: new Date().toISOString(),
+        border: capPct >= 80 ? 'border-red-500' : capPct >= 50 ? 'border-amber-500' : 'border-emerald-500',
+      });
+    }
+
+    // Sort by time descending
+    items.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+
+    return items;
+  }, [alerts, pnl, revenue, orderCount, avgCheck, labor, capacity]);
 
   const channelData = useMemo(() => {
     const ch = pnl?.by_channel ?? {};
@@ -350,7 +391,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs text-slate-400">Live</span>
+          <span className="text-xs text-slate-400">{updatedAgoText}</span>
         </div>
       </div>
 
@@ -363,7 +404,7 @@ export default function DashboardPage() {
             <div className="p-2 rounded-xl bg-emerald-500/10">
               <DollarSign className="w-5 h-5 text-emerald-400" />
             </div>
-            <DeltaBadge delta={DEMO_DELTAS.revenue} />
+            <DeltaBadge delta={deltas.revenue} />
           </div>
           <SectionLabel>Revenue Today</SectionLabel>
           <p className="text-3xl font-bold text-white leading-none">
@@ -377,7 +418,7 @@ export default function DashboardPage() {
             <div className="p-2 rounded-xl bg-blue-500/10">
               <ShoppingBag className="w-5 h-5 text-blue-400" />
             </div>
-            <DeltaBadge delta={DEMO_DELTAS.orders} />
+            <DeltaBadge delta={deltas.orders} />
           </div>
           <SectionLabel>Orders Today</SectionLabel>
           <p className="text-3xl font-bold text-white leading-none">
@@ -391,7 +432,7 @@ export default function DashboardPage() {
             <div className="p-2 rounded-xl bg-amber-500/10">
               <Target className="w-5 h-5 text-amber-400" />
             </div>
-            <DeltaBadge delta={DEMO_DELTAS.avgCheck} />
+            <DeltaBadge delta={deltas.avgCheck} />
           </div>
           <SectionLabel>Avg Check Size</SectionLabel>
           <p className="text-3xl font-bold text-white leading-none">
@@ -405,7 +446,7 @@ export default function DashboardPage() {
             <div className="p-2 rounded-xl bg-pink-500/10">
               <Heart className="w-5 h-5 text-pink-400" />
             </div>
-            <DeltaBadge delta={DEMO_DELTAS.health} />
+            <DeltaBadge delta={deltas.health} />
           </div>
           <SectionLabel>Health Score</SectionLabel>
           <p className="text-3xl font-bold text-white leading-none">
@@ -427,6 +468,7 @@ export default function DashboardPage() {
               Revenue by Hour
             </p>
           </div>
+          {hourlyData.length > 0 ? (
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={hourlyData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -467,6 +509,11 @@ export default function DashboardPage() {
               />
             </LineChart>
           </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[220px] text-slate-400 text-sm">
+              No hourly data available yet
+            </div>
+          )}
         </Card>
 
         {/* Channel Mix Donut */}
@@ -923,26 +970,49 @@ export default function DashboardPage() {
           <p className="text-sm font-bold text-white uppercase tracking-wider">Recent Activity</p>
         </div>
 
+        {activityFeed.length > 0 ? (
         <div
           className="space-y-1 overflow-y-auto"
           style={{ maxHeight: 320 }}
         >
-          {ACTIVITY_FEED.map((event) => (
+          {activityFeed.map((event) => {
+            const iconMap: Record<string, string> = {
+              '!!': '!!', '!': '!', 'i': 'i', '$': '$', '%': '%', '#': '#',
+            };
+            const iconColorMap: Record<string, string> = {
+              '!!': 'bg-red-500/20 text-red-400',
+              '!': 'bg-amber-500/20 text-amber-400',
+              'i': 'bg-blue-500/20 text-blue-400',
+              '$': 'bg-emerald-500/20 text-emerald-400',
+              '%': 'bg-emerald-500/20 text-emerald-400',
+              '#': 'bg-blue-500/20 text-blue-400',
+            };
+            return (
             <div
               key={event.id}
               className={`flex items-start gap-3 p-3 rounded-xl hover:bg-white/3 transition-colors border-l-2 ${event.border}`}
             >
-              <span className="text-base leading-none shrink-0 mt-0.5">{event.icon}</span>
+              <span className={`shrink-0 mt-0.5 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${iconColorMap[event.icon] ?? 'bg-slate-500/20 text-slate-400'}`}>
+                {iconMap[event.icon] ?? event.icon}
+              </span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-slate-300 leading-relaxed">{event.text}</p>
               </div>
               <span className="text-xs text-slate-400 shrink-0 whitespace-nowrap">{timeAgo(event.ts)}</span>
             </div>
-          ))}
+            );
+          })}
         </div>
+        ) : (
+          <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
+            No recent activity
+          </div>
+        )}
 
         {/* Bottom fade gradient */}
+        {activityFeed.length > 0 && (
         <div className="relative -mb-5 mx-0 h-8 bg-gradient-to-t from-slate-900/90 to-transparent rounded-b-2xl pointer-events-none" />
+        )}
       </Card>
     </div>
   );

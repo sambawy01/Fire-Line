@@ -1766,4 +1766,70 @@ export const intelligenceApi = {
   },
 };
 
+// Adapters
+
+export type AdapterStatusValue = 'active' | 'initializing' | 'errored' | 'disconnected';
+
+export interface DataFreshness {
+  DataType: string;
+  LastSyncAt: string;
+  RecordCount: number;
+}
+
+export interface AdapterStatusResponse {
+  adapter: string;
+  status: AdapterStatusValue;
+  healthy: boolean;
+  freshness: Record<string, DataFreshness>;
+}
+
+export interface AdapterSyncResponse {
+  status: string;
+}
+
+export interface AdapterImportResponse {
+  status: string;
+  days: number;
+  since: string;
+  orders_synced: number;
+  items_synced: number;
+  employees_synced: number;
+}
+
+export const adapterApi = {
+  /** Fetch Loyverse adapter status. Returns the response even on 503 (disconnected). */
+  async getLoyverseStatus(): Promise<AdapterStatusResponse> {
+    const token = localStorage.getItem('access_token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+    const res = await fetch(`${API_BASE}/adapters/loyverse/status`, { headers });
+    // 200 = active, 503 = not active — both return valid JSON status
+    if (res.status === 200 || res.status === 503) {
+      return res.json();
+    }
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, body.error?.code || 'UNKNOWN', body.error?.message || res.statusText);
+  },
+
+  triggerLoyverseSync() {
+    return request<AdapterSyncResponse>('/adapters/loyverse/sync', { method: 'POST' });
+  },
+
+  triggerLoyverseImport(days = 30) {
+    return request<AdapterImportResponse>('/adapters/loyverse/import', {
+      method: 'POST',
+      body: JSON.stringify({ days }),
+    });
+  },
+
+  connectLoyverse(data: { api_token: string; store_id: string; org_id: string; location_id: string }) {
+    return request<{ status: string; adapter: string }>('/adapters/loyverse/connect', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
 export { ApiError };

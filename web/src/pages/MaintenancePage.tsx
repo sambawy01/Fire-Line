@@ -715,25 +715,46 @@ function ScheduleTab({ locationId }: { locationId: string | null }) {
 
 // ── Tab 4: Analytics ─────────────────────────────────────────────────────────
 
+/** Derive monthly maintenance costs from completed tickets over the last 6 months */
+function computeMonthlyCosts(tickets: MaintenanceTicket[]): { month: string; cost: number }[] {
+  const now = new Date();
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months: { month: string; year: number; monthIdx: number; cost: number }[] = [];
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ month: monthNames[d.getMonth()], year: d.getFullYear(), monthIdx: d.getMonth(), cost: 0 });
+  }
+
+  // Sum actual_cost from completed tickets into the appropriate month bucket
+  tickets.forEach((t) => {
+    if (t.status !== 'completed' || !t.completed_at) return;
+    const completedDate = new Date(t.completed_at);
+    const bucket = months.find(
+      (m) => m.monthIdx === completedDate.getMonth() && m.year === completedDate.getFullYear()
+    );
+    if (bucket) {
+      bucket.cost += t.actual_cost;
+    }
+  });
+
+  return months.map(({ month, cost }) => ({ month, cost }));
+}
+
 function AnalyticsTab({ locationId }: { locationId: string | null }) {
   const { data: stats, isLoading } = useMaintenanceStats(locationId);
+  const { data: ticketsData, isLoading: ticketsLoading } = useMaintenanceTickets(locationId);
 
-  if (isLoading) return <LoadingSpinner size="lg" />;
+  if (isLoading || ticketsLoading) return <LoadingSpinner size="lg" />;
   if (!stats) return <div className="text-slate-400 text-center py-12">No analytics data available.</div>;
 
   const uptimePct = stats.total_equipment > 0
     ? Math.round((stats.operational_count / stats.total_equipment) * 100)
     : 0;
 
-  // Demo data for monthly costs chart (last 6 months)
-  const monthlyCosts = [
-    { month: 'Oct', cost: 185000 },
-    { month: 'Nov', cost: 220000 },
-    { month: 'Dec', cost: 175000 },
-    { month: 'Jan', cost: 310000 },
-    { month: 'Feb', cost: 195000 },
-    { month: 'Mar', cost: stats.total_cost_this_month },
-  ];
+  // Compute monthly costs from real completed tickets
+  const allTickets = ticketsData?.tickets ?? [];
+  const monthlyCosts = computeMonthlyCosts(allTickets);
   const maxCost = Math.max(...monthlyCosts.map((m) => m.cost), 1);
 
   // Ticket type colors

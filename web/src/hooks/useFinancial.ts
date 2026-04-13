@@ -1,5 +1,40 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financialApi } from '../lib/api';
+import type { PnL } from '../lib/api';
+
+/**
+ * Fetch the last 7 days of daily PnL for sparkline data.
+ * Returns an array of { day: number, value: number } where value is net_revenue in piasters.
+ */
+export function useWeeklyRevenue(locationId: string | null) {
+  return useQuery({
+    queryKey: ['financial', 'weekly-revenue', locationId],
+    queryFn: async () => {
+      const days: { day: number; value: number }[] = [];
+      const now = new Date();
+      const promises: Promise<PnL>[] = [];
+
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        promises.push(financialApi.getPnL(locationId!, dateStr, dateStr));
+      }
+
+      const results = await Promise.allSettled(promises);
+      results.forEach((result, idx) => {
+        days.push({
+          day: idx,
+          value: result.status === 'fulfilled' ? Math.round((result.value.net_revenue ?? 0) / 100) : 0,
+        });
+      });
+
+      return days;
+    },
+    enabled: !!locationId,
+    staleTime: 5 * 60_000, // 5 minutes — historical data doesn't change often
+  });
+}
 
 export function usePnL(locationId: string | null) {
   return useQuery({

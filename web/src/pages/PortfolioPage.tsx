@@ -22,7 +22,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useLocationStore } from '../stores/location';
-import { usePnL } from '../hooks/useFinancial';
+import { usePnL, useWeeklyRevenue } from '../hooks/useFinancial';
 import { useHealth } from '../hooks/useOperations';
 import { useAlertQueue, useAlertCount } from '../hooks/useAlerts';
 import { useLaborSummary } from '../hooks/useLabor';
@@ -39,20 +39,88 @@ const tickerStyle = `
 }
 `;
 
-// ── AI Insights for ticker ────────────────────────────────────────────────────
+// ── AI Insights generator — builds ticker strings from real API data ─────────
 
-const AI_INSIGHTS = [
-  "📈 Ceviche Clásico sales up 23% this week at Nimbu El Gouna — consider featuring in social media",
-  "⚠️ Beef Tenderloin cost spike detected — 3 menu items affected, margin impact: -2.1%",
-  "🎯 Pisco Sour is the #1 margin contributor across all branches at 78% gross margin",
-  "👥 5 VIP customers at risk of churning — combined monthly value: EGP 12,000",
-  "🔄 Auto-PO generated for Sysco Egypt — 8 items below reorder point at Nimbu New Cairo",
-  "📊 Nimbu Zayed outperforming chain average by 12% on food cost control",
-  "🌡️ Kitchen capacity at Nimbu North Coast hit 92% during Friday dinner — consider overflow prep",
-  "💡 Empanadas velocity up 22% after portion adjustment — reclassified to crowd_pleaser",
-  "📦 Metro Market OTIF rate dropped to 72% — AI recommends shifting 30% to Seoudi Fresh",
-  "🎉 Loyalty program: 15 active members, 24 transactions, EGP 3,200 in points issued",
-];
+interface InsightInputs {
+  branchRows: { name: string; shortName: string; revenue: number; margin: number; health: number; alerts: number }[];
+  totalAlerts: number;
+  avgHealth: number;
+  totalRevenue: number;
+  totalChecks: number;
+}
+
+function generateInsights(inputs: InsightInputs): string[] {
+  const { branchRows, totalAlerts, avgHealth, totalRevenue, totalChecks } = inputs;
+  const insights: string[] = [];
+
+  // Chain-wide revenue
+  if (totalRevenue > 0) {
+    insights.push(`Chain revenue today: EGP ${Math.round(totalRevenue / 100).toLocaleString()} across ${totalChecks.toLocaleString()} checks`);
+  }
+
+  // Chain health
+  if (avgHealth > 0) {
+    const label = avgHealth >= 75 ? 'healthy' : avgHealth >= 50 ? 'fair' : 'needs attention';
+    insights.push(`Chain health score: ${avgHealth}/100 — ${label}`);
+  }
+
+  // Alert summary
+  if (totalAlerts > 0) {
+    insights.push(`${totalAlerts} active alert${totalAlerts !== 1 ? 's' : ''} require attention across all branches`);
+  } else if (branchRows.length > 0) {
+    insights.push('All clear — zero active alerts across the chain');
+  }
+
+  // Per-branch insights
+  const validBranches = branchRows.filter((b) => b.revenue > 0 || b.health > 0);
+
+  // Top revenue branch
+  if (validBranches.length > 1) {
+    const sorted = [...validBranches].sort((a, b) => b.revenue - a.revenue);
+    const top = sorted[0];
+    insights.push(`${top.shortName} is leading today's revenue at EGP ${Math.round(top.revenue / 100).toLocaleString()}`);
+  }
+
+  // Best margin branch
+  if (validBranches.length > 1) {
+    const byMargin = [...validBranches].sort((a, b) => b.margin - a.margin);
+    const best = byMargin[0];
+    if (best.margin > 0) {
+      insights.push(`${best.shortName} has the highest gross margin at ${best.margin.toFixed(1)}%`);
+    }
+  }
+
+  // Low health branches
+  validBranches.forEach((b) => {
+    if (b.health > 0 && b.health < 50) {
+      insights.push(`${b.shortName} health score at ${Math.round(b.health)} — needs immediate attention`);
+    }
+  });
+
+  // Branches with alerts
+  validBranches.forEach((b) => {
+    if (b.alerts > 3) {
+      insights.push(`${b.shortName} has ${b.alerts} active alerts — review recommended`);
+    }
+  });
+
+  // Chain average comparisons
+  if (validBranches.length > 1) {
+    const avgRev = validBranches.reduce((s, b) => s + b.revenue, 0) / validBranches.length;
+    const overPerformers = validBranches.filter((b) => b.revenue > avgRev * 1.1);
+    overPerformers.forEach((b) => {
+      const pct = Math.round(((b.revenue - avgRev) / avgRev) * 100);
+      insights.push(`${b.shortName} outperforming chain average revenue by ${pct}%`);
+    });
+  }
+
+  // Fallback if we have no data yet
+  if (insights.length === 0) {
+    insights.push('Loading real-time insights...');
+  }
+
+  return insights;
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -142,14 +210,9 @@ function HealthCircle({ score, size = 64 }: { score: number; size?: number }) {
   );
 }
 
-// ── Sparkline placeholder data (7 days) ─────────────────────────────────────
+// ── Sparkline — empty flat fallback when data is unavailable ─────────────────
 
-function generateSparkData(seed: number) {
-  return Array.from({ length: 7 }, (_, i) => ({
-    day: i,
-    value: Math.max(20, Math.round(60 + (Math.sin((seed + i) * 1.3) * 25) + Math.random() * 15)),
-  }));
-}
+const EMPTY_SPARK_DATA = Array.from({ length: 7 }, (_, i) => ({ day: i, value: 0 }));
 
 // ── Status Dot ───────────────────────────────────────────────────────────────
 
@@ -172,16 +235,16 @@ interface BranchCardProps {
   locationId: string;
   name: string;
   city: string;
-  seed: number;
   onClick: () => void;
 }
 
-function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) {
+function BranchCard({ locationId, name, city, onClick }: BranchCardProps) {
   const { data: pnl, isLoading: pnlLoading } = usePnL(locationId);
   const { data: health, isLoading: healthLoading } = useHealth(locationId);
   const { data: alertCount } = useAlertCount(locationId);
   const { data: alerts } = useAlertQueue(locationId);
   const { data: labor } = useLaborSummary(locationId);
+  const { data: weeklyRevenue } = useWeeklyRevenue(locationId);
 
   const healthScore = Math.round(health?.overall_score ?? 0);
   const revenue = pnl?.net_revenue ?? 0;
@@ -192,7 +255,7 @@ function BranchCard({ locationId, name, city, seed, onClick }: BranchCardProps) 
   const warningAlerts = (alerts ?? []).filter((a: any) => a.severity === 'warning').length;
   const staffOnShift = (labor as any)?.total_shifts ?? (labor as any)?.employee_count ?? 0;
 
-  const sparkData = generateSparkData(seed);
+  const sparkData = weeklyRevenue ?? EMPTY_SPARK_DATA;
 
   const cardGradient =
     healthScore >= 75
@@ -671,11 +734,14 @@ function ChainComparisonTable({ branches }: { branches: BranchKPIRow[] }) {
 
 // ── Feature 2: AI Insights Ticker ────────────────────────────────────────────
 
-function AIInsightsTicker() {
+function AIInsightsTicker({ insights }: { insights: string[] }) {
+  if (insights.length === 0) return null;
+  // Duplicate for seamless scroll loop
+  const tickerItems = [...insights, ...insights];
   return (
     <div className="overflow-hidden bg-slate-900/50 border-y border-white/5 py-3">
       <div className="animate-scroll-left flex gap-12 whitespace-nowrap">
-        {[...AI_INSIGHTS, ...AI_INSIGHTS].map((insight, i) => (
+        {tickerItems.map((insight, i) => (
           <span key={i} className="text-sm text-slate-300">{insight}</span>
         ))}
       </div>
@@ -2205,13 +2271,12 @@ export default function PortfolioPage() {
         {/* Branch Cards Grid */}
         {locations.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            {locations.map((loc, idx) => (
+            {locations.map((loc) => (
               <BranchCard
                 key={loc.id}
                 locationId={loc.id}
                 name={loc.name}
                 city={LOCATION_CITIES[loc.name] ?? loc.name}
-                seed={idx * 7 + 3}
                 onClick={() => handleBranchClick(loc.id)}
               />
             ))}
@@ -2231,7 +2296,7 @@ export default function PortfolioPage() {
         )}
 
         {/* Feature 2: AI Insights Ticker */}
-        <AIInsightsTicker />
+        <AIInsightsTicker insights={generateInsights({ branchRows, totalAlerts, avgHealth, totalRevenue, totalChecks })} />
 
         {/* Feature 4: Revenue Race */}
         {branchRows.length > 0 && (

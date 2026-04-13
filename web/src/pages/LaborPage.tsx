@@ -6,6 +6,7 @@ import {
   useLaborEmployees,
   useProfiles,
   useLeaderboard,
+  usePointHistory,
 } from '../hooks/useLabor';
 import { laborApi } from '../lib/api';
 import KPICard from '../components/ui/KPICard';
@@ -60,17 +61,21 @@ function TrendArrow({ trend }: { trend: Trend }) {
   return <span className="text-slate-300 font-bold">→</span>;
 }
 
-// ─── Demo point history data ─────────────────────────────────────────────────
-
-const DEMO_POINT_HISTORY = [
-  { id: '1', delta: 5, label: 'Task Completion', detail: 'Prep station cleanup', time: '2 hours ago' },
-  { id: '2', delta: 3, label: 'Speed Bonus', detail: 'Under 10 min ticket time', time: 'Yesterday' },
-  { id: '3', delta: 2, label: 'Attendance', detail: 'On-time clock-in', time: 'Yesterday' },
-  { id: '4', delta: -3, label: 'Late', detail: '8 min late for shift', time: '3 days ago' },
-  { id: '5', delta: 10, label: 'Peer Nominated', detail: 'Team player award', time: 'Last week' },
-];
-
 const ELU_STATIONS = ['grill', 'saute', 'prep', 'expo', 'bar', 'fryer', 'dish'];
+
+/** Format a timestamp into a human-readable relative time string */
+function formatRelativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  return `${Math.floor(days / 7)} week${Math.floor(days / 7) !== 1 ? 's' : ''} ago`;
+}
 
 // ─── Expanded Profile Panel ──────────────────────────────────────────────────
 
@@ -81,6 +86,8 @@ interface ExpandedProfilePanelProps {
 }
 
 function ExpandedProfilePanel({ profile, overviewEmployee, onClose }: ExpandedProfilePanelProps) {
+  const { data: pointHistoryData, isLoading: pointsLoading } = usePointHistory(profile.employee_id);
+  const pointEvents = pointHistoryData?.events ?? [];
   const avg = eluAvg(profile.elu_ratings);
 
   // Build station map — show all 7 canonical stations, default 0 if missing
@@ -195,25 +202,37 @@ function ExpandedProfilePanel({ profile, overviewEmployee, onClose }: ExpandedPr
         <h4 className="text-sm font-semibold text-slate-200 mb-3 uppercase tracking-wide">
           Recent Point History
         </h4>
-        <ul className="space-y-2">
-          {DEMO_POINT_HISTORY.map((ev) => (
-            <li key={ev.id} className="flex items-center gap-3 text-sm">
-              <span
-                className={`font-bold w-10 text-right shrink-0 ${
-                  ev.delta >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}
-              >
-                {ev.delta >= 0 ? '+' : ''}{ev.delta}
-              </span>
-              <div className="flex-1 min-w-0">
-                <span className="font-medium text-slate-200">{ev.label}</span>
-                <span className="text-slate-400 mx-1">—</span>
-                <span className="text-slate-400">{ev.detail}</span>
-              </div>
-              <span className="text-xs text-slate-500 shrink-0">{ev.time}</span>
-            </li>
-          ))}
-        </ul>
+        {pointsLoading ? (
+          <div className="flex justify-center py-4">
+            <LoadingSpinner />
+          </div>
+        ) : pointEvents.length === 0 ? (
+          <p className="text-sm text-slate-500 italic">No point history recorded</p>
+        ) : (
+          <ul className="space-y-2">
+            {pointEvents.map((ev) => (
+              <li key={ev.event_id} className="flex items-center gap-3 text-sm">
+                <span
+                  className={`font-bold w-10 text-right shrink-0 ${
+                    ev.points >= 0 ? 'text-green-400' : 'text-red-400'
+                  }`}
+                >
+                  {ev.points >= 0 ? '+' : ''}{ev.points}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium text-slate-200">{ev.reason}</span>
+                  {ev.description && (
+                    <>
+                      <span className="text-slate-400 mx-1">—</span>
+                      <span className="text-slate-400">{ev.description}</span>
+                    </>
+                  )}
+                </div>
+                <span className="text-xs text-slate-500 shrink-0">{formatRelativeTime(ev.created_at)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

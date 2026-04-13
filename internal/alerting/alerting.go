@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/opsnerve/fireline/internal/event"
 )
 
@@ -52,15 +54,22 @@ type RuleEvaluator func(ctx context.Context, env event.Envelope) *Alert
 // Service manages alert rules and the priority action queue.
 type Service struct {
 	bus   *event.Bus
+	pool  *pgxpool.Pool // nil = in-memory fallback (tests)
 	mu    sync.RWMutex
 	rules []Rule
-	queue []Alert // priority action queue (in-memory for now)
+	queue []Alert // in-memory fallback when pool is nil
 	seq   int64
 }
 
 // New creates a new alerting service.
-func New(bus *event.Bus) *Service {
-	return &Service{bus: bus}
+// Pass a non-nil pool to persist alerts to PostgreSQL.
+// Pass nil to use the in-memory queue (unit tests).
+func New(bus *event.Bus, pool ...*pgxpool.Pool) *Service {
+	s := &Service{bus: bus}
+	if len(pool) > 0 {
+		s.pool = pool[0]
+	}
+	return s
 }
 
 // AddRule registers an alert rule.
@@ -145,14 +154,32 @@ func (s *Service) RegisterDefaultRules() {
 	})
 }
 
+// setTenantCtx sets the RLS tenant context on a connection within a transaction.
+func (s *Service) withTenantTx(ctx context.Context, orgID string, fn func(tx pgx.Tx) error) error {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	if _, err := tx.Exec(ctx, "SELECT set_config('app.current_org_id', $1, true)", orgID); err != nil {
+		return err
+	}
+	if err := fn(tx); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
 // enqueue adds an alert to the priority action queue.
 func (s *Service) enqueue(alert Alert) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.seq++
-	alert.AlertID = formatAlertID(s.seq)
 	alert.CreatedAt = time.Now()
-	s.queue = append(s.queue, alert)
+
+	if s.pool != nil {
+		s.enqueuePG(&alert)
+	} else {
+		s.enqueueMemory(&alert)
+	}
 
 	slog.Info("alert enqueued",
 		"alert_id", alert.AlertID,
@@ -173,8 +200,50 @@ func (s *Service) enqueue(alert Alert) {
 	})
 }
 
+// enqueuePG inserts an alert into PostgreSQL.
+func (s *Service) enqueuePG(alert *Alert) {
+	ctx := context.Background()
+	err := s.withTenantTx(ctx, alert.OrgID, func(tx pgx.Tx) error {
+		var locationID *string
+		if alert.LocationID != "" {
+			locationID = &alert.LocationID
+		}
+		return tx.QueryRow(ctx,
+			`INSERT INTO alerts (org_id, location_id, module, severity, title, description, status, created_at, updated_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)
+			 RETURNING alert_id::text`,
+			alert.OrgID, locationID, alert.Module, string(alert.Severity),
+			alert.Title, alert.Description, alert.Status, alert.CreatedAt,
+		).Scan(&alert.AlertID)
+	})
+	if err != nil {
+		slog.Error("failed to persist alert, falling back to memory", "error", err)
+		s.enqueueMemory(alert)
+	}
+}
+
+// enqueueMemory adds an alert to the in-memory queue (fallback / tests).
+func (s *Service) enqueueMemory(alert *Alert) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.seq++
+	if alert.AlertID == "" {
+		alert.AlertID = formatAlertID(s.seq)
+	}
+	s.queue = append(s.queue, *alert)
+}
+
 // GetQueue returns active alerts, ordered by severity (critical first).
 func (s *Service) GetQueue(orgID, locationID string) []Alert {
+	if s.pool != nil {
+		results, err := s.getQueuePG(orgID, locationID)
+		if err != nil {
+			slog.Error("failed to query alerts from DB, falling back to memory", "error", err)
+		} else {
+			return results
+		}
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -192,8 +261,56 @@ func (s *Service) GetQueue(orgID, locationID string) []Alert {
 	return results
 }
 
+// getQueuePG reads active alerts from PostgreSQL sorted by severity priority then created_at DESC.
+func (s *Service) getQueuePG(orgID, locationID string) ([]Alert, error) {
+	ctx := context.Background()
+	query := `SELECT alert_id::text, org_id::text, COALESCE(location_id::text, ''), module,
+	                 severity, title, COALESCE(description, ''), status, created_at
+	          FROM alerts
+	          WHERE org_id = $1 AND status = 'active'`
+	args := []any{orgID}
+
+	if locationID != "" {
+		query += ` AND location_id = $2`
+		args = append(args, locationID)
+	}
+
+	query += ` ORDER BY
+	             CASE severity WHEN 'critical' THEN 0 WHEN 'warning' THEN 1 ELSE 2 END,
+	             created_at DESC`
+
+	var results []Alert
+	err := s.withTenantTx(ctx, orgID, func(tx pgx.Tx) error {
+		rows, err := tx.Query(ctx, query, args...)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var a Alert
+			if err := rows.Scan(&a.AlertID, &a.OrgID, &a.LocationID, &a.Module,
+				&a.Severity, &a.Title, &a.Description, &a.Status, &a.CreatedAt); err != nil {
+				return err
+			}
+			results = append(results, a)
+		}
+		return rows.Err()
+	})
+	return results, err
+}
+
 // Acknowledge marks an alert as acknowledged.
-func (s *Service) Acknowledge(alertID string) bool {
+func (s *Service) Acknowledge(alertID string, acknowledgedBy ...string) bool {
+	if s.pool != nil {
+		ok, err := s.acknowledgePG(alertID, acknowledgedBy...)
+		if err != nil {
+			slog.Error("failed to acknowledge alert in DB, falling back to memory", "error", err)
+		} else {
+			return ok
+		}
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -208,8 +325,46 @@ func (s *Service) Acknowledge(alertID string) bool {
 	return false
 }
 
+func (s *Service) acknowledgePG(alertID string, acknowledgedBy ...string) (bool, error) {
+	ctx := context.Background()
+	var ackedBy *string
+	if len(acknowledgedBy) > 0 && acknowledgedBy[0] != "" {
+		ackedBy = &acknowledgedBy[0]
+	}
+
+	// We need the org_id to set tenant context. Query without RLS first via admin pool.
+	var orgID string
+	err := s.pool.QueryRow(ctx, "SELECT org_id::text FROM alerts WHERE alert_id = $1", alertID).Scan(&orgID)
+	if err != nil {
+		return false, err
+	}
+
+	var updated bool
+	err = s.withTenantTx(ctx, orgID, func(tx pgx.Tx) error {
+		tag, err := tx.Exec(ctx,
+			`UPDATE alerts SET status = 'acknowledged', acknowledged_by = $1, updated_at = now()
+			 WHERE alert_id = $2 AND status = 'active'`,
+			ackedBy, alertID)
+		if err != nil {
+			return err
+		}
+		updated = tag.RowsAffected() > 0
+		return nil
+	})
+	return updated, err
+}
+
 // Resolve marks an alert as resolved.
-func (s *Service) Resolve(alertID string) bool {
+func (s *Service) Resolve(alertID string, resolvedBy ...string) bool {
+	if s.pool != nil {
+		ok, err := s.resolvePG(alertID, resolvedBy...)
+		if err != nil {
+			slog.Error("failed to resolve alert in DB, falling back to memory", "error", err)
+		} else {
+			return ok
+		}
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -224,8 +379,45 @@ func (s *Service) Resolve(alertID string) bool {
 	return false
 }
 
-// ActiveCount returns the number of active alerts for an org.
+func (s *Service) resolvePG(alertID string, resolvedBy ...string) (bool, error) {
+	ctx := context.Background()
+	var resBy *string
+	if len(resolvedBy) > 0 && resolvedBy[0] != "" {
+		resBy = &resolvedBy[0]
+	}
+
+	var orgID string
+	err := s.pool.QueryRow(ctx, "SELECT org_id::text FROM alerts WHERE alert_id = $1", alertID).Scan(&orgID)
+	if err != nil {
+		return false, err
+	}
+
+	var updated bool
+	err = s.withTenantTx(ctx, orgID, func(tx pgx.Tx) error {
+		tag, err := tx.Exec(ctx,
+			`UPDATE alerts SET status = 'resolved', resolved_by = $1, updated_at = now()
+			 WHERE alert_id = $2 AND status IN ('active', 'acknowledged')`,
+			resBy, alertID)
+		if err != nil {
+			return err
+		}
+		updated = tag.RowsAffected() > 0
+		return nil
+	})
+	return updated, err
+}
+
+// ActiveCount returns the number of active and acknowledged alerts for an org.
 func (s *Service) ActiveCount(orgID string) int {
+	if s.pool != nil {
+		count, err := s.activeCountPG(orgID)
+		if err != nil {
+			slog.Error("failed to count alerts from DB, falling back to memory", "error", err)
+		} else {
+			return count
+		}
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -236,6 +428,17 @@ func (s *Service) ActiveCount(orgID string) int {
 		}
 	}
 	return count
+}
+
+func (s *Service) activeCountPG(orgID string) (int, error) {
+	ctx := context.Background()
+	var count int
+	err := s.withTenantTx(ctx, orgID, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx,
+			`SELECT count(*) FROM alerts WHERE org_id = $1 AND status IN ('active', 'acknowledged')`,
+			orgID).Scan(&count)
+	})
+	return count, err
 }
 
 // SeedAlerts injects demo alerts for development/testing purposes.
